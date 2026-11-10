@@ -4,6 +4,18 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Voice-dictated WhatsApp and SMS messages (2026-11-10) — feature/voice-messages
+**Added**
+- Parents can dictate a message: "पंकजला व्हॉट्सॲप कर आणि सांग की तू कधी येणार आहेस घरी", "pankaj ko whatsapp karo ki main late aaungi", "text Pankaj that dinner is ready". `Dictation.kt` reads the person (saved name, alias or relation word; Marathi/Hindi endings -ला/-ना/-को/-la/-ko; misheard names like "पंकच" for Pankaj), the app (WhatsApp spellings such as वाटसब/व्हॉट्सॲप/व्हाट्सएप/whats app, or SMS/मेसेज/message/msg/text) and the message after सांग की / बोल की / कह दो कि / bol ki / bata do ki / tell him that / say that, or everything after the verb.
+- On-device rewrite of the message (rules only, nothing leaves the phone): drops a leading की/कि/that, splits a question from what follows at आणि/और/and, moves a trailing place word in front of the question word ("तू कधी येणार आहेस घरी" -> "तू घरी कधी येणार आहेस?"), ends questions with "?", capitalises English. The parent's words and person (तू/तुम/you) are kept.
+- Message confirm screen: who it is for (initial + name), the message in large type (tap to edit, or Speak again), read back aloud in the parent's language ("Pankaj ला हा मेसेज पाठवू? ..."). "WhatsApp वर पाठवा / Send on WhatsApp" opens the chat with the text typed in (WhatsApp or WhatsApp Business); "SMS ने पाठवा / Send as SMS" opens the SMS app. SMS is first when the parent said SMS or WhatsApp isn't installed. A one-time line explains that the parent taps Send in WhatsApp. Unknown name -> "Who should get this message?" with faces; no message -> "What should I say?". No SEND_SMS permission.
+- "messages" usage event in Family settings and the usage export (counts only).
+- Strings in en/hi/mr (drafts, need native review).
+- Tests: 38 parser/rewrite cases (`DictationTest`, including Pankaj's exact sentence, SMS, Hindi, English, unknown recipient, empty message, calls still routed to call), 12 Robolectric UI tests (`MessageUiTest`: edit, WhatsApp intent with the encoded text, WhatsApp Business, SMS fallback, who?/what?, read-back), 2 Roborazzi screenshots (mr, en). 207 JVM tests in total.
+
+**Fixed**
+- JVM tests leaked the saved language and country between tests in one fork (a "Calling Pankaj" vs Marathi TTS failure and a US/India screenshot flip depending on test order). `resetLocalDataForTest` now resets them.
+
 ### Phase 1 milestone B: parent mode S8-S13 (2026-11-10) — phase1/parent-mode
 **Fixed**
 - S12 feedback card: answering Q1 closed the round, so Q2 ("What would make it easier?") never showed. A round now closes when Q2 is saved or skipped, or after two skips of Q1; closed rounds are stored.

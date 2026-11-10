@@ -131,6 +131,7 @@ fun SettingsScreen(model: NexusViewModel) {
                     model.usage.total(Event.ASK_FAMILY),
                     model.usage.total(Event.RIDE),
                     model.usage.total(Event.WHATSAPP),
+                    model.usage.total(Event.MESSAGE),
                 ),
                 style = MaterialTheme.typography.bodyLarge,
             )

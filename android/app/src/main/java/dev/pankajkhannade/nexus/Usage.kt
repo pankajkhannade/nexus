@@ -11,7 +11,9 @@ enum class Event(val key: String) {
     VOICE_FAIL("voice_not_understood"),
     SAFETY_CHECK("safety_checks"),
     ASK_FAMILY("ask_family"),
-    RIDE("rides");
+    RIDE("rides"),
+    /** A voice-dictated message handed to WhatsApp or SMS (the parent still taps Send there). */
+    MESSAGE("messages");
 
     companion object {
         fun from(key: String): Event? = entries.firstOrNull { it.key == key }

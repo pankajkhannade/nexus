@@ -145,7 +145,7 @@
     <string name="perm_off">बंद</string>
     <string name="open_phone_settings">फोन सेटिंग उघडा</string>
     <string name="usage_title">या फोनवरचा वापर</string>
-    <string name="usage_summary">वापराचे दिवस: %1$d · फोन: %2$d · आवाज: %3$d · तपासलेले मेसेज: %4$d · घरच्यांना विचारलं: %5$d · गाडी: %6$d · WhatsApp: %7$d</string>
+    <string name="usage_summary">वापराचे दिवस: %1$d · फोन: %2$d · आवाज: %3$d · तपासलेले मेसेज: %4$d · घरच्यांना विचारलं: %5$d · गाडी: %6$d · WhatsApp: %7$d · पाठवलेले मेसेज: %8$d</string>
     <string name="export_usage">माझा वापर पाठवा</string>
     <string name="export_note">फक्त आकडे आणि फीडबॅकची उत्तरं. नावं, नंबर किंवा मेसेज नाहीत.</string>
     <string name="test_command">कमांड लिहा (तपासणीसाठी)</string>
@@ -173,4 +173,18 @@
     <string name="speak_answer">बोलून सांगा</string>
     <string name="privacy_share_title">आपोआप काहीही जात नाही</string>
     <string name="privacy_share">Nexus स्वतः काहीही पाठवत नाही. मेसेज, कॉल किंवा वापराची माहिती तुम्ही दुसऱ्या ॲपमध्ये पाठवा, कॉल किंवा शेअर दाबल्यावरच फोनबाहेर जाते.</string>
+    <!-- Voice-dictated messages -->
+    <string name="msg_confirm_tts">%1$s ला हा मेसेज पाठवू? %2$s</string>
+    <string name="msg_to">कोणाला: %1$s</string>
+    <string name="msg_who">हा मेसेज कोणाला पाठवायचा?</string>
+    <string name="msg_who_unknown">%1$s सेव्ह केलेले नाहीत. कोणाला पाठवायचा, त्यावर दाबा.</string>
+    <string name="msg_what">काय सांगू?</string>
+    <string name="msg_tap_to_edit">बदलायचा असेल तर मेसेजवर दाबा</string>
+    <string name="msg_edit_label">मेसेज</string>
+    <string name="msg_send_whatsapp">WhatsApp वर पाठवा</string>
+    <string name="msg_send_sms">SMS ने पाठवा</string>
+    <string name="msg_explain_whatsapp">WhatsApp उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे हिरवे Send बटण दाबा.</string>
+    <string name="msg_explain_sms">मेसेज ॲप उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे Send दाबा.</string>
+    <string name="msg_cancel">नको, पाठवू नका</string>
+    <string name="msg_not_opened">ॲप उघडले नाही. दुसरे बटण दाबा.</string>
 </resources>

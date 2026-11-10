@@ -36,6 +36,8 @@ data class Saved(
     val installDay: Long = 0,
     val micAsked: Boolean = false,
     val callAsked: Boolean = false,
+    /** The one-time "you tap Send in WhatsApp" line on the message screen has been shown and used. */
+    val messageExplained: Boolean = false,
     val country: String = "",
     val dial: String = "",
     val countryCode: String = "",
@@ -118,7 +120,7 @@ fun nameMatches(candidate: String, asked: String): Boolean {
     return first == wanted || wanted.length >= 4 && !wanted.contains(' ') && editDistance(first, wanted) <= 1
 }
 
-private fun editDistance(a: String, b: String): Int {
+internal fun editDistance(a: String, b: String): Int {
     var prev = IntArray(b.length + 1) { it }
     for (i in 1..a.length) {
         val cur = IntArray(b.length + 1)

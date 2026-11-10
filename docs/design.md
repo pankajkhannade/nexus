@@ -547,6 +547,10 @@ Exit check for the design before the closed test:
 - Run a cold setup by someone who isn't Pankaj, under 3 minutes.
 - Get the Hindi and Marathi strings reviewed by a native speaker.
 
+### S14 Dictated message (added 2026-11-10, Pankaj's request)
+
+Parent says who, which app and what: "पंकजला व्हॉट्सॲप कर आणि सांग की ...". The confirm screen shows "कोणाला: Pankaj" with the initial, the tidied message in headline type (tap to edit), Speak again, and one green primary button "WhatsApp वर पाठवा" (SMS secondary; SMS primary when asked for or when WhatsApp is missing), plus "नको, पाठवू नका". Nexus reads it back ("Pankaj ला हा मेसेज पाठवू? ..."). WhatsApp or the SMS app opens with the text typed in and the parent taps Send there; a one-time line says so. Screenshots: `android/app/src/test/roborazzi/message_confirm_{mr,en}.png`.
+
 ## 5. Open risks and decisions for Pankaj
 - **Marathi voice may not work on-device** on most Rs 10-25k phones. The fallback is online Google recognition, disclosed in the copy. If Marathi accuracy is poor in testing, Marathi UI and TTS stay, with Hindi or English voice, and tapping faces remains the main path.
 - **`ACTION_CALL` instead of the dialer.** I'm proposing it (one fewer tap, a 3s Cancel). Pankaj can veto it.

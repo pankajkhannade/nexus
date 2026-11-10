@@ -16,6 +16,7 @@
         <package android:name="com.olacabs" />
         <package android:name="com.rapido.passenger" />
         <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
         <intent>
             <action android:name="android.intent.action.DIAL" />
             <data android:scheme="tel" />
