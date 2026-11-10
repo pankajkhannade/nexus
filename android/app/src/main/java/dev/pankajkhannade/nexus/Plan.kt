@@ -19,6 +19,8 @@ data class Reading(
     /** An E.164 number found in the text that does not belong to a saved person. */
     val number: String? = null,
     val trip: Trip? = null,
+    /** True when the spoken name equals the person's saved name or alias exactly (safe to skip the confirm step). */
+    val exact: Boolean = false,
 )
 
 // Unicode-aware word edges. Java's \b breaks on Devanagari vowel signs, so use lookarounds.
@@ -63,7 +65,8 @@ fun readMessage(text: String, saved: Saved): Reading {
     if (clean.isEmpty()) return Reading()
 
     val found = findAsk(clean)
-    val person = found?.let { resolvePerson(it.names, saved.people) }
+    val resolved = found?.let { resolvePerson(it.names, saved.people) }
+    val person = resolved?.first
     val asked = if (person == null) found?.names?.lastOrNull()?.let(::cleanName) else null
 
     val numberInText = PHONE.find(clean)?.value?.let { normalizePhone(it, saved.dial) }
@@ -76,6 +79,7 @@ fun readMessage(text: String, saved: Saved): Reading {
         askedName = if (matched == null && numberInText == null) asked else null,
         number = if (matched == null) numberInText else null,
         trip = readTrip(clean, saved),
+        exact = resolved?.second == true,
     )
 }
 
@@ -108,14 +112,31 @@ private fun cleanName(raw: String): String? {
     return name.takeIf { it.length in 2..40 }
 }
 
-/** Tries each reading, then each trailing sub-phrase ("please Pankaj" -> "Pankaj"). */
-private fun resolvePerson(readings: List<String>, people: List<Person>): Person? {
+/** Relation words a parent may say instead of a name ("मुलाला फोन लाव" calls the person marked Son). */
+private val RELATION_WORDS: Map<String, String> = buildMap {
+    listOf("son", "beta", "bete", "mulga", "mula", "mulala", "बेटा", "बेटे", "मुलगा", "मुला").forEach { put(it, Relation.SON) }
+    listOf("daughter", "beti", "mulgi", "muli", "mulila", "बेटी", "मुलगी", "मुली").forEach { put(it, Relation.DAUGHTER) }
+    listOf("husband", "wife", "pati", "patni", "navra", "bayko", "पति", "पत्नी", "नवरा", "बायको", "अहो").forEach { put(it, Relation.SPOUSE) }
+}
+
+/**
+ * Tries each reading, then each trailing sub-phrase ("please Pankaj" -> "Pankaj"), against the saved
+ * name and the spoken alias, then relation words. Returns the person and whether the match was exact.
+ */
+private fun resolvePerson(readings: List<String>, people: List<Person>): Pair<Person, Boolean>? {
     for (raw in readings) {
         val name = cleanName(raw) ?: continue
         val words = name.split(" ")
         for (i in words.indices) {
             val candidate = words.drop(i).joinToString(" ")
-            people.firstOrNull { nameMatches(it.name, candidate) }?.let { return it }
+            val wanted = candidate.trim().lowercase()
+            people.firstOrNull { it.alias.isNotBlank() && it.alias.trim().lowercase() == wanted }?.let { return it to true }
+            people.firstOrNull { it.name.trim().lowercase() == wanted }?.let { return it to true }
+            people.firstOrNull { nameMatches(it.name, candidate) || (it.alias.isNotBlank() && nameMatches(it.alias, candidate)) }
+                ?.let { return it to false }
+        }
+        RELATION_WORDS[words.last().lowercase()]?.let { relation ->
+            people.filter { it.relation == relation }.singleOrNull()?.let { return it to false }
         }
     }
     return null

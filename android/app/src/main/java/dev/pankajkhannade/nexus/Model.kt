@@ -1,7 +1,26 @@
 package dev.pankajkhannade.nexus
 
-/** A saved person. [phone] is always E.164 (see [normalizePhone]). */
-data class Person(val id: String, val name: String, val phone: String)
+/** Family relation keys. The UI maps them to string resources. */
+object Relation {
+    const val SON = "son"
+    const val DAUGHTER = "daughter"
+    const val SPOUSE = "spouse"
+    const val OTHER = "other"
+    val ALL = listOf(SON, DAUGHTER, SPOUSE, OTHER)
+}
+
+/**
+ * A saved person. [phone] is always E.164 (see [normalizePhone]).
+ * [alias] is how the parent says the name ("Bablu", "पंकज"); [askFamily] marks who receives "Ask family".
+ */
+data class Person(
+    val id: String,
+    val name: String,
+    val phone: String,
+    val relation: String = "",
+    val askFamily: Boolean = false,
+    val alias: String = "",
+)
 
 /** A saved place. Coordinates come from the on-device Geocoder at setup and may be missing. */
 data class Place(val address: String = "", val lat: Double? = null, val lng: Double? = null) {
@@ -11,11 +30,16 @@ data class Place(val address: String = "", val lat: Double? = null, val lng: Dou
 
 data class Saved(
     val setupDone: Boolean = false,
+    /** Parent's language: "mr", "hi" or "en". */
+    val language: String = "",
+    /** Epoch day when setup finished; drives the day-3 / day-7 feedback card. */
+    val installDay: Long = 0,
+    val micAsked: Boolean = false,
+    val callAsked: Boolean = false,
     val country: String = "",
     val dial: String = "",
     val countryCode: String = "",
     val lastCab: String = "",
-    val contactsExplained: Boolean = false,
     val home: Place = Place(),
     val office: Place = Place(),
     val people: List<Person> = emptyList(),
@@ -89,5 +113,20 @@ fun nameMatches(candidate: String, asked: String): Boolean {
     val have = candidate.trim().lowercase().split(Regex("""\s+""")).joinToString(" ") { canonical(it) }
     if (wanted.length < 2 || have.isEmpty()) return false
     if (have == wanted || have.startsWith("$wanted ")) return true
-    return have.substringBefore(" ") == wanted
+    val first = have.substringBefore(" ")
+    // One slip of the speech recogniser ("Rahool" for "Rahul"). Callers treat this as a guess and confirm.
+    return first == wanted || wanted.length >= 4 && !wanted.contains(' ') && editDistance(first, wanted) <= 1
+}
+
+private fun editDistance(a: String, b: String): Int {
+    var prev = IntArray(b.length + 1) { it }
+    for (i in 1..a.length) {
+        val cur = IntArray(b.length + 1)
+        cur[0] = i
+        for (j in 1..b.length) {
+            cur[j] = minOf(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + if (a[i - 1] == b[j - 1]) 0 else 1)
+        }
+        prev = cur
+    }
+    return prev[b.length]
 }

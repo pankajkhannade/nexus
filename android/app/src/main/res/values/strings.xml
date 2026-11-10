@@ -7,105 +7,161 @@
     <string name="continue_">Continue</string>
     <string name="save">Save</string>
     <string name="remove">Remove</string>
+    <string name="edit">Edit</string>
+    <string name="undo">Undo</string>
+    <string name="done">Done</string>
+    <string name="skip">Skip</string>
+    <string name="share">Share</string>
+    <string name="ok">OK</string>
+    <string name="ok_close">OK, close</string>
     <string name="allow">Allow</string>
     <string name="not_now">Not now</string>
+    <string name="no">No</string>
+    <string name="stop">Stop</string>
     <string name="privacy">Privacy</string>
-    <string name="setup_title">Set up Nexus</string>
-    <string name="setup_step">Step %1$d of %2$d. Everything stays on this phone.</string>
-    <string name="country_title">Country</string>
-    <string name="country_hint">Local phone numbers use this country code.</string>
-    <string name="country_item">%1$s (%2$s)</string>
-    <string name="place_home">Home</string>
-    <string name="place_office">Office</string>
-    <string name="place_office_optional">Office (optional)</string>
-    <string name="place_search_hint">Start typing a building, street or area.</string>
-    <string name="place_search_network">Search sends what you type to a map service. The saved address stays on this phone.</string>
-    <string name="place_need_home">Add a home address.</string>
-    <string name="people_intro">Add at least one person. The others are optional.</string>
-    <string name="people_pick">Choose from phone contacts</string>
-    <string name="field_name">Name</string>
+    <string name="setup_step_of">Step %1$d of %2$d</string>
+    <string name="welcome_title">Set up Nexus for your parent</string>
+    <string name="welcome_body">Nexus lets them call family by voice, check a suspicious message, and ask you before they act. It takes about 5 minutes.</string>
+    <string name="language_question">Which language does your parent speak?</string>
+    <string name="play_sample">Hear it</string>
+    <string name="sample_name">Rahul</string>
+    <string name="try_phrase">Call %1$s</string>
+    <string name="voice_missing">This phone has no %1$s voice yet, so Nexus can\'t speak in it. You can add the voice now (it downloads once).</string>
+    <string name="voice_install">Add the voice</string>
+    <string name="welcome_self">Setting it up for yourself? That works too.</string>
+    <string name="family_title">Who should they reach?</string>
+    <string name="family_body">Add up to 4 people. Choose at least one to get “Is this real?” questions.</string>
+    <string name="add_person">Add a person</string>
+    <string name="type_number_instead">Type a number instead</string>
+    <string name="already_added">%1$s already has this number.</string>
+    <string name="need_one_person">Add at least one person.</string>
+    <string name="need_ask_family">Turn on “Gets Is-this-real questions” for at least one person.</string>
+    <string name="ask_tag">Ask family</string>
+    <string name="contact_number_unusable">That contact\'s number can\'t be used. Type it instead.</string>
+    <string name="name_as_said">Name, as your parent says it</string>
     <string name="field_phone">Phone number</string>
-    <string name="person_n">Person %1$d</string>
-    <string name="person_n_optional">Person %1$d (optional)</string>
-    <string name="save_and_continue">Save and start</string>
+    <string name="relation_title">This person is their…</string>
+    <string name="relation_son">Son</string>
+    <string name="relation_daughter">Daughter</string>
+    <string name="relation_spouse">Husband / wife</string>
+    <string name="relation_other">Other</string>
+    <string name="ask_family_toggle">Gets “Is this real?” questions</string>
+    <string name="alias_label">Other name they use (optional)</string>
+    <string name="alias_hint">For example: Bunty, Pinky, Chhotu</string>
+    <string name="person_need_name">Add a name for this number.</string>
+    <string name="person_need_phone">Add a phone number.</string>
     <string name="phone_digits_only">Use digits only.</string>
     <string name="phone_india_length">Indian mobile numbers have 10 digits.</string>
     <string name="phone_india_start">Indian mobile numbers start with 6, 7, 8 or 9.</string>
     <string name="phone_length">Use 8 to 15 digits.</string>
-    <string name="person_need_name">Add a name for this number.</string>
-    <string name="person_need_phone">Add a phone number.</string>
-    <string name="people_need_one">Add at least one person.</string>
-    <string name="contact_number_unusable">That contact\'s number can\'t be used. Type it instead.</string>
-    <string name="home_tagline">Tap a person or a place, or say what you need.</string>
-    <string name="people_title">People</string>
-    <string name="places_title">Rides</string>
-    <string name="go_home">Book a ride home</string>
-    <string name="go_office">Book a ride to the office</string>
-    <string name="add_home">Add a home address</string>
-    <string name="no_people">No one saved yet.</string>
-    <string name="edit_people_places">Edit people and places</string>
-    <string name="command_title">Say or type</string>
-    <string name="command_hint">Call Aai, or pick me up at home</string>
-    <string name="speech_unavailable">Speech recognition isn\'t available on this phone.</string>
-    <string name="found_call">Call %1$s</string>
-    <string name="found_message">WhatsApp %1$s</string>
-    <string name="not_saved">No saved person named %1$s.</string>
-    <string name="find_in_contacts">Find %1$s in contacts</string>
-    <string name="nothing_found">Nexus didn\'t find a person or a place in that. Try \"call Aai\" or \"pick me up at home\".</string>
-    <string name="book_ride">Book a ride</string>
-    <string name="trip_from">From: %1$s</string>
-    <string name="trip_to">To: %1$s</string>
-    <string name="my_location">where you are now</string>
-    <string name="place_not_set">%1$s isn\'t saved yet. Add it first.</string>
-    <string name="ride_open_app">Open %1$s</string>
-    <string name="ride_confirm_in_app">You check the fare and confirm in the cab app.</string>
-    <string name="ride_maps">Directions in Maps</string>
-    <string name="address_copied">Address copied. Paste it in \"Where to\".</string>
-    <string name="ride_not_installed">%1$s isn\'t on this phone. Opened Maps instead.</string>
-    <string name="ride_nothing">Couldn\'t open a cab app or Maps on this phone.</string>
+    <string name="home_step_title">Their home address (optional)</string>
+    <string name="place_home">Home</string>
+    <string name="place_search_network">Suggestions send what you type to a map service. The saved address stays on this phone.</string>
+    <string name="mic_title">Microphone</string>
+    <string name="mic_why_child">So your parent can say “Call Rahul” instead of searching contacts. Nexus listens only after they press Speak.</string>
+    <string name="mic_why_parent">Nexus needs the microphone to hear you. It listens only after you press Speak.</string>
+    <string name="mic_on_device">Your voice is understood on this phone.</string>
+    <string name="mic_online">Google\'s speech service turns your voice into text. Nexus keeps only the words, never the recording.</string>
+    <string name="call_title">Calling directly</string>
+    <string name="call_why">So Nexus can place the call itself after a 3-second Stop button, without the dial pad step. If you say no, the dial pad opens and they press the green button.</string>
+    <string name="call_stays">Nexus only calls the people you saved.</string>
+    <string name="handover_title">All set. Hand the phone to your parent.</string>
+    <string name="handover_body">Nexus will switch to their language and ask them to press the mic and say “%1$s”.</string>
+    <string name="handover_button">Hand over</string>
+    <string name="mic_off_setup">The microphone is off, so the voice try-out is skipped. Turn it on later in Family settings.</string>
+    <string name="try_title">Press the button and say</string>
+    <string name="greeting">Namaste</string>
+    <string name="speak">Speak</string>
     <string name="call">Call</string>
     <string name="whatsapp">WhatsApp</string>
-    <string name="sms">SMS</string>
+    <string name="found_call">Call %1$s</string>
+    <string name="found_message">WhatsApp %1$s</string>
+    <string name="check_message">Is this message safe?</string>
+    <string name="go_home">Book a ride home</string>
+    <string name="settings_hint">For family: hold 2 seconds for settings</string>
     <string name="whatsapp_missing">WhatsApp isn\'t on this phone.</string>
-    <string name="find_title">Find %1$s</string>
-    <string name="contacts_explain">Nexus looks through this phone\'s contacts for that name. The list stays on the phone and is not uploaded.</string>
-    <string name="no_contact_match">No contact matched %1$s.</string>
-    <string name="contacts_denied">Contacts permission was not given.</string>
-    <string name="edit_title">People and places</string>
-    <string name="add_contact">Add a contact</string>
-    <string name="person_saved">%1$s saved.</string>
-    <string name="privacy_body">Nexus stores your country, places and the people you save only on this phone. That data is not uploaded and is excluded from Android backup.\n\nPlace suggestions send the text you type to a map search service. To fill a cab app\'s destination, the saved address is turned into coordinates by this phone\'s own location service.\n\nContacts are read only after you agree, and only to find a name you asked for. Nexus does not read other apps\' screens and cannot see cab fares.</string>
-    <!-- Phase 1 key strings from docs/design.md 3.4, used by screens S4-S12 (not wired yet). -->
-    <string name="speak" tools:ignore="UnusedResources">Press and speak</string>
-    <string name="listening" tools:ignore="UnusedResources">Listening…</string>
-    <string name="calling_x" tools:ignore="UnusedResources">Calling %1$s…</string>
-    <string name="confirm_call_x" tools:ignore="UnusedResources">Call %1$s?</string>
-    <string name="yes_call" tools:ignore="UnusedResources">Yes, call</string>
-    <string name="no" tools:ignore="UnusedResources">No</string>
-    <string name="cancel" tools:ignore="UnusedResources">Cancel</string>
-    <string name="stop" tools:ignore="UnusedResources">Stop</string>
-    <string name="not_understood" tools:ignore="UnusedResources">Didn\'t catch that. Say again or tap a photo.</string>
-    <string name="check_message" tools:ignore="UnusedResources">Check a message</string>
-    <string name="is_this_safe" tools:ignore="UnusedResources">Is this safe?</string>
-    <string name="verdict_danger" tools:ignore="UnusedResources">Stop! This could be a scam</string>
-    <string name="verdict_careful" tools:ignore="UnusedResources">Be careful</string>
-    <string name="verdict_none" tools:ignore="UnusedResources">No warning signs found</string>
-    <string name="reason_otp" tools:ignore="UnusedResources">Asks for your OTP or PIN</string>
-    <string name="reason_link" tools:ignore="UnusedResources">Has a link to an unknown site</string>
-    <string name="reason_blocked" tools:ignore="UnusedResources">Says your account will be blocked</string>
-    <string name="never_share" tools:ignore="UnusedResources">Never share OTP or PIN with anyone</string>
-    <string name="ask_x" tools:ignore="UnusedResources">Ask %1$s</string>
-    <string name="ask_family" tools:ignore="UnusedResources">Ask family</string>
-    <string name="ask_prefill" tools:ignore="UnusedResources">Is this real? Please check.</string>
-    <string name="wa_you_send" tools:ignore="UnusedResources">WhatsApp will open. You press Send.</string>
-    <string name="mic_why" tools:ignore="UnusedResources">Nexus needs the microphone to hear you.</string>
-    <string name="mic_on_device" tools:ignore="UnusedResources">Your voice is understood on this phone.</string>
-    <string name="mic_online" tools:ignore="UnusedResources">Google\'s speech service turns your voice into text.</string>
-    <string name="mic_denied" tools:ignore="UnusedResources">Mic is off. Tap a photo to call.</string>
-    <string name="feedback_q1" tools:ignore="UnusedResources">Did Nexus help this week?</string>
-    <string name="fb_yes" tools:ignore="UnusedResources">Yes</string>
-    <string name="fb_little" tools:ignore="UnusedResources">A little</string>
-    <string name="fb_no" tools:ignore="UnusedResources">No</string>
-    <string name="settings_hint" tools:ignore="UnusedResources">For family: hold 2 seconds for settings</string>
-    <string name="privacy_local" tools:ignore="UnusedResources">Your people are saved only on this phone.</string>
+    <string name="dialer_fallback">The dial pad is open. Press the green button to call.</string>
+    <string name="listening">Listening…</string>
+    <string name="voice_on_device">Your voice stays on this phone.</string>
+    <string name="voice_online">Online: Google turns your voice into words.</string>
+    <string name="confirm_call">Call %1$s?</string>
+    <string name="yes_call">Yes, call</string>
+    <string name="not_understood">Didn\'t catch that. Say again or tap a photo.</string>
+    <string name="not_understood_again">No problem. Tap the photo of who you want to call.</string>
+    <string name="heard_x">Heard: “%1$s”</string>
+    <string name="speak_again">Speak again</string>
+    <string name="calling_x">Calling %1$s</string>
+    <string name="paste_message">Paste the copied message</string>
+    <string name="clipboard_empty">Nothing copied yet. Long-press the message, tap Copy, then come back.</string>
+    <string name="or_type_message">Or type the message here</string>
+    <string name="check">Check</string>
+    <string name="pick_screenshot">Check a screenshot</string>
+    <string name="share_guide_title">Easiest way</string>
+    <string name="share_guide">In WhatsApp or Messages, long-press the message, tap Share, then choose Nexus.</string>
+    <string name="reading_picture">Reading the picture…</string>
+    <string name="no_text_in_picture">No words found in that picture. Try pasting the message instead.</string>
+    <string name="verdict_danger">Stop! This could be a scam</string>
+    <string name="verdict_careful">Be careful</string>
+    <string name="verdict_none">No warning signs found</string>
+    <string name="verdict_none_body">This does not mean it is safe. If it asks for money or a code, ask family first.</string>
+    <string name="reason_otp">Asks for your OTP or PIN</string>
+    <string name="reason_upi_collect">Asks you to enter your UPI PIN to “receive” money. You never need a PIN to receive.</string>
+    <string name="reason_remote_app">Asks you to install a screen-sharing app</string>
+    <string name="reason_app_file">Has a link to an app file (.apk)</string>
+    <string name="reason_lookalike">The link pretends to be a bank or company but is a different site</string>
+    <string name="reason_police">Threatens police, court or arrest</string>
+    <string name="reason_kyc">Asks you to update KYC</string>
+    <string name="reason_blocked">Says your account or connection will be blocked</string>
+    <string name="reason_short_link">Has a short link that hides where it goes</string>
+    <string name="reason_link">Has a link to an unknown site</string>
+    <string name="reason_prize">Promises a prize, lottery or cashback</string>
+    <string name="reason_job">Offers easy money for tasks or part-time work</string>
+    <string name="reason_refund">Talks about a refund or payment you didn\'t expect</string>
+    <string name="reason_new_number">Says “this is my new number” and asks for money</string>
+    <string name="reason_urgency">Rushes you to act now</string>
+    <string name="never_share">Never share OTP or PIN with anyone. Banks never ask for it.</string>
+    <string name="message_checked">Message checked</string>
+    <string name="ask_x">Ask %1$s</string>
+    <string name="ask_family">Ask family</string>
+    <string name="is_this_real">Is this real? Please check.</string>
+    <string name="whatsapp_will_open">WhatsApp will open with %1$s. You press Send.</string>
+    <string name="whatsapp_pick_chat">WhatsApp will open. Choose %1$s, then press Send.</string>
+    <string name="no_cab_app">No cab app is on this phone.</string>
+    <string name="ride_help_prefill">Please book me a ride home.</string>
+    <string name="ride_open_app">Open %1$s</string>
+    <string name="ride_confirm_in_app">You check the fare and confirm in the cab app.</string>
+    <string name="address_copied">Address copied. Paste it in “Where to”.</string>
+    <string name="family_settings">Family settings</string>
+    <string name="people">People</string>
+    <string name="removed_x">Removed %1$s</string>
+    <string name="parent_language">Language</string>
+    <string name="country">Country</string>
+    <string name="country_item">%1$s (%2$s)</string>
+    <string name="permissions">Permissions</string>
+    <string name="perm_mic">Microphone</string>
+    <string name="perm_call">Calling directly</string>
+    <string name="perm_on">on</string>
+    <string name="perm_off">off</string>
+    <string name="open_phone_settings">Open phone settings</string>
+    <string name="usage_title">Usage on this phone</string>
+    <string name="usage_summary">Days used: %1$d · Calls: %2$d · Voice commands: %3$d · Messages checked: %4$d · Asked family: %5$d</string>
+    <string name="export_usage">Export my usage</string>
+    <string name="export_note">Only counts and the feedback answers. No names, numbers or messages.</string>
+    <string name="test_command">Type a command (testing)</string>
+    <string name="test_command_hint">Call Rahul</string>
+    <string name="try_command">Try it</string>
+    <string name="feedback_q1">Did Nexus help this week?</string>
+    <string name="fb_yes">Yes</string>
+    <string name="fb_little">A little</string>
+    <string name="fb_no">No</string>
+    <string name="feedback_q2">What would make it easier?</string>
+    <string name="feedback_q2_hint">Type here, or skip</string>
+    <string name="privacy_voice_title">Your voice</string>
+    <string name="privacy_voice_online">When you press Speak, Google\'s speech service on this phone turns your voice into words, which may use the internet. Nexus keeps only the words, never a recording.</string>
+    <string name="privacy_messages_title">Messages you check</string>
+    <string name="privacy_messages">Messages and screenshots are checked on this phone and not saved. Nexus never reads your SMS or chats by itself.</string>
+    <string name="privacy_stored_title">What is saved</string>
+    <string name="privacy_stored">Your people, home address, language and simple usage counts, only on this phone. Not uploaded, not in Android backup.</string>
+    <string name="privacy_network_title">Internet use</string>
+    <string name="privacy_network">Only address suggestions while typing a home address, and the speech service if it is online. Nexus has no account and no server.</string>
 </resources>

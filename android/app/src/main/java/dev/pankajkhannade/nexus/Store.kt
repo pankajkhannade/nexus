@@ -10,6 +10,8 @@ import org.json.JSONObject
 
 private val Context.nexusData by preferencesDataStore("nexus")
 private val STATE = stringPreferencesKey("state")
+private val USAGE = stringPreferencesKey("usage")
+private val FEEDBACK = stringPreferencesKey("feedback")
 
 class NexusStore(context: Context) {
     private val app = context.applicationContext
@@ -22,20 +24,38 @@ class NexusStore(context: Context) {
     suspend fun write(saved: Saved) {
         app.nexusData.edit { prefs -> prefs[STATE] = encode(saved) }
     }
+
+    suspend fun readUsage(): Usage = Usage.parse(app.nexusData.data.first()[USAGE].orEmpty())
+
+    suspend fun writeUsage(usage: Usage) {
+        app.nexusData.edit { prefs -> prefs[USAGE] = usage.serialize() }
+    }
+
+    suspend fun readFeedback(): Feedback = Feedback.parse(app.nexusData.data.first()[FEEDBACK].orEmpty())
+
+    suspend fun writeFeedback(feedback: Feedback) {
+        app.nexusData.edit { prefs -> prefs[FEEDBACK] = feedback.serialize() }
+    }
 }
 
 private fun encode(saved: Saved): String {
     val people = JSONArray()
     saved.people.forEach { person ->
-        people.put(JSONObject().put("id", person.id).put("name", person.name).put("phone", person.phone))
+        people.put(
+            JSONObject().put("id", person.id).put("name", person.name).put("phone", person.phone)
+                .put("relation", person.relation).put("askFamily", person.askFamily).put("alias", person.alias),
+        )
     }
     return JSONObject()
         .put("setupDone", saved.setupDone)
+        .put("language", saved.language)
+        .put("installDay", saved.installDay)
+        .put("micAsked", saved.micAsked)
+        .put("callAsked", saved.callAsked)
         .put("country", saved.country)
         .put("dial", saved.dial)
         .put("countryCode", saved.countryCode)
         .put("lastCab", saved.lastCab)
-        .put("contactsExplained", saved.contactsExplained)
         .put("home", saved.home.address)
         .putCoordinates("home", saved.home)
         .put("office", saved.office.address)
@@ -55,15 +75,21 @@ private fun decode(raw: String): Saved {
             name = item.optString("name"),
             // Older builds saved some numbers without the country code; repair on read.
             phone = repairStoredPhone(item.optString("phone"), dial),
+            relation = item.optString("relation"),
+            askFamily = item.optBoolean("askFamily"),
+            alias = item.optString("alias"),
         )
     }
     return Saved(
         setupDone = json.optBoolean("setupDone"),
+        language = json.optString("language"),
+        installDay = json.optLong("installDay"),
+        micAsked = json.optBoolean("micAsked"),
+        callAsked = json.optBoolean("callAsked"),
         country = json.optString("country"),
         dial = dial,
         countryCode = json.optString("countryCode"),
         lastCab = json.optString("lastCab"),
-        contactsExplained = json.optBoolean("contactsExplained"),
         home = json.readPlace("home"),
         office = json.readPlace("office"),
         people = people,

@@ -1,0 +1,115 @@
+package dev.pankajkhannade.nexus
+
+import android.util.Log
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+
+/** S6 Listening. Says plainly whether speech stays on the phone or goes to the speech service. */
+@Composable
+fun ListeningScreen(model: NexusViewModel) {
+    Centered {
+        Text("🎤", fontSize = 72.sp)
+        BigCentredText(stringResource(R.string.listening))
+        Text(
+            stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.voice_on_device else R.string.voice_online),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (model.heard.isNotBlank()) {
+            Text("“${model.heard}”", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+        }
+        BigButton(stringResource(R.string.stop), { model.cancelListening() }, kind = ButtonKind.Secondary)
+    }
+}
+
+/** S6 Confirm: shown when the name was a fuzzy match. Spoken aloud too. */
+@Composable
+fun ConfirmScreen(model: NexusViewModel, person: Person) {
+    LaunchedEffect(person.id) { model.speak(R.string.confirm_call, person.name) }
+    Centered {
+        Avatar(person.name, 120.dp)
+        BigCentredText(stringResource(R.string.confirm_call, person.name))
+        BigButton(stringResource(R.string.yes_call), { model.startCall(person) }, kind = ButtonKind.Call)
+        BigButton(stringResource(R.string.no), { model.screen = Screen.Home }, kind = ButtonKind.Secondary)
+    }
+}
+
+/** S6 Not understood: never a dead end. Faces to tap, or speak again. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun NotUnderstoodScreen(model: NexusViewModel, onSpeak: () -> Unit) {
+    Centered {
+        BigCentredText(stringResource(if (model.voiceFails >= 2) R.string.not_understood_again else R.string.not_understood))
+        if (model.heard.isNotBlank()) Text(stringResource(R.string.heard_x, model.heard), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = 2) {
+            model.saved.people.forEach { person ->
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .heightIn(min = 140.dp)
+                        .clickable { model.tryingInSetup = false; model.startCall(person) }
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Avatar(person.name, 88.dp)
+                    Text(person.name, style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
+        BigButton("🎤  " + stringResource(R.string.speak_again), onSpeak)
+        BigButton(stringResource(R.string.back), { model.tryingInSetup = false; model.screen = Screen.Home }, kind = ButtonKind.Quiet)
+    }
+}
+
+/** S7 Calling: a visible 3-second countdown with Stop, then the call is placed (or the dialer opens). */
+@Composable
+fun CallingScreen(model: NexusViewModel, person: Person) {
+    val context = LocalContext.current
+    var left by remember(person.id) { mutableIntStateOf(3) }
+    LaunchedEffect(person.id) {
+        model.speak(R.string.calling_x, person.name)
+        while (left > 0) {
+            delay(1000)
+            left -= 1
+        }
+        model.record(Event.CALL)
+        val direct = placeCall(context, person.phone)
+        Log.i("NexusCall", "placed direct=$direct")
+        model.notice = if (direct) "" else context.getString(R.string.dialer_fallback)
+        model.screen = Screen.Home
+    }
+    Centered {
+        Avatar(person.name, 120.dp)
+        BigCentredText(stringResource(R.string.calling_x, person.name))
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
+            CircularProgressIndicator(progress = { left / 3f }, modifier = Modifier.size(96.dp), strokeWidth = 8.dp)
+            Text("$left", style = MaterialTheme.typography.displaySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+        }
+        BigButton(stringResource(R.string.stop), { model.speaker.stop(); model.screen = Screen.Home }, kind = ButtonKind.Secondary)
+    }
+}

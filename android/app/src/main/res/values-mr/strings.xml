@@ -6,105 +6,161 @@
     <string name="continue_">पुढे चला</string>
     <string name="save">सेव्ह करा</string>
     <string name="remove">काढा</string>
+    <string name="edit">बदला</string>
+    <string name="undo">परत आणा</string>
+    <string name="done">झालं</string>
+    <string name="skip">वगळा</string>
+    <string name="share">शेअर करा</string>
+    <string name="ok">ठीक आहे</string>
+    <string name="ok_close">ठीक आहे, बंद करा</string>
     <string name="allow">परवानगी द्या</string>
     <string name="not_now">आत्ता नको</string>
+    <string name="no">नको</string>
+    <string name="stop">थांबा</string>
     <string name="privacy">गोपनीयता</string>
-    <string name="setup_title">Nexus सेट करा</string>
-    <string name="setup_step">पायरी %1$d / %2$d. सगळं याच फोनवर राहतं.</string>
-    <string name="country_title">देश</string>
-    <string name="country_hint">लोकल नंबरला याच देशाचा कोड लागेल.</string>
-    <string name="country_item">%1$s (%2$s)</string>
-    <string name="place_home">घर</string>
-    <string name="place_office">ऑफिस</string>
-    <string name="place_office_optional">ऑफिस (गरजेचे नाही)</string>
-    <string name="place_search_hint">इमारत, रस्ता किंवा भागाचं नाव लिहायला सुरुवात करा.</string>
-    <string name="place_search_network">शोधासाठी तुम्ही लिहिलेलं मॅप सेवेकडे जातं. सेव्ह पत्ता याच फोनवर राहतो.</string>
-    <string name="place_need_home">घरचा पत्ता टाका.</string>
-    <string name="people_intro">किमान एक व्यक्ती जोडा. बाकीचे गरजेचे नाहीत.</string>
-    <string name="people_pick">फोनमधील कॉन्टॅक्टमधून निवडा</string>
-    <string name="field_name">नाव</string>
+    <string name="setup_step_of">पायरी %1$d / %2$d</string>
+    <string name="welcome_title">आई-बाबांसाठी Nexus सेट करा</string>
+    <string name="welcome_body">Nexus मुळे ते बोलून घरच्यांना फोन करू शकतात, संशयास्पद मेसेज तपासू शकतात, आणि काही करण्याआधी तुम्हाला विचारू शकतात. सुमारे 5 मिनिटं लागतील.</string>
+    <string name="language_question">आई-बाबा कोणती भाषा बोलतात?</string>
+    <string name="play_sample">ऐका</string>
+    <string name="sample_name">राहुल</string>
+    <string name="try_phrase">%1$sला फोन लाव</string>
+    <string name="voice_missing">या फोनमध्ये अजून %1$s आवाज नाही, म्हणून Nexus त्यात बोलू शकणार नाही. तुम्ही आत्ता आवाज जोडू शकता (एकदाच डाउनलोड होईल).</string>
+    <string name="voice_install">आवाज जोडा</string>
+    <string name="welcome_self">स्वतःसाठी सेट करताय? तेही चालेल.</string>
+    <string name="family_title">त्यांना कोणाशी बोलायचं असतं?</string>
+    <string name="family_body">4 जणांपर्यंत जोडा. “हे खरं आहे का?” प्रश्नांसाठी किमान एक निवडा.</string>
+    <string name="add_person">व्यक्ती जोडा</string>
+    <string name="type_number_instead">नंबर स्वतः लिहा</string>
+    <string name="already_added">हा नंबर आधीच %1$s चा आहे.</string>
+    <string name="need_one_person">किमान एक व्यक्ती जोडा.</string>
+    <string name="need_ask_family">किमान एका व्यक्तीसाठी “हे खरं आहे का? प्रश्न” सुरू करा.</string>
+    <string name="ask_tag">घरच्यांना विचारा</string>
+    <string name="contact_number_unusable">त्या कॉन्टॅक्टचा नंबर चालणार नाही. नंबर स्वतः लिहा.</string>
+    <string name="name_as_said">नाव, आई-बाबा जसं म्हणतात तसं</string>
     <string name="field_phone">फोन नंबर</string>
-    <string name="person_n">व्यक्ती %1$d</string>
-    <string name="person_n_optional">व्यक्ती %1$d (गरजेचे नाही)</string>
-    <string name="save_and_continue">सेव्ह करा आणि सुरू करा</string>
+    <string name="relation_title">ही व्यक्ती त्यांचा/ची…</string>
+    <string name="relation_son">मुलगा</string>
+    <string name="relation_daughter">मुलगी</string>
+    <string name="relation_spouse">नवरा / बायको</string>
+    <string name="relation_other">इतर</string>
+    <string name="ask_family_toggle">“हे खरं आहे का?” प्रश्न यांना जातील</string>
+    <string name="alias_label">ते वापरतात ते दुसरं नाव (गरजेचे नाही)</string>
+    <string name="alias_hint">उदा.: बंटी, पिंकी, छोटू</string>
+    <string name="person_need_name">या नंबरसाठी नाव लिहा.</string>
+    <string name="person_need_phone">फोन नंबर लिहा.</string>
     <string name="phone_digits_only">फक्त अंक लिहा.</string>
     <string name="phone_india_length">भारतीय मोबाइल नंबर 10 अंकी असतो.</string>
     <string name="phone_india_start">भारतीय मोबाइल नंबर 6, 7, 8 किंवा 9 ने सुरू होतो.</string>
     <string name="phone_length">8 ते 15 अंक लिहा.</string>
-    <string name="person_need_name">या नंबरसाठी नाव लिहा.</string>
-    <string name="person_need_phone">फोन नंबर लिहा.</string>
-    <string name="people_need_one">किमान एक व्यक्ती जोडा.</string>
-    <string name="contact_number_unusable">त्या कॉन्टॅक्टचा नंबर चालणार नाही. नंबर स्वतः लिहा.</string>
-    <string name="home_tagline">व्यक्ती किंवा ठिकाणावर दाबा, किंवा बोलून सांगा.</string>
-    <string name="people_title">माणसं</string>
-    <string name="places_title">गाडी</string>
-    <string name="go_home">घरी जायला गाडी बुक करा</string>
-    <string name="go_office">ऑफिसला जायला गाडी बुक करा</string>
-    <string name="add_home">घरचा पत्ता जोडा</string>
-    <string name="no_people">अजून कोणी सेव्ह नाही.</string>
-    <string name="edit_people_places">माणसं आणि ठिकाणं बदला</string>
-    <string name="command_title">बोला किंवा लिहा</string>
-    <string name="command_hint">आईला फोन लाव, किंवा घरून पिक कर</string>
-    <string name="speech_unavailable">या फोनवर बोलून लिहिणं उपलब्ध नाही.</string>
+    <string name="home_step_title">त्यांच्या घराचा पत्ता (गरजेचे नाही)</string>
+    <string name="place_home">घर</string>
+    <string name="place_search_network">सुचवण्यासाठी तुम्ही लिहिलेलं मॅप सेवेकडे जातं. सेव्ह पत्ता याच फोनवर राहतो.</string>
+    <string name="mic_title">माइक</string>
+    <string name="mic_why_child">म्हणजे कॉन्टॅक्ट शोधण्याऐवजी ते “राहुलला फोन लाव” म्हणू शकतील. Nexus फक्त बोला दाबल्यावरच ऐकतो.</string>
+    <string name="mic_why_parent">तुमचा आवाज ऐकण्यासाठी माइक लागतो. बोला दाबल्यावरच ऐकतो.</string>
+    <string name="mic_on_device">तुमचा आवाज याच फोनवर समजला जातो.</string>
+    <string name="mic_online">Google ची सेवा तुमचा आवाज शब्दांत बदलते. Nexus फक्त शब्द ठेवतो, रेकॉर्डिंग नाही.</string>
+    <string name="call_title">थेट फोन लावणं</string>
+    <string name="call_why">म्हणजे Nexus 3 सेकंदांच्या थांबा बटणानंतर स्वतः फोन लावू शकेल, डायल पॅडशिवाय. नको म्हटलं तर डायल पॅड उघडेल आणि त्यांना हिरवं बटण दाबावं लागेल.</string>
+    <string name="call_stays">Nexus फक्त तुम्ही सेव्ह केलेल्या लोकांनाच फोन करतो.</string>
+    <string name="handover_title">सगळं तयार. फोन आई-बाबांना द्या.</string>
+    <string name="handover_body">Nexus त्यांच्या भाषेत बदलेल आणि त्यांना माइक दाबून “%1$s” म्हणायला सांगेल.</string>
+    <string name="handover_button">फोन द्या</string>
+    <string name="mic_off_setup">माइक बंद आहे, म्हणून आवाजाचा सराव वगळला. नंतर घरच्यांच्या सेटिंगमध्ये सुरू करा.</string>
+    <string name="try_title">बटण दाबा आणि म्हणा</string>
+    <string name="greeting">नमस्कार</string>
+    <string name="speak">बोला</string>
+    <string name="call">फोन</string>
+    <string name="whatsapp">WhatsApp</string>
     <string name="found_call">%1$s ला फोन करा</string>
     <string name="found_message">%1$s ला WhatsApp करा</string>
-    <string name="not_saved">%1$s नावाचं कोणी सेव्ह नाही.</string>
-    <string name="find_in_contacts">कॉन्टॅक्टमध्ये %1$s शोधा</string>
-    <string name="nothing_found">यात व्यक्ती किंवा ठिकाण सापडलं नाही. \"आईला फोन लाव\" किंवा \"घरून पिक कर\" म्हणून पाहा.</string>
-    <string name="book_ride">गाडी बुक करा</string>
-    <string name="trip_from">कुठून: %1$s</string>
-    <string name="trip_to">कुठे: %1$s</string>
-    <string name="my_location">तुम्ही आत्ता जिथे आहात</string>
-    <string name="place_not_set">%1$s अजून सेव्ह नाही. आधी जोडा.</string>
+    <string name="check_message">हा मेसेज सुरक्षित आहे का?</string>
+    <string name="go_home">घरी जायला गाडी बुक करा</string>
+    <string name="settings_hint">घरच्यांसाठी: सेटिंगसाठी 2 सेकंद दाबून ठेवा</string>
+    <string name="whatsapp_missing">या फोनवर WhatsApp नाही.</string>
+    <string name="dialer_fallback">डायल पॅड उघडला आहे. फोनसाठी हिरवं बटण दाबा.</string>
+    <string name="listening">ऐकत आहे…</string>
+    <string name="voice_on_device">तुमचा आवाज याच फोनवर राहतो.</string>
+    <string name="voice_online">ऑनलाइन: Google तुमचा आवाज शब्दांत बदलतं.</string>
+    <string name="confirm_call">%1$s ला फोन लावायचा?</string>
+    <string name="yes_call">हो, फोन करा</string>
+    <string name="not_understood">समजलं नाही. पुन्हा बोला किंवा फोटो दाबा.</string>
+    <string name="not_understood_again">काही हरकत नाही. ज्याला फोन करायचा त्याचा फोटो दाबा.</string>
+    <string name="heard_x">ऐकलं: “%1$s”</string>
+    <string name="speak_again">पुन्हा बोला</string>
+    <string name="calling_x">%1$s ला फोन लावत आहे</string>
+    <string name="paste_message">कॉपी केलेला मेसेज पेस्ट करा</string>
+    <string name="clipboard_empty">अजून काही कॉपी नाही. मेसेज दाबून ठेवा, कॉपी दाबा, मग परत या.</string>
+    <string name="or_type_message">किंवा मेसेज इथे लिहा</string>
+    <string name="check">तपासा</string>
+    <string name="pick_screenshot">स्क्रीनशॉट तपासा</string>
+    <string name="share_guide_title">सगळ्यात सोपा मार्ग</string>
+    <string name="share_guide">WhatsApp किंवा Messages मध्ये मेसेज दाबून ठेवा, शेअर दाबा, मग Nexus निवडा.</string>
+    <string name="reading_picture">फोटो वाचत आहे…</string>
+    <string name="no_text_in_picture">त्या फोटोत शब्द सापडले नाहीत. मेसेज पेस्ट करून पाहा.</string>
+    <string name="verdict_danger">थांबा! ही फसवणूक असू शकते</string>
+    <string name="verdict_careful">सावध रहा</string>
+    <string name="verdict_none">धोक्याची खूण सापडली नाही</string>
+    <string name="verdict_none_body">याचा अर्थ हे सुरक्षित आहे असा नाही. पैसे किंवा कोड मागितला तर आधी घरच्यांना विचारा.</string>
+    <string name="reason_otp">तुमचा OTP किंवा PIN मागत आहे</string>
+    <string name="reason_upi_collect">पैसे “मिळवण्यासाठी” UPI PIN मागत आहे. पैसे मिळवायला PIN कधीच लागत नाही.</string>
+    <string name="reason_remote_app">स्क्रीन शेअर करणारं ॲप टाकायला सांगत आहे</string>
+    <string name="reason_app_file">ॲप फाइल (.apk) ची लिंक आहे</string>
+    <string name="reason_lookalike">लिंक बँक किंवा कंपनीसारखी दिसते पण वेगळी वेबसाइट आहे</string>
+    <string name="reason_police">पोलीस, कोर्ट किंवा अटकेची धमकी आहे</string>
+    <string name="reason_kyc">KYC अपडेट करायला सांगत आहे</string>
+    <string name="reason_blocked">खाते किंवा कनेक्शन बंद होईल अशी धमकी आहे</string>
+    <string name="reason_short_link">लहान लिंक आहे जी खरा पत्ता लपवते</string>
+    <string name="reason_link">अनोळखी वेबसाइटची लिंक आहे</string>
+    <string name="reason_prize">बक्षीस, लॉटरी किंवा कॅशबॅकचं आमिष आहे</string>
+    <string name="reason_job">छोट्या कामासाठी किंवा पार्ट-टाइमसाठी सोप्या पैशाचं आमिष आहे</string>
+    <string name="reason_refund">अनपेक्षित रिफंड किंवा पेमेंटची गोष्ट आहे</string>
+    <string name="reason_new_number">“हा माझा नवा नंबर आहे” म्हणून पैसे मागत आहे</string>
+    <string name="reason_urgency">लगेच काहीतरी करायची घाई करत आहे</string>
+    <string name="never_share">OTP किंवा PIN कोणालाही सांगू नका. बँक कधीच मागत नाही.</string>
+    <string name="message_checked">तपासलेला मेसेज</string>
+    <string name="ask_x">%1$s ला विचारा</string>
+    <string name="ask_family">घरच्यांना विचारा</string>
+    <string name="is_this_real">हे खरं आहे का? बघून सांग.</string>
+    <string name="whatsapp_will_open">WhatsApp मध्ये %1$s उघडेल. पाठवा तुम्ही दाबा.</string>
+    <string name="whatsapp_pick_chat">WhatsApp उघडेल. %1$s निवडा, मग पाठवा दाबा.</string>
+    <string name="no_cab_app">या फोनवर कॅब ॲप नाही.</string>
+    <string name="ride_help_prefill">माझ्यासाठी घरी जायची गाडी बुक कर.</string>
     <string name="ride_open_app">%1$s उघडा</string>
     <string name="ride_confirm_in_app">भाडं बघून बुकिंग तुम्ही कॅब ॲपमध्ये करा.</string>
-    <string name="ride_maps">Maps मध्ये रस्ता पाहा</string>
-    <string name="address_copied">पत्ता कॉपी झाला. \"कुठे जायचे\" मध्ये पेस्ट करा.</string>
-    <string name="ride_not_installed">%1$s या फोनवर नाही. म्हणून Maps उघडलं.</string>
-    <string name="ride_nothing">या फोनवर कॅब ॲप किंवा Maps उघडलं नाही.</string>
-    <string name="call">फोन करा</string>
-    <string name="whatsapp">WhatsApp</string>
-    <string name="sms">SMS</string>
-    <string name="whatsapp_missing">या फोनवर WhatsApp नाही.</string>
-    <string name="find_title">%1$s शोधा</string>
-    <string name="contacts_explain">Nexus हे नाव फोनच्या कॉन्टॅक्टमध्ये शोधेल. यादी याच फोनवर राहते, कुठेही पाठवली जात नाही.</string>
-    <string name="no_contact_match">%1$s नावाचा कॉन्टॅक्ट सापडला नाही.</string>
-    <string name="contacts_denied">कॉन्टॅक्टची परवानगी मिळाली नाही.</string>
-    <string name="edit_title">माणसं आणि ठिकाणं</string>
-    <string name="add_contact">कॉन्टॅक्ट जोडा</string>
-    <string name="person_saved">%1$s सेव्ह झालं.</string>
-    <string name="privacy_body">Nexus तुमचा देश, ठिकाणं आणि सेव्ह केलेली माणसं फक्त याच फोनवर ठेवतो. हा डेटा कुठेही अपलोड होत नाही आणि Android बॅकअपमध्येही जात नाही.\n\nठिकाण सुचवण्यासाठी तुम्ही लिहिलेलं मॅप सेवेकडे जातं. कॅब ॲपमध्ये पत्ता भरण्यासाठी फोनची स्वतःची लोकेशन सेवा पत्त्याचे निर्देशांक काढते.\n\nकॉन्टॅक्ट तुमच्या परवानगीनंतरच वाचले जातात, आणि फक्त तुम्ही सांगितलेलं नाव शोधण्यासाठी. Nexus इतर ॲप्सची स्क्रीन वाचत नाही आणि कॅबचं भाडं पाहू शकत नाही.</string>
-    <!-- Phase 1 key strings from docs/design.md 3.4, used by screens S4-S12 (not wired yet). -->
-    <string name="speak" tools:ignore="UnusedResources">दाबा आणि बोला</string>
-    <string name="listening" tools:ignore="UnusedResources">ऐकत आहे…</string>
-    <string name="calling_x" tools:ignore="UnusedResources">%1$s ला फोन लावत आहे…</string>
-    <string name="confirm_call_x" tools:ignore="UnusedResources">%1$s ला फोन लावायचा?</string>
-    <string name="yes_call" tools:ignore="UnusedResources">हो, फोन करा</string>
-    <string name="no" tools:ignore="UnusedResources">नको</string>
-    <string name="cancel" tools:ignore="UnusedResources">रद्द करा</string>
-    <string name="stop" tools:ignore="UnusedResources">थांबा</string>
-    <string name="not_understood" tools:ignore="UnusedResources">समजलं नाही. पुन्हा बोला किंवा फोटो दाबा.</string>
-    <string name="check_message" tools:ignore="UnusedResources">मेसेज तपासा</string>
-    <string name="is_this_safe" tools:ignore="UnusedResources">हे सुरक्षित आहे का?</string>
-    <string name="verdict_danger" tools:ignore="UnusedResources">थांबा! ही फसवणूक असू शकते</string>
-    <string name="verdict_careful" tools:ignore="UnusedResources">सावध रहा</string>
-    <string name="verdict_none" tools:ignore="UnusedResources">धोक्याची खूण सापडली नाही</string>
-    <string name="reason_otp" tools:ignore="UnusedResources">तुमचा OTP किंवा PIN मागत आहे</string>
-    <string name="reason_link" tools:ignore="UnusedResources">अनोळखी वेबसाइटची लिंक आहे</string>
-    <string name="reason_blocked" tools:ignore="UnusedResources">खाते बंद होईल अशी धमकी आहे</string>
-    <string name="never_share" tools:ignore="UnusedResources">OTP किंवा PIN कोणालाही सांगू नका</string>
-    <string name="ask_x" tools:ignore="UnusedResources">%1$s ला विचारा</string>
-    <string name="ask_family" tools:ignore="UnusedResources">घरच्यांना विचारा</string>
-    <string name="ask_prefill" tools:ignore="UnusedResources">हे खरं आहे का? बघून सांग.</string>
-    <string name="wa_you_send" tools:ignore="UnusedResources">WhatsApp उघडेल. पाठवा तुम्ही दाबा.</string>
-    <string name="mic_why" tools:ignore="UnusedResources">तुमचा आवाज ऐकण्यासाठी माइक लागतो.</string>
-    <string name="mic_on_device" tools:ignore="UnusedResources">तुमचा आवाज याच फोनवर समजला जातो.</string>
-    <string name="mic_online" tools:ignore="UnusedResources">Google ची सेवा तुमचा आवाज शब्दांत बदलते.</string>
-    <string name="mic_denied" tools:ignore="UnusedResources">माइक बंद आहे. फोन करण्यासाठी फोटो दाबा.</string>
-    <string name="feedback_q1" tools:ignore="UnusedResources">या आठवड्यात Nexus ची मदत झाली का?</string>
-    <string name="fb_yes" tools:ignore="UnusedResources">हो</string>
-    <string name="fb_little" tools:ignore="UnusedResources">थोडी</string>
-    <string name="fb_no" tools:ignore="UnusedResources">नाही</string>
-    <string name="settings_hint" tools:ignore="UnusedResources">घरच्यांसाठी: सेटिंगसाठी 2 सेकंद दाबा</string>
-    <string name="privacy_local" tools:ignore="UnusedResources">तुमची माणसे फक्त याच फोनवर सेव्ह आहेत.</string>
+    <string name="address_copied">पत्ता कॉपी झाला. “कुठे जायचे” मध्ये पेस्ट करा.</string>
+    <string name="family_settings">घरच्यांची सेटिंग</string>
+    <string name="people">माणसं</string>
+    <string name="removed_x">%1$s काढलं</string>
+    <string name="parent_language">भाषा</string>
+    <string name="country">देश</string>
+    <string name="country_item">%1$s (%2$s)</string>
+    <string name="permissions">परवानग्या</string>
+    <string name="perm_mic">माइक</string>
+    <string name="perm_call">थेट फोन</string>
+    <string name="perm_on">सुरू</string>
+    <string name="perm_off">बंद</string>
+    <string name="open_phone_settings">फोन सेटिंग उघडा</string>
+    <string name="usage_title">या फोनवरचा वापर</string>
+    <string name="usage_summary">वापराचे दिवस: %1$d · फोन: %2$d · आवाज: %3$d · तपासलेले मेसेज: %4$d · घरच्यांना विचारलं: %5$d</string>
+    <string name="export_usage">माझा वापर पाठवा</string>
+    <string name="export_note">फक्त आकडे आणि फीडबॅकची उत्तरं. नावं, नंबर किंवा मेसेज नाहीत.</string>
+    <string name="test_command">कमांड लिहा (तपासणीसाठी)</string>
+    <string name="test_command_hint">राहुलला फोन लाव</string>
+    <string name="try_command">करून पाहा</string>
+    <string name="feedback_q1">या आठवड्यात Nexus ची मदत झाली का?</string>
+    <string name="fb_yes">हो</string>
+    <string name="fb_little">थोडी</string>
+    <string name="fb_no">नाही</string>
+    <string name="feedback_q2">काय केलं तर हे सोपं होईल?</string>
+    <string name="feedback_q2_hint">इथे लिहा, किंवा वगळा</string>
+    <string name="privacy_voice_title">तुमचा आवाज</string>
+    <string name="privacy_voice_online">बोला दाबल्यावर या फोनची Google सेवा तुमचा आवाज शब्दांत बदलते, त्यासाठी इंटरनेट लागू शकतं. Nexus फक्त शब्द ठेवतो, रेकॉर्डिंग नाही.</string>
+    <string name="privacy_messages_title">तपासलेले मेसेज</string>
+    <string name="privacy_messages">मेसेज आणि स्क्रीनशॉट याच फोनवर तपासले जातात आणि सेव्ह होत नाहीत. Nexus तुमचे SMS किंवा चॅट स्वतः वाचत नाही.</string>
+    <string name="privacy_stored_title">काय सेव्ह होतं</string>
+    <string name="privacy_stored">तुमची माणसं, घरचा पत्ता, भाषा आणि वापराचे आकडे, फक्त याच फोनवर. अपलोड नाही, Android बॅकअपमध्येही नाही.</string>
+    <string name="privacy_network_title">इंटरनेटचा वापर</string>
+    <string name="privacy_network">फक्त घरचा पत्ता लिहिताना सुचवणी, आणि ऑनलाइन असल्यास आवाज सेवा. Nexus चं कोणतंही अकाउंट किंवा सर्व्हर नाही.</string>
 </resources>

@@ -1,14 +1,19 @@
 package dev.pankajkhannade.nexus
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.net.Uri
 import android.provider.ContactsContract
 import android.util.Log
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -79,6 +84,25 @@ fun geocode(context: Context, address: String): Place {
     }.getOrElse { Place(text) }
 }
 
+/**
+ * Places the call directly when CALL_PHONE is granted (after the 3-second Cancel on screen),
+ * otherwise opens the dialer with the number filled in. Returns true when the call was placed directly.
+ */
+fun placeCall(context: Context, phone: String): Boolean {
+    val direct = ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+    Log.i("NexusCall", "placeCall direct=$direct")
+    if (direct) {
+        try {
+            context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$phone")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            return true
+        } catch (_: Exception) {
+            // Fall through to the dialer (e.g. no SIM or a work profile restriction).
+        }
+    }
+    openDial(context, phone)
+    return false
+}
+
 fun openDial(context: Context, phone: String) {
     val uri = Uri.parse("tel:$phone")
     context.startActivity(Intent(Intent.ACTION_DIAL, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -126,30 +150,6 @@ private fun openPlay(context: Context, pkg: String) {
     }
 }
 
-/** Contacts matching [asked]. Numbers are normalised; ones that can't be are skipped. */
-fun lookupContacts(context: Context, asked: String, dial: String): List<Person> {
-    val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
-    val projection = arrayOf(
-        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-        ContactsContract.CommonDataKinds.Phone.NUMBER,
-    )
-    val found = mutableListOf<Person>()
-    context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
-        val nameIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-        val phoneIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-        while (cursor.moveToNext()) {
-            val name = if (nameIdx >= 0) cursor.getString(nameIdx).orEmpty() else ""
-            val phone = if (phoneIdx >= 0) cursor.getString(phoneIdx).orEmpty() else ""
-            val e164 = normalizePhone(phone, dial)
-            if (nameMatches(name, asked) && e164 != null) {
-                found += Person(id = phoneDigits(e164), name = name, phone = e164)
-            }
-            if (found.size == 8) break
-        }
-    }
-    return found.distinctBy { it.phone }
-}
-
 /** Reads the contact the user picked in the system picker (no permission needed). Null if the number is unusable. */
 fun readPickedPhone(context: Context, uri: Uri): Pair<String, String>? {
     val projection = arrayOf(
@@ -182,4 +182,65 @@ fun suggestPlaces(query: String, countryCode: String): List<String> {
             array.optJSONObject(index)?.optString("text")?.trim()?.takeIf { it.isNotEmpty() }
         }.distinct()
     }
+}
+
+/** The "Ask family" WhatsApp text: the message quoted, then the question in the parent's language. */
+fun askFamilyText(message: String, question: String): String {
+    val quoted = message.trim().take(600)
+    return if (quoted.isEmpty()) question else "\"$quoted\"\n\n$question"
+}
+
+/**
+ * Sends text to one family member: WhatsApp chat with the text prefilled (parent presses Send),
+ * else an SMS draft. Returns false only if neither could open.
+ */
+fun askFamilyByText(context: Context, phone: String, text: String): Boolean {
+    if (openWhatsAppQuiet(context, phone, text)) return true
+    return try {
+        Log.i("NexusAsk", "WhatsApp missing; SMS draft")
+        openSms(context, phone, text)
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    }
+}
+
+private fun openWhatsAppQuiet(context: Context, phone: String, text: String): Boolean {
+    if (!isInstalled(context, "com.whatsapp")) return false
+    val link = whatsAppLink(phone, text)
+    Log.i("NexusAsk", "open whatsapp ${link.substringBefore('?')}")
+    return try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).setPackage("com.whatsapp").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    }
+}
+
+/**
+ * Shares a screenshot to WhatsApp (the parent picks the chat; WhatsApp has no documented way to
+ * target a number with an image), or to the system share sheet when WhatsApp is missing.
+ */
+fun askFamilyWithImage(context: Context, file: File, text: String) {
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+    val send = Intent(Intent.ACTION_SEND)
+        .setType("image/jpeg")
+        .putExtra(Intent.EXTRA_STREAM, uri)
+        .putExtra(Intent.EXTRA_TEXT, text)
+        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    val intent = if (isInstalled(context, "com.whatsapp")) send.setPackage("com.whatsapp") else Intent.createChooser(send, null)
+    Log.i("NexusAsk", "share image whatsapp=${isInstalled(context, "com.whatsapp")}")
+    context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+}
+
+fun shareText(context: Context, text: String) {
+    val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+    context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+}
+
+/** Country from the SIM, then the phone's region, else India. */
+fun guessCountry(context: Context): Country {
+    val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
+    val iso = tm?.simCountryIso?.uppercase().orEmpty().ifBlank { java.util.Locale.getDefault().country.uppercase() }
+    return COUNTRIES.firstOrNull { it.code == iso } ?: COUNTRIES.first { it.code == "IN" }
 }
