@@ -200,11 +200,14 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         update(saved.copy(people = list))
     }
 
-    fun saveHome(address: String) {
+    /** Saves the home address and returns an undo action that restores the previous one (with its coordinates). */
+    fun saveHome(address: String): () -> Unit {
+        val before = saved.home
         val trimmed = address.trim()
-        if (trimmed == saved.home.address) return
+        if (trimmed == before.address) return {}
         update(saved.copy(home = Place(trimmed)))
         locate(trimmed)
+        return { update(saved.copy(home = before)) }
     }
 
     fun setCountry(country: Country) = update(saved.copy(country = country.name, dial = country.dial, countryCode = country.code))
@@ -242,13 +245,13 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Handles what was heard (or typed in Family settings for testing). */
-    fun understood(said: String?) {
+    fun understood(said: String?, typed: Boolean = false) {
         listener.stop()
         val text = said.orEmpty().trim()
         heard = text
         val reading = readMessage(text, saved)
         val person = reading.person
-        if (text.isNotEmpty()) record(Event.VOICE)
+        if (text.isNotEmpty() && !typed) record(Event.VOICE)
         if (wantsRideHome(reading) && saved.home.isSet) {
             voiceFails = 0
             tryingInSetup = false
@@ -257,7 +260,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         }
         if (person == null) {
             voiceFails += 1
-            record(Event.VOICE_FAIL)
+            if (!typed) record(Event.VOICE_FAIL)
             speak(R.string.not_understood)
             screen = Screen.NotUnderstood
             return

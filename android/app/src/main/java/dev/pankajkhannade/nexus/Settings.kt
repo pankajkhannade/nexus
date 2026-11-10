@@ -86,10 +86,26 @@ fun SettingsScreen(model: NexusViewModel) {
                         kind = if (saved.language == code) ButtonKind.Primary else ButtonKind.Secondary)
                 }
             }
+            BigButton("🎤  " + stringResource(R.string.retest_mic), {
+                if (granted(context, Manifest.permission.RECORD_AUDIO)) model.startListening() else model.screen = Screen.Home
+            }, kind = ButtonKind.Secondary)
 
             Text(stringResource(R.string.place_home), style = MaterialTheme.typography.titleLarge)
             PlaceBox(stringResource(R.string.place_home), home, saved.countryCode) { home = it }
-            BigButton(stringResource(R.string.save), { model.saveHome(home) }, enabled = home.trim() != saved.home.address, kind = ButtonKind.Secondary)
+            BigButton(stringResource(R.string.save), {
+                val undo = model.saveHome(home)
+                scope.launch {
+                    val r = snackbar.showSnackbar(
+                        context.getString(R.string.home_saved),
+                        actionLabel = context.getString(R.string.undo),
+                        duration = SnackbarDuration.Long,
+                    )
+                    if (r == SnackbarResult.ActionPerformed) {
+                        undo()
+                        home = model.saved.home.address
+                    }
+                }
+            }, enabled = home.trim() != saved.home.address, kind = ButtonKind.Secondary)
 
             Text(stringResource(R.string.country), style = MaterialTheme.typography.titleLarge)
             CountryPicker(COUNTRIES.firstOrNull { it.code == saved.countryCode } ?: guessCountry(context)) { model.setCountry(it) }
@@ -113,6 +129,8 @@ fun SettingsScreen(model: NexusViewModel) {
                     model.usage.total(Event.VOICE),
                     model.usage.total(Event.SAFETY_CHECK),
                     model.usage.total(Event.ASK_FAMILY),
+                    model.usage.total(Event.RIDE),
+                    model.usage.total(Event.WHATSAPP),
                 ),
                 style = MaterialTheme.typography.bodyLarge,
             )
@@ -129,7 +147,7 @@ fun SettingsScreen(model: NexusViewModel) {
 
             Text(stringResource(R.string.test_command), style = MaterialTheme.typography.titleLarge)
             OutlinedTextField(command, { command = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.test_command_hint)) }, singleLine = true)
-            BigButton(stringResource(R.string.try_command), { model.understood(command) }, enabled = command.isNotBlank(), kind = ButtonKind.Secondary)
+            BigButton(stringResource(R.string.try_command), { model.understood(command, typed = true) }, enabled = command.isNotBlank(), kind = ButtonKind.Secondary)
 
             BigButton(stringResource(R.string.privacy), { model.screen = Screen.Privacy }, kind = ButtonKind.Secondary)
             BigButton(stringResource(R.string.done), { model.screen = Screen.Home })

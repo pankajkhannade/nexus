@@ -145,7 +145,7 @@
     <string name="perm_off">बंद</string>
     <string name="open_phone_settings">फोन सेटिंग उघडा</string>
     <string name="usage_title">या फोनवरचा वापर</string>
-    <string name="usage_summary">वापराचे दिवस: %1$d · फोन: %2$d · आवाज: %3$d · तपासलेले मेसेज: %4$d · घरच्यांना विचारलं: %5$d</string>
+    <string name="usage_summary">वापराचे दिवस: %1$d · फोन: %2$d · आवाज: %3$d · तपासलेले मेसेज: %4$d · घरच्यांना विचारलं: %5$d · गाडी: %6$d · WhatsApp: %7$d</string>
     <string name="export_usage">माझा वापर पाठवा</string>
     <string name="export_note">फक्त आकडे आणि फीडबॅकची उत्तरं. नावं, नंबर किंवा मेसेज नाहीत.</string>
     <string name="test_command">कमांड लिहा (तपासणीसाठी)</string>
@@ -168,4 +168,6 @@
     <string name="ride_other_app">दुसरं ॲप</string>
     <string name="ride_will_copy">घराचा पत्ता कॉपी होईल. “कुठे जायचे” मध्ये पेस्ट करा.</string>
     <string name="no_cab_app_ask">घरच्यांना Uber, Ola किंवा Rapido टाकायला सांगा.</string>
+    <string name="home_saved">घराचा पत्ता सेव्ह झाला</string>
+    <string name="retest_mic">माइक तपासा</string>
 </resources>

@@ -146,7 +146,7 @@
     <string name="perm_off">off</string>
     <string name="open_phone_settings">Open phone settings</string>
     <string name="usage_title">Usage on this phone</string>
-    <string name="usage_summary">Days used: %1$d · Calls: %2$d · Voice commands: %3$d · Messages checked: %4$d · Asked family: %5$d</string>
+    <string name="usage_summary">Days used: %1$d · Calls: %2$d · Voice commands: %3$d · Messages checked: %4$d · Asked family: %5$d · Rides: %6$d · WhatsApp: %7$d</string>
     <string name="export_usage">Export my usage</string>
     <string name="export_note">Only counts and the feedback answers. No names, numbers or messages.</string>
     <string name="test_command">Type a command (testing)</string>
@@ -169,4 +169,6 @@
     <string name="ride_other_app">Other app</string>
     <string name="ride_will_copy">The home address will be copied. Paste it in “Where to”.</string>
     <string name="no_cab_app_ask">Ask family to install Uber, Ola or Rapido.</string>
+    <string name="home_saved">Home address saved</string>
+    <string name="retest_mic">Test the mic</string>
 </resources>
