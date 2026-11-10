@@ -35,4 +35,35 @@ class UsageTest {
         assertTrue(text.contains("bigger text"))
         assertFalse(text.contains("+91"))
     }
+
+    @Test fun everyEventTypeIsCountedAndSurvivesARestart() {
+        var u = Usage()
+        Event.entries.forEachIndexed { i, e -> repeat(i + 1) { u = u.record(e, 200) } }
+        val back = Usage.parse(u.serialize())
+        Event.entries.forEachIndexed { i, e -> assertEquals(e.name, i + 1, back.count(e, 200)) }
+        assertEquals(1, back.activeDays())
+    }
+
+    @Test fun daysAreKeptApart() {
+        val u = Usage().record(Event.RIDE, 300).record(Event.RIDE, 302).record(Event.WHATSAPP, 302)
+        assertEquals(1, u.count(Event.RIDE, 300))
+        assertEquals(0, u.count(Event.RIDE, 301))
+        assertEquals(2, u.total(Event.RIDE))
+        assertEquals(2, u.activeDays())
+    }
+
+    @Test fun exportListsEachDayInOrderWithSetupAge() {
+        val install = java.time.LocalDate.of(2026, 11, 10).toEpochDay()
+        val u = Usage().record(Event.SAFETY_CHECK, install + 2).record(Event.CALL, install).record(Event.CALL, install)
+        val text = exportText(u, Feedback(), install, install + 3, "mr")
+        assertTrue(text.contains("Set up: 2026-11-10 (day 3)"))
+        assertTrue(text.contains("Active days: 2"))
+        assertTrue(text.indexOf("2026-11-10: calls=2") < text.indexOf("2026-11-12: safety_checks=1"))
+        assertFalse(text.contains("feedback"))
+    }
+
+    @Test fun exportShowsSkippedRounds() {
+        val text = exportText(Usage(), Feedback().skip(3).skip(3), 1000, 1004, "en")
+        assertTrue(text.contains("Day 3 feedback: helped=-; skipped 2"))
+    }
 }
