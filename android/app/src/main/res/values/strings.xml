@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- English source strings. Keep every key in sync with values-hi and values-mr. -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Nexus</string>
+    <string name="app_name" translatable="false">Nexus</string>
     <string name="back">Back</string>
     <string name="close">Close</string>
     <string name="continue_">Continue</string>

@@ -4,16 +4,18 @@
 
 The child sets Nexus up on the parent's phone in a few minutes. The parent uses it every day.
 
-> Status: Phase 1 is built (screens S1–S13, plus S14 dictated messages and S15 Near home). A debug APK is ready to sideload. There is no Play Store release yet. Next: a real-phone test, a native Hindi and Marathi review of the strings, then the 14-day Play closed test (the Console fee needs Pankaj's yes).
+> Status: Phase 1 is built (screens S1–S13, plus S14 dictated messages and S15 Near home), with Pankaj's first real-phone feedback fixed (voice cut-off, phone-book calling, rides anywhere). A debug APK is ready to sideload. There is no Play Store release yet. Next: a real-phone test, a native Hindi and Marathi review of the strings, then the 14-day Play closed test (the Console fee needs Pankaj's yes).
 
 The native Android app lives in [`android/`](android/). Package: `dev.pankajkhannade.nexus`.
 
 ## What it does today
 
 - **Parent mode:** a big-button home screen in English, Hindi or Marathi, with up to four people (photo or initial, Call, WhatsApp) and a sticky Speak bar.
+- **Listening that doesn't cut off:** Speak keeps listening through pauses, shows the words live in large type and has a big Done / झालं. It stops on its own once a whole command is heard, or after a short quiet spell.
 - **Calls:** tap a face or say "Pankaj la phone lav" / "पंकज को फ़ोन लगाओ". Nexus counts down for 3 seconds with a Cancel, then places the call (or opens the dialer if call permission is off).
+- **Anyone in the phone book:** "सुनीलला फोन लाव" finds Sunil Patil in the phone's contacts, once the phone book is allowed. Two Rahuls show a big "Which one?" with each number's last digits. Contacts stay on the phone.
 - **Dictated WhatsApp and SMS:** say "पंकजला व्हॉट्सॲप कर आणि सांग की तू कधी येणार आहेस घरी". Nexus tidies the message on the phone, reads it back, and opens WhatsApp or SMS with the text typed in. The parent taps Send there. Nothing is sent automatically.
-- **Ride home:** one big button for the last cab app used. Uber, Ola, Rapido and Namma Yatri are supported. Saying "ghar jana hai" / "घरी जायचं आहे" / "take me home" opens it. With no cab app installed, it offers "Ask family".
+- **Rides home or anywhere:** one big button for the last cab app used. Uber, Ola, Rapido and Namma Yatri are supported. "ghar jana hai" / "घरी जायचं आहे" goes home. "स्वारगेटला जायचं आहे" / "take me to Pune airport" finds the place near home, reads it back and opens the cab app with the drop-off. You can also type "Somewhere else". With no cab app installed, it offers "Ask family" (and Maps directions for a place).
 - **Near home:** one "घराजवळ" button with big tiles for groceries, medicines, doctor, ride, home help and emergency. The child picks an app for each need from a dropdown. Apps already on the phone get an "Installed" tag; the rest open their Play Store page. Medicines, doctor and emergency always work, through Maps search near home and a 108 dial pad (never an automatic call).
 - **Is this safe?:** share a message or screenshot into Nexus. Checks run on the phone. The wording never says "safe".
 - **Ask family:** one tap opens WhatsApp (or SMS) to the chosen child with the shared content and "Is this real?" already typed. The parent sends.
@@ -30,7 +32,7 @@ Requirements: JDK 17+, Android SDK (platform 35, build-tools 35). The Gradle wra
 cd android
 echo "sdk.dir=$ANDROID_HOME" > local.properties   # if not already present
 ./gradlew assembleDebug          # APK: app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest      # 237 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
+./gradlew testDebugUnitTest      # 308 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
 ./gradlew verifyRoborazziDebug   # screenshot tests against app/src/test/roborazzi/ goldens
 ```
 

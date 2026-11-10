@@ -161,7 +161,9 @@ Conventions:
 | "Is app X installed?" (`isInstalled`) | `fakeInstall("com.whatsapp")` registers a MAIN/LAUNCHER activity in `ShadowPackageManager` | same |
 | Runtime permissions (CALL_PHONE, RECORD_AUDIO) | `shadowOf(app).grantPermissions(Manifest.permission.CALL_PHONE)`. Leave it ungranted to test the fallback. | `CallingUiTest.withCallPermission…` |
 | Text to speech | Robolectric `ShadowTextToSpeech`: call `onInitListener.onInit(SUCCESS)`, then check `lastSpokenText` | `CallingUiTest.theCountdownIsSpokenAloud…` |
-| Speech recognition | Skip the recogniser. Call the seam `model.understood("Aai la phone lav")` directly (L0 covers the phrase parsing). For listener wiring, Robolectric's `ShadowSpeechRecognizer` can trigger results. | — |
+| Speech recognition | `FakeSpeechEngine` (test sources) implements the `SpeechEngine` seam. Pass it with `model.useSpeechEngine(fake) { fake.clock }`, then play what Android would send: `fake.partial("…")`, `fake.endOfSpeech()`, `fake.error(SpeechRecognizer.ERROR_NO_MATCH)`, `fake.final("best", "second")` (n-best). Check `fake.starts` for restarts and move the fake clock with `fake.advance(ms)` to test quiet-time and 60 s limits without waiting. For phrase-only checks, call `model.understood("Aai la phone lav", typed = true)`. | `ContinuousListenerTest`, `ListeningUiTest` |
+| Phone book (contacts) | `FakeContacts` implements `ContactsSource`, with the `PHONE_BOOK` fixtures (two Rahuls, a Devanagari contact, titles, landlines, a duplicate number). Set `model.contacts = FakeContacts(granted = false)` for the permission path, and `model.io = Dispatchers.Unconfined` so lookups finish inside the test. | `ContactsTest`, `ContactsUiTest` |
+| Place search (destinations) | Set the `PlaceFinder` seam: `model.placeFinder = PlaceFinder { query, near, lang -> listOf(Place("Swargate Bus Stand", 18.50, 73.86)) }`, plus `model.io = Dispatchers.Unconfined`. | `RideToUiTest` |
 | ML Kit OCR (screenshot → text) | Don't run it on the JVM: the models are native. Test the text path with `model.openCheck(text)`. Check OCR itself in the L3 smoke with one real screenshot. | — |
 | Clipboard ("Paste message") | Robolectric's real `ClipboardManager`: `setPrimaryClip(...)`, then tap Paste | — |
 | Geocoder | Robolectric's `getFromLocationName` returns nothing, and `ShadowGeocoder` only fakes reverse lookups. Set the seam `model.lookupHome = { Place(it, lat, lng) to "411045" }`, then `saveHome(...)` and wait (`homeWithCoordinates()` in `NearHomeUiTest`). | `NearHomeUiTest` |
@@ -170,8 +172,12 @@ Instrumented tests (when we add some): use **Espresso-Intents** (`intending(...)
 to stub and check the same hand-offs on a device, and UiAutomator for system dialogs like
 permission prompts.
 
-Later, to make these tests simpler: put `Speaker`, `Listener` and `readImageText` behind small
-interfaces passed into `NexusViewModel`, so tests can pass fakes instead of relying on shadows.
+The recogniser (`SpeechEngine`), contacts (`ContactsSource`) and place search (`PlaceFinder`) are now
+seams with fakes. `Speaker` and `readImageText` still rely on shadows; move them behind interfaces the
+same way when a test needs it.
+
+**Gotcha:** Android string resources collapse runs of spaces. `"📍  Somewhere else"` in XML renders as
+`"📍 Somewhere else"`, so assert the single-space form (or add the emoji in code, as `"🎤  " + stringResource(...)` does).
 
 ## When the emulator (or a phone) is still needed
 
