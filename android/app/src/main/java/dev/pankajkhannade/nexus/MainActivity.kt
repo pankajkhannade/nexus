@@ -122,6 +122,13 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun answerFeedback(round: Int, helped: Helped) = updateFeedback(feedback.answer(round, helped))
     fun easierFeedback(round: Int, text: String) = updateFeedback(feedback.easier(round, text))
     fun skipFeedback(round: Int) = updateFeedback(feedback.skip(round))
+    fun finishFeedback(round: Int) = updateFeedback(feedback.finish(round))
+
+    /** Q2 "Speak answer": recognised words only, kept on the phone. */
+    fun speakFeedback(onText: (String) -> Unit) {
+        if (voiceMode == VoiceMode.UNAVAILABLE || !listener.available()) return
+        listener.start(language, voiceMode, onPartial = onText) { said -> listener.stop(); said?.let(onText) }
+    }
 
     // ---- Setup ----
 

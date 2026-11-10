@@ -170,4 +170,5 @@
     <string name="no_cab_app_ask">परिवार से Uber, Ola या Rapido डलवाएँ।</string>
     <string name="home_saved">घर का पता सेव हुआ</string>
     <string name="retest_mic">माइक जाँचें</string>
+    <string name="speak_answer">बोलकर बताएँ</string>
 </resources>

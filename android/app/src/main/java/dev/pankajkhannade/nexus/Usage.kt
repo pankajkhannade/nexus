@@ -59,19 +59,29 @@ enum class Helped(val key: String) { YES("yes"), LITTLE("a_little"), NO("no") }
 data class FeedbackAnswer(val helped: Helped? = null, val easier: String = "")
 
 /**
- * The day-3 and day-7 feedback rounds. A round closes after an answer to Q1 (Q2 optional) or two skips.
+ * The day-3 and day-7 feedback rounds. Q1 ("Did Nexus help?") then optional Q2 ("What would make it easier?").
+ * A round closes when Q2 is saved or skipped ([finish]), or after two skips of Q1. Answering Q1 alone keeps
+ * the round open so Q2 shows next.
  */
 data class Feedback(
     val answers: Map<Int, FeedbackAnswer> = emptyMap(),
     val skips: Map<Int, Int> = emptyMap(),
+    val closed: Set<Int> = emptySet(),
 ) {
-    fun isClosed(round: Int): Boolean = answers[round]?.helped != null || (skips[round] ?: 0) >= 2
+    fun isClosed(round: Int): Boolean = round in closed || (skips[round] ?: 0) >= 2
 
     fun answer(round: Int, helped: Helped): Feedback =
         copy(answers = answers + (round to (answers[round] ?: FeedbackAnswer()).copy(helped = helped)))
 
+    /** Saves the Q2 text and closes the round. */
     fun easier(round: Int, text: String): Feedback =
-        copy(answers = answers + (round to (answers[round] ?: FeedbackAnswer()).copy(easier = text.trim().replace(Regex("""\s*\n\s*"""), " "))))
+        copy(
+            answers = answers + (round to (answers[round] ?: FeedbackAnswer()).copy(easier = text.trim().replace(Regex("""\s*\n\s*"""), " "))),
+            closed = closed + round,
+        )
+
+    /** Q2 skipped: the round is done. */
+    fun finish(round: Int): Feedback = copy(closed = closed + round)
 
     fun skip(round: Int): Feedback = copy(skips = skips + (round to (skips[round] ?: 0) + 1))
 
@@ -95,6 +105,7 @@ data class Feedback(
             if (a.easier.isNotBlank()) add("$round easier ${a.easier.replace("\n", " ")}")
         }
         skips.toSortedMap().forEach { (round, n) -> add("$round skips $n") }
+        closed.sorted().forEach { add("$it closed yes") }
     }.joinToString("\n")
 
     companion object {
@@ -106,8 +117,9 @@ data class Feedback(
                 val round = parts[0].toIntOrNull() ?: return@forEach
                 f = when (parts[1]) {
                     "helped" -> Helped.entries.firstOrNull { it.key == parts[2] }?.let { f.answer(round, it) } ?: f
-                    "easier" -> f.easier(round, parts[2])
+                    "easier" -> f.copy(answers = f.answers + (round to (f.answers[round] ?: FeedbackAnswer()).copy(easier = parts[2])))
                     "skips" -> f.copy(skips = f.skips + (round to (parts[2].toIntOrNull() ?: 0)))
+                    "closed" -> f.finish(round)
                     else -> f
                 }
             }

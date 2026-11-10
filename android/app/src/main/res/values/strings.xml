@@ -171,4 +171,5 @@
     <string name="no_cab_app_ask">Ask family to install Uber, Ola or Rapido.</string>
     <string name="home_saved">Home address saved</string>
     <string name="retest_mic">Test the mic</string>
+    <string name="speak_answer">Speak answer</string>
 </resources>

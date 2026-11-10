@@ -170,4 +170,5 @@
     <string name="no_cab_app_ask">घरच्यांना Uber, Ola किंवा Rapido टाकायला सांगा.</string>
     <string name="home_saved">घराचा पत्ता सेव्ह झाला</string>
     <string name="retest_mic">माइक तपासा</string>
+    <string name="speak_answer">बोलून सांगा</string>
 </resources>
