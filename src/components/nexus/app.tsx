@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ClipboardPaste, Download, Mic, Trash2 } from "lucide-react";
-import { asksForMoney, plan, summarize, type Action } from "@/lib/nexus/actions";
+import { asksForMoney, nameMatches, plan, summarize, type Action } from "@/lib/nexus/actions";
+import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 import { modelAvailability, readWithModel, type ModelFill } from "@/lib/nexus/device-model";
 import { useNexus } from "@/lib/nexus/store";
 import { Book } from "./book";
@@ -169,15 +170,18 @@ function Findings() {
   const pendingId = useNexus((s) => s.pendingId);
   const setPending = useNexus((s) => s.setPending);
   const saveCurrent = useNexus((s) => s.saveCurrent);
+  const savePeople = useNexus((s) => s.savePeople);
   const [placeOverride, setPlaceOverride] = useState("");
   const [modelFill, setModelFill] = useState<ModelFill | null>(null);
   const [modelState, setModelState] = useState("unavailable");
   const [modelNote, setModelNote] = useState("");
   const [modelBusy, setModelBusy] = useState(false);
+  const [contactNote, setContactNote] = useState("");
   useEffect(() => {
     setPlaceOverride("");
     setModelFill(null);
     setModelNote("");
+    setContactNote("");
   }, [draft]);
   useEffect(() => {
     void modelAvailability().then(setModelState);
@@ -231,7 +235,43 @@ function Findings() {
             <Fact label="Email" value={result.emails.length ? result.emails.join(", ") : null} />
             {result.when ? <Fact label="When" value={result.when.label} /> : null}
           </dl>
-          {result.remembered ? <p className="mt-3 text-sm text-muted">Using {result.remembered}, saved on this phone.</p> : null}
+          {result.remembered ? (
+            <p className="mt-3 text-sm text-muted">Using {result.remembered}, saved on this phone.</p>
+          ) : null}
+          {result.ask === "call" && !result.phones.length && result.askedName ? (
+            <div className="mt-3 flex flex-col gap-2">
+              <p className="text-sm text-muted">
+                Chrome cannot read your whole address book. Choose {result.askedName} from your contacts. Nexus then
+                saves the number on this phone and can call them next time.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!contactsSupported()) {
+                    setContactNote("Open Nexus in Chrome on this phone. This browser cannot open your contacts.");
+                    return;
+                  }
+                  const wanted = result.askedName;
+                  void pickContacts()
+                    .then((picked) => {
+                      if (!picked.length) {
+                        setContactNote("No contact selected.");
+                        return;
+                      }
+                      savePeople(picked);
+                      const hit = picked.find((person) => nameMatches(person.name, wanted) && person.phone);
+                      if (hit) setPending("call-0");
+                      else setContactNote(`Saved ${picked.length}. None was named ${wanted}.`);
+                    })
+                    .catch(() => setContactNote("Contact picker was closed."));
+                }}
+                className="h-11 rounded-lg bg-accent text-sm font-medium text-accent-fg"
+              >
+                Find {result.askedName} in contacts
+              </button>
+              {contactNote ? <p className="text-sm text-muted">{contactNote}</p> : null}
+            </div>
+          ) : null}
           {result.missingNick ? (
             <p className="mt-3 text-sm text-muted">No address saved for {result.missingNick}. Add it under Places.</p>
           ) : null}

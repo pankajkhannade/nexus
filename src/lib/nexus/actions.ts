@@ -332,12 +332,40 @@ export function emailFromMemory(text: string, captures: Array<{ text: string }>)
   return null;
 }
 
+export function askedFor(text: string): { kind: "call" | "text" | "email" | null; name: string } {
+  const match = text.trim().match(/^(?:please\s+)?(call|dial|phone|ring|text|message|whatsapp|email|mail)\s+(.+)$/i);
+  if (!match) return { kind: null, name: "" };
+  const verb = match[1].toLowerCase();
+  const name = match[2].replace(/[.!?,]+$/g, "").trim();
+  if (!name) return { kind: null, name: "" };
+  if (verb === "text" || verb === "message" || verb === "whatsapp") return { kind: "text", name };
+  if (verb === "email" || verb === "mail") return { kind: "email", name };
+  return { kind: "call", name };
+}
+
+export function nameMatches(personName: string, query: string) {
+  const left = personName.toLowerCase().trim();
+  const right = query.toLowerCase().trim();
+  if (!left || !right) return false;
+  if (left === right) return true;
+  const leftParts = left.split(/\s+/);
+  const rightParts = right.split(/\s+/).filter((word) => word.length >= 3 && !STOP.has(word));
+  if (rightParts.some((part) => left === part || leftParts.includes(part))) return true;
+  if (right.length >= 3 && (left.includes(right) || leftParts.some((part) => part.includes(right)))) return true;
+  return false;
+}
+
 export function personInText(text: string, people: Person[], captures: Array<{ text: string }>): Person | null {
+  const asked = askedFor(text).name;
+  if (asked) {
+    const hit = people.find((person) => nameMatches(person.name, asked) && (person.phone.trim() || person.email.trim()));
+    if (hit) return hit;
+  }
   const words = text.toLowerCase().match(/[a-z][a-z'-]{2,}/g) ?? [];
   const names = words.filter((word) => !STOP.has(word));
   for (const name of names) {
-    const hit = people.find((person) => person.name.toLowerCase().split(/\s+/).includes(name));
-    if (hit && (hit.phone.trim() || hit.email.trim())) return hit;
+    const hit = people.find((person) => nameMatches(person.name, name) && (person.phone.trim() || person.email.trim()));
+    if (hit) return hit;
   }
   const phone = phoneFromMemory(text, captures);
   const email = emailFromMemory(text, captures);
@@ -355,6 +383,8 @@ export interface Plan {
   mapLink: string | null;
   remembered: string | null;
   missingNick: string | null;
+  askedName: string;
+  ask: "call" | "text" | "email" | null;
   actions: Action[];
 }
 
@@ -469,6 +499,14 @@ export function plan(
     });
   }
 
+  const request = askedFor(text);
+  if (request.kind === "call") {
+    actions.sort((a, b) => Number(b.id.startsWith("call")) - Number(a.id.startsWith("call")));
+  }
+  if (request.kind === "text") {
+    actions.sort((a, b) => Number(b.id.startsWith("sms") || b.id.startsWith("wa")) - Number(a.id.startsWith("sms") || a.id.startsWith("wa")));
+  }
+
   return {
     place,
     placeLabel,
@@ -478,6 +516,8 @@ export function plan(
     mapLink: reading.mapLink,
     remembered,
     missingNick: nick && !saved && !street ? nick : null,
+    askedName: request.name,
+    ask: request.kind,
     actions,
   };
 }

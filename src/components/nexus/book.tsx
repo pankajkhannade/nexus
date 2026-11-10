@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useNexus } from "@/lib/nexus/store";
+import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 
 export function Book() {
   const people = useNexus((s) => s.people);
   const places = useNexus((s) => s.places);
   const savePerson = useNexus((s) => s.savePerson);
+  const savePeople = useNexus((s) => s.savePeople);
   const removePerson = useNexus((s) => s.removePerson);
   const savePlace = useNexus((s) => s.savePlace);
   const removePlace = useNexus((s) => s.removePlace);
@@ -14,6 +16,7 @@ export function Book() {
   const [email, setEmail] = useState("");
   const [placeName, setPlaceName] = useState("");
   const [address, setAddress] = useState("");
+  const [contactNote, setContactNote] = useState("");
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   if (!ready) {
@@ -29,8 +32,33 @@ export function Book() {
     <section className="flex flex-col gap-4" aria-label="People and places">
       <div>
         <h2 className="text-base font-medium">People</h2>
-        <p className="mt-1 text-sm text-muted">Save a name once. Later, “text Priya” uses her number and email.</p>
+        <p className="mt-1 text-sm text-muted">
+          Choose people from your phone once. After that, “call Aai” uses the saved number.
+        </p>
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          if (!contactsSupported()) {
+            setContactNote("Open Nexus in Chrome on this phone to choose contacts.");
+            return;
+          }
+          void pickContacts()
+            .then((picked) => {
+              if (!picked.length) {
+                setContactNote("No contact selected.");
+                return;
+              }
+              savePeople(picked);
+              setContactNote(`Saved ${picked.length} from your phone.`);
+            })
+            .catch(() => setContactNote("Contact picker was closed."));
+        }}
+        className="h-11 rounded-lg bg-accent text-sm font-medium text-accent-fg"
+      >
+        Choose from phone contacts
+      </button>
+      {contactNote ? <p className="text-sm text-muted">{contactNote}</p> : null}
       <div className="grid gap-2">
         <input
           value={name}

@@ -97,6 +97,7 @@ interface NexusStore {
   loadCapture: (id: string) => void;
   removeCapture: (id: string) => void;
   savePerson: (person: Omit<Person, "id">) => void;
+  savePeople: (people: Array<Omit<Person, "id">>) => void;
   removePerson: (id: string) => void;
   savePlace: (place: Omit<SavedPlace, "id">) => void;
   removePlace: (id: string) => void;
@@ -156,7 +157,25 @@ export const useNexus = create<NexusStore>((set, get) => ({
     const name = person.name.trim();
     if (!name || (!person.phone.trim() && !person.email.trim())) return;
     const next = { id: `person-${Date.now()}`, name, phone: person.phone.trim(), email: person.email.trim() };
-    const people = [next, ...get().people.filter((item) => item.name.toLowerCase() !== name.toLowerCase())].slice(0, 40);
+    const people = [next, ...get().people.filter((item) => item.name.toLowerCase() !== name.toLowerCase())].slice(0, 200);
+    set({ people });
+    persist(get().captures, people, get().places);
+  },
+
+  savePeople: (incoming) => {
+    let people = get().people;
+    incoming.forEach((person, index) => {
+      const name = person.name.trim();
+      if (!name || (!person.phone.trim() && !person.email.trim())) return;
+      const next = {
+        id: `person-${Date.now()}-${index}`,
+        name,
+        phone: person.phone.trim(),
+        email: person.email.trim(),
+      };
+      people = [next, ...people.filter((item) => item.name.toLowerCase() !== name.toLowerCase())];
+    });
+    people = people.slice(0, 200);
     set({ people });
     persist(get().captures, people, get().places);
   },
