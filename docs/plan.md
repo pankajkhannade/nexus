@@ -8,12 +8,15 @@
 
 **Analytics (2026-11-11, feat/analytics).** On-device event log, the metrics maths, How Nexus is doing (en/hi/mr), Share test summary with a tester tag, Delete all usage data, and the opt-in daily upload to our own Worker (live at nexus-metrics.safe2eat-api.workers.dev, free tier). `node scripts/metrics-report.mjs` prints the cohort table. 356 JVM tests + 11 Worker tests. Definitions and targets: `docs/metrics.md`.
 
+**UX sprint 1 (2026-11-11, feat/ux-sprint-1).** From the UX critique: faces you can tell apart, home on one 360x640dp screen, "Didn't understand" shows and says what was heard, the verdict's Ask <child> pinned, spoken handoff coaching (and Ola's drop-off link), "Save in phone contacts" in setup, India-only address search, and the shared bottom bar. 401 JVM tests. The 19 design principles are in `design.md` 3.8.
+
 **Next.**
-1. Pankaj's second real-phone test: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot).
-2. Native Hindi and Marathi review of the app's strings.
-3. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
-4. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
-5. Then the exit / kill rule below.
+1. Pankaj's second real-phone test, now also: does Ola open with Swargate filled in; is the spoken coach line helpful or too much; are the 4 faces easy to tell apart; does "Save in phone contacts" return to Nexus on his Contacts app. And: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot).
+2. Native Hindi and Marathi review of the app's strings (including the new coaching lines).
+3. UX sprint 2 (critique section 5 and ranked fixes 7–20): adjustable countdown 3 / 5 / 8 s, झालं / रद्द करा on the message screen, one name for Ask family, honest setup steps and a handover script, permanent help on home, settings clean-up, a "did it work?" on return, 2.0x text tests, and the पैसे गेले flow (roadmap N3).
+4. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
+5. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
+6. Then the exit / kill rule below.
 
 ## Thesis (one line)
 Nexus is the family co-pilot for your parents' Android phone: they speak in their own language and the simple thing happens; before anything risky, it pulls you in, and nothing leaves the phone without their say.
@@ -22,7 +25,7 @@ Nexus is the family co-pilot for your parents' Android phone: they speak in thei
 - Repo: github.com/pankajkhannade/nexus, native app in android/, package dev.pankajkhannade.nexus
 - Parent mode, child-assisted setup, calls, dictated WhatsApp/SMS, ride home (Uber, Ola, Rapido, Namma Yatri), Near home tiles, "Is this safe?", "Ask family", family settings with usage export, day-3 / day-7 feedback, Privacy screen
 - Debug APK for sideload only. No Play release.
-- 356 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
+- 401 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
 - Metrics: on-device log + opt-in daily counts + share-able summary. See `docs/metrics.md`.
 - Play needs: signed AAB, upload key Pankaj keeps, Play Console account (paid, needs Pankaj's yes), privacy policy at a public URL, Data safety form
 

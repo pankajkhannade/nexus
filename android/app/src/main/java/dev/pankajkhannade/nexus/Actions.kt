@@ -38,17 +38,23 @@ fun openRide(context: Context, app: CabApp, trip: Trip): RideResult {
         Log.i(TAG, "${app.id} not installed; falling back to Maps")
         return if (openMaps(context, trip)) RideResult.NOT_INSTALLED_OPENED_MAPS else RideResult.NOTHING_TO_OPEN
     }
-    handoff.copyText?.let { copyToClipboard(context, it) }
+    (handoff.copyText ?: handoff.backupCopy)?.let { copyToClipboard(context, it) }
+    val launcher = context.packageManager.getLaunchIntentForPackage(handoff.pkg)
     val intent = if (handoff.uri != null) {
         Intent(Intent.ACTION_VIEW, Uri.parse(handoff.uri)).setPackage(handoff.pkg)
     } else {
-        context.packageManager.getLaunchIntentForPackage(handoff.pkg)
+        launcher
     } ?: return RideResult.NOTHING_TO_OPEN
-    Log.i(TAG, "open ${app.id} uri=${handoff.uri ?: "launcher"} copied=${handoff.copyText != null}")
+    Log.i(TAG, "open ${app.id} uri=${handoff.uri?.substringBefore('?') ?: "launcher"} copied=${handoff.copyText != null}")
     return try {
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         if (handoff.copyText != null) RideResult.OPENED_AND_COPIED else RideResult.OPENED
     } catch (_: ActivityNotFoundException) {
+        // An app version that doesn't take the link: open it plainly; the address is already copied.
+        if (handoff.uri != null && launcher != null && handoff.backupCopy != null) {
+            runCatching { context.startActivity(launcher.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                .onSuccess { return RideResult.OPENED_AND_COPIED }
+        }
         if (openMaps(context, trip)) RideResult.NOT_INSTALLED_OPENED_MAPS else RideResult.NOTHING_TO_OPEN
     }
 }
@@ -82,7 +88,7 @@ fun geocodeHome(context: Context, address: String): Pair<Place, String?> {
     val text = address.trim()
     if (text.isEmpty() || !Geocoder.isPresent()) return Place(text) to null
     return runCatching {
-        val hit = Geocoder(context).getFromLocationName(text, 1)?.firstOrNull()
+        val hit = Geocoder(context).getFromLocationName(text, 1, IndiaBox.SOUTH, IndiaBox.WEST, IndiaBox.NORTH, IndiaBox.EAST)?.firstOrNull()
         if (hit != null && hit.hasLatitude() && hit.hasLongitude()) Place(text, hit.latitude, hit.longitude) to hit.postalCode
         else Place(text) to hit?.postalCode
     }.getOrElse { Place(text) to null }
@@ -105,6 +111,23 @@ fun placeCall(context: Context, phone: String): Boolean {
     }
     openDial(context, phone)
     return false
+}
+
+/** The phone's own "new contact" screen, prefilled. No permission: the user taps Save in the Contacts app. */
+fun addContactIntent(name: String, phone: String): Intent =
+    Intent(ContactsContract.Intents.Insert.ACTION)
+        .setType(ContactsContract.RawContacts.CONTENT_TYPE)
+        .putExtra(ContactsContract.Intents.Insert.NAME, name)
+        .putExtra(ContactsContract.Intents.Insert.PHONE, phone)
+        .putExtra(ContactsContract.Intents.Insert.PHONE_TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+        // Return to Nexus after Save on Contacts apps that honour it.
+        .putExtra("finishActivityOnSaveCompleted", true)
+
+fun openAddContact(context: Context, name: String, phone: String): Boolean = try {
+    context.startActivity(addContactIntent(name, phone).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    true
+} catch (_: ActivityNotFoundException) {
+    false
 }
 
 fun openDial(context: Context, phone: String) {
@@ -171,22 +194,47 @@ fun readPickedPhone(context: Context, uri: Uri): Pair<String, String>? {
     return null
 }
 
-fun suggestPlaces(query: String, countryCode: String): List<String> {
-    val url = URL(
-        "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?f=json&maxSuggestions=5&text=" +
-            URLEncoder.encode(query, "UTF-8") + "&countryCode=" + URLEncoder.encode(countryCode, "UTF-8"),
-    )
-    val connection = (url.openConnection() as HttpURLConnection).apply {
+/**
+ * Address suggestions (ArcGIS World geocoder "suggest", no key). India only (UX sprint 1, fix #6): the
+ * child's phone may report a US locale (screenshot 07 suggested Altoona, PA for "Shivaji Park, Dadar"), so
+ * Nexus always asks for India ("IND") and never trusts the locale. [near] biases towards home when known.
+ */
+fun suggestUrl(query: String, near: Place? = null): String = buildString {
+    append("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?f=json&maxSuggestions=5")
+    append("&countryCode=IND")
+    append("&text=").append(URLEncoder.encode(query, "UTF-8"))
+    if (near != null && near.hasCoordinates) {
+        append("&location=").append(String.format(java.util.Locale.US, "%.5f,%.5f", near.lng, near.lat))
+    }
+}
+
+/** Keeps India results only (text ends in ", IND") and shows them without the code. */
+fun parseSuggestions(json: String): List<String> {
+    val array = JSONObject(json).optJSONArray("suggestions") ?: JSONArray()
+    return (0 until array.length()).mapNotNull { index ->
+        array.optJSONObject(index)?.optString("text")?.trim()
+            ?.takeIf { it.endsWith(", IND") }
+            ?.removeSuffix(", IND")
+            ?.takeIf { it.isNotEmpty() }
+    }.distinct()
+}
+
+fun suggestPlaces(query: String, near: Place? = null): List<String> {
+    val connection = (URL(suggestUrl(query, near)).openConnection() as HttpURLConnection).apply {
         connectTimeout = 8000
         readTimeout = 8000
         setRequestProperty("Accept", "application/json")
     }
-    connection.inputStream.bufferedReader().use { reader ->
-        val array = JSONObject(reader.readText()).optJSONArray("suggestions") ?: JSONArray()
-        return (0 until array.length()).mapNotNull { index ->
-            array.optJSONObject(index)?.optString("text")?.trim()?.takeIf { it.isNotEmpty() }
-        }.distinct()
-    }
+    connection.inputStream.bufferedReader().use { reader -> return parseSuggestions(reader.readText()) }
+}
+
+/** India's bounding box, so the phone's Geocoder never returns a same-named place abroad. */
+internal object IndiaBox {
+    const val SOUTH = 6.5
+    const val WEST = 68.0
+    const val NORTH = 37.2
+    const val EAST = 97.5
+    fun contains(lat: Double, lng: Double) = lat in SOUTH..NORTH && lng in WEST..EAST
 }
 
 /** The "Ask family" WhatsApp text: the message quoted, then the question in the parent's language. */

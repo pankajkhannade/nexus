@@ -50,11 +50,12 @@ class FeedbackUiTest {
         setUpDaysAgo(model, 3)
         compose.setParent { ParentHome(model, onSpeak = {}, onSettings = {}) }
 
-        compose.onNodeWithText("Did Nexus help this week?").assertIsDisplayed()
-        compose.onNodeWithText("A little").performClick()
-        compose.onNodeWithText("What would make it easier?").assertIsDisplayed()
+        // The card sits after the family and tiles (UX sprint 1), so it may need a scroll on a small phone.
+        compose.onNodeWithText("Did Nexus help this week?").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("A little").performScrollTo().performClick()
+        compose.onNodeWithText("What would make it easier?").performScrollTo().assertIsDisplayed()
         compose.onNode(hasSetTextAction()).performTextInput("Bigger photos")
-        compose.onNodeWithText("Save").performClick()
+        compose.onNodeWithText("Save").performScrollTo().performClick()
 
         compose.onAllNodesWithText("What would make it easier?").assertCountEquals(0)
         compose.onAllNodesWithText("Did Nexus help this week?").assertCountEquals(0)
@@ -68,8 +69,8 @@ class FeedbackUiTest {
         setUpDaysAgo(model, 7)
         compose.setParent { ParentHome(model, onSpeak = {}, onSettings = {}) }
 
-        compose.onNodeWithText("Yes").performClick()
-        compose.onNodeWithText("Skip").performClick()
+        compose.onNodeWithText("Yes").performScrollTo().performClick()
+        compose.onNodeWithText("Skip").performScrollTo().performClick()
         compose.onAllNodesWithText("Did Nexus help this week?").assertCountEquals(0)
         assertEquals(Helped.YES, model.feedback.answers[7]?.helped)
         assertTrue(model.feedback.isClosed(7))

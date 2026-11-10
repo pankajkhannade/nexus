@@ -78,7 +78,6 @@
     <string name="found_message">WhatsApp %1$s</string>
     <string name="check_message">Is this message safe?</string>
     <string name="go_home">Book a ride home</string>
-    <string name="settings_hint">For family: hold 2 seconds for settings</string>
     <string name="whatsapp_missing">WhatsApp isn\'t on this phone.</string>
     <string name="dialer_fallback">The dial pad is open. Press the green button to call.</string>
     <string name="listening">Listening…</string>
@@ -86,8 +85,8 @@
     <string name="voice_online">Online: Google turns your voice into words.</string>
     <string name="confirm_call">Call %1$s?</string>
     <string name="yes_call">Yes, call</string>
-    <string name="not_understood">Didn\'t catch that. Say again or tap a photo.</string>
-    <string name="not_understood_again">No problem. Tap the photo of who you want to call.</string>
+    <string name="not_understood">Didn\'t catch that. Say it again, or tap a name below.</string>
+    <string name="not_understood_again">No problem. Tap the name of who you want to call.</string>
     <string name="heard_x">Heard: “%1$s”</string>
     <string name="speak_again">Speak again</string>
     <string name="calling_x">Calling %1$s</string>
@@ -323,4 +322,31 @@
     <string name="consent_where">A small Nexus server on Cloudflare, only for the Nexus team. Kept for 180 days. Turning this off stops it at once; Delete all usage data also gives this phone a new code.</string>
     <string name="consent_yes">Yes, send daily counts</string>
     <string name="consent_no">No, keep it on the phone</string>
+    <!-- UX sprint 1 -->
+    <string name="whatsapp_who">WhatsApp who?</string>
+    <string name="handover_settings">To open Family settings later, hold the date at the top of the screen for 2 seconds.</string>
+    <string name="save_to_phone">Save %1$s in phone contacts</string>
+    <string name="save_to_phone_why">So the phone shows a name, not a number, when Nexus calls:</string>
+    <string name="add_photo">Add photo</string>
+    <string name="change_photo">Change photo</string>
+    <string name="heard_nothing">Nexus heard nothing.</string>
+    <string name="heard_big">Heard: “%1$s”</string>
+    <string name="not_understood_tts">I heard: %1$s. I did not understand. Try saying: %2$s</string>
+    <string name="not_understood_tts_empty">I heard nothing. Press Speak and say: %1$s</string>
+    <string name="try_saying">Try saying: “%1$s”</string>
+    <string name="maybe_meant">Did you mean:</string>
+    <string name="show_message">Show the message</string>
+    <string name="hide_message">Hide the message</string>
+    <string name="money_gone">Money already gone? Call 1930</string>
+    <string name="coach_whatsapp_send">Opening WhatsApp. Press the green Send button.</string>
+    <string name="coach_whatsapp_chat">Opening WhatsApp for %1$s.</string>
+    <string name="coach_sms_send">Opening messages. Press the Send button.</string>
+    <string name="coach_ride_link">Opening %1$s with %2$s filled in. Check the fare, then book.</string>
+    <string name="coach_ride_paste">Opening %1$s. Tap Where to, hold your finger there, then tap Paste.</string>
+    <string name="coach_ride_paste_note">Nexus will say each step aloud.</string>
+    <string name="coach_app">Opening %1$s.</string>
+    <string name="ride_will_fill">The place is filled in for you.</string>
+    <string name="welcome_back">Back in Nexus. If something went wrong, press Speak.</string>
+    <string name="ride_readback">A ride to %1$s. Press the big button to open the cab app.</string>
+    <string name="ride_readback_home">A ride home. Press the big button to open the cab app.</string>
 </resources>

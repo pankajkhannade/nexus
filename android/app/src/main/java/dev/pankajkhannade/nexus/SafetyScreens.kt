@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -45,7 +46,7 @@ private fun CheckInput(model: NexusViewModel) {
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let(model::openCheckImage)
     }
-    ScreenColumn {
+    ParentScaffold(onBack = { model.clearCheck(); model.screen = Screen.Home }) {
         Text("🛡  " + stringResource(R.string.check_message), style = MaterialTheme.typography.headlineMedium)
         if (model.checkImage != null) {
             // An image was read but no text was found in it.
@@ -69,7 +70,6 @@ private fun CheckInput(model: NexusViewModel) {
             Text(stringResource(R.string.share_guide_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.share_guide), style = MaterialTheme.typography.bodyLarge)
         }
-        BigButton(stringResource(R.string.back), { model.clearCheck(); model.screen = Screen.Home }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -80,6 +80,11 @@ private fun clipboardText(context: Context): String? {
     return clip.getItemAt(0).coerceToText(context)?.toString()
 }
 
+/**
+ * The verdict (UX sprint 1, fix #4): the safe action, "Ask <child>", is pinned above the bottom bar, so it is
+ * on screen without scrolling on a small phone at large text. The checked message is folded away; a
+ * "Money already gone? Call 1930" line (India's cyber-fraud helpline) is offered for warnings.
+ */
 @Composable
 private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
     val context = LocalContext.current
@@ -87,28 +92,12 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
     var choosing by remember { mutableStateOf(false) }
     val hasWhatsApp = remember { isInstalled(context, "com.whatsapp") }
     var sendingTo by remember { mutableStateOf<Person?>(null) }
-    ScreenColumn {
-        VerdictBanner(verdict.level)
-        verdict.shown.forEach { reason ->
-            Text("•  " + stringResource(reasonText(reason)), style = MaterialTheme.typography.bodyLarge)
-        }
-        if (verdict.level == Level.NONE) {
-            Text(stringResource(R.string.verdict_none_body), style = MaterialTheme.typography.bodyLarge)
-        }
-        if (verdict.showNeverShare) {
-            OutlinedPanel(color = NexusColors.DangerContainer) {
-                Text(stringResource(R.string.never_share), style = MaterialTheme.typography.titleMedium)
-            }
-        }
-        if (model.checkText.isNotBlank()) {
-            OutlinedPanel {
-                Text(stringResource(R.string.message_checked), style = MaterialTheme.typography.titleSmall)
-                Text(model.checkText.take(400), style = MaterialTheme.typography.bodyMedium)
-            }
-        }
+    var showText by remember { mutableStateOf(false) }
+    val close = { model.clearCheck(); model.screen = Screen.Home }
+    ParentScaffold(onBack = close, above = {
         val target = sendingTo
         when {
-            target != null -> OutlinedPanel {
+            target != null -> {
                 val howTo = when {
                     model.checkImage != null && hasWhatsApp -> R.string.whatsapp_pick_chat
                     model.checkImage != null -> R.string.share_pick_app
@@ -124,6 +113,7 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
                     if (image != null) {
                         askFamilyWithImage(context, image, askFamilyText(model.checkText, ask))
                     } else {
+                        if (hasWhatsApp) model.speak(R.string.coach_whatsapp_send) else model.speak(R.string.coach_sms_send)
                         askFamilyByText(context, target.phone, askFamilyText(model.checkText, ask))
                     }
                 })
@@ -131,9 +121,34 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
             choosing -> askers.forEach { person ->
                 BigButton(person.name, { choosing = false; sendingTo = person }, kind = ButtonKind.Secondary)
             }
-            askers.size == 1 -> BigButton("💬  " + stringResource(R.string.ask_x, askers[0].name), { sendingTo = askers[0] })
-            askers.size > 1 -> BigButton("💬  " + stringResource(R.string.ask_family), { choosing = true })
+            askers.size == 1 -> BigButton("💬  " + stringResource(R.string.ask_x, askers[0].name), { sendingTo = askers[0] }, Modifier.testTag("safe_action"))
+            askers.size > 1 -> BigButton("💬  " + stringResource(R.string.ask_family), { choosing = true }, Modifier.testTag("safe_action"))
         }
-        BigButton(stringResource(R.string.ok_close), { model.clearCheck(); model.screen = Screen.Home }, kind = ButtonKind.Secondary)
+    }) {
+        VerdictBanner(verdict.level)
+        verdict.shown.forEach { reason ->
+            Text("•  " + stringResource(reasonText(reason)), style = MaterialTheme.typography.bodyLarge)
+        }
+        if (verdict.level == Level.NONE) {
+            Text(stringResource(R.string.verdict_none_body), style = MaterialTheme.typography.bodyLarge)
+        }
+        if (verdict.showNeverShare) {
+            OutlinedPanel(color = NexusColors.DangerContainer) {
+                Text(stringResource(R.string.never_share), style = MaterialTheme.typography.titleMedium)
+            }
+        }
+        if (verdict.level != Level.NONE) {
+            BigButton("📞  " + stringResource(R.string.money_gone), { openDial(context, "1930"); model.actionOpened(AppCategory.DIALER) }, kind = ButtonKind.Secondary)
+        }
+        if (model.checkText.isNotBlank()) {
+            BigButton(stringResource(if (showText) R.string.hide_message else R.string.show_message), { showText = !showText }, kind = ButtonKind.Quiet)
+            if (showText) {
+                OutlinedPanel {
+                    Text(stringResource(R.string.message_checked), style = MaterialTheme.typography.titleSmall)
+                    Text(model.checkText.take(400), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+        BigButton(stringResource(R.string.ok_close), close, kind = ButtonKind.Secondary)
     }
 }

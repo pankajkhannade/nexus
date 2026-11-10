@@ -10,16 +10,17 @@ The native Android app lives in [`android/`](android/). Package: `dev.pankajkhan
 
 ## What it does today
 
-- **Parent mode:** a big-button home screen in English, Hindi or Marathi, with up to four people (photo or initial, Call, WhatsApp) and a sticky Speak bar.
+- **Parent mode:** one screen with no scrolling on a small phone: up to four faces you can tell apart (a photo, or a distinct colour with the full first name), each with its own Call, labelled tiles (Is this safe?, Ride home, Near home, WhatsApp) and a sticky Speak bar. Every other parent screen ends with the same मागे / बोला bar.
+- **Says what it heard and what happens next:** "Didn't understand" shows and says "ऐकलं: …" with an example and one-tap calls; before handing over to WhatsApp, the dialer or a cab app, Nexus says where to press ("हिरवं पाठवा बटण दाबा").
 - **Listening that doesn't cut off:** Speak keeps listening through pauses, shows the words live in large type and has a big Done / झालं. It stops on its own once a whole command is heard, or after a short quiet spell.
 - **Calls:** tap a face or say "Pankaj la phone lav" / "पंकज को फ़ोन लगाओ". Nexus counts down for 3 seconds with a Cancel, then places the call (or opens the dialer if call permission is off).
 - **Anyone in the phone book:** "सुनीलला फोन लाव" finds Sunil Patil in the phone's contacts, once the phone book is allowed. Two Rahuls show a big "Which one?" with each number's last digits. Contacts stay on the phone.
 - **Dictated WhatsApp and SMS:** say "पंकजला व्हॉट्सॲप कर आणि सांग की तू कधी येणार आहेस घरी". Nexus tidies the message on the phone, reads it back, and opens WhatsApp or SMS with the text typed in. The parent taps Send there. Nothing is sent automatically.
-- **Rides home or anywhere:** one big button for the last cab app used. Uber, Ola, Rapido and Namma Yatri are supported. "ghar jana hai" / "घरी जायचं आहे" goes home. "स्वारगेटला जायचं आहे" / "take me to Pune airport" finds the place near home, reads it back and opens the cab app with the drop-off. You can also type "Somewhere else". With no cab app installed, it offers "Ask family" (and Maps directions for a place).
+- **Rides home or anywhere:** one big button for the last cab app used. Uber, Ola, Rapido and Namma Yatri are supported. Uber and Ola get the drop-off in the link; Rapido and Namma Yatri get it copied, with the paste steps said aloud. "ghar jana hai" / "घरी जायचं आहे" goes home. "स्वारगेटला जायचं आहे" / "take me to Pune airport" finds the place near home, reads it back and opens the cab app with the drop-off. You can also type "Somewhere else". With no cab app installed, it offers "Ask family" (and Maps directions for a place).
 - **Near home:** one "घराजवळ" button with big tiles for groceries, medicines, doctor, ride, home help and emergency. The child picks an app for each need from a dropdown. Apps already on the phone get an "Installed" tag; the rest open their Play Store page. Medicines, doctor and emergency always work, through Maps search near home and a 108 dial pad (never an automatic call).
-- **Is this safe?:** share a message or screenshot into Nexus. Checks run on the phone. The wording never says "safe".
+- **Is this safe?:** share a message or screenshot into Nexus. Checks run on the phone. The wording never says "safe". "Ask <child>" stays on screen at large text, and "Money already gone? Call 1930" opens the cyber-fraud helpline on the dial pad.
 - **Ask family:** one tap opens WhatsApp (or SMS) to the chosen child with the shared content and "Is this real?" already typed. The parent sends.
-- **Child-assisted setup:** language, family, home address, Near home apps, and a mic try-out, in a few minutes. No accounts.
+- **Child-assisted setup:** language, family (with a face photo, and "Save in phone contacts" for numbers typed in), home address (India-only suggestions), Near home apps, and a mic try-out, in a few minutes. No accounts.
 - **Family settings:** edit people and home (with Undo), test the mic, pick Near home apps, and **Export my usage** (a preview first; counts only, no names or numbers).
 - **How Nexus is doing (Family settings):** the numbers that decide whether Nexus works, in plain words in en/hi/mr with raw counts next to every percentage: days used of the last 7, first-try voice success by language and command, retries, cancels, wrong app, cut-offs, setup time, activation, voice vs buttons, crashes. A tester tag (family / friend / stranger), **Share test summary** (counts-only JSON for WhatsApp), and **Delete all usage data**. See [docs/metrics.md](docs/metrics.md).
 - **Opt-in daily counts (off by default):** after a consent page, yesterday's aggregate counts go once a day to our own Cloudflare Worker under a random install ID. No words, names, numbers or places, ever. Source and tests in [`backend/metrics-worker/`](backend/metrics-worker/); `node scripts/metrics-report.mjs` prints the cohort table.
@@ -34,7 +35,7 @@ Requirements: JDK 17+, Android SDK (platform 35, build-tools 35). The Gradle wra
 cd android
 echo "sdk.dir=$ANDROID_HOME" > local.properties   # if not already present
 ./gradlew assembleDebug          # APK: app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest      # 356 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
+./gradlew testDebugUnitTest      # 401 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
 ./gradlew verifyRoborazziDebug   # screenshot tests against app/src/test/roborazzi/ goldens
 ```
 
@@ -54,7 +55,8 @@ UI checks run on the JVM first (Robolectric + Roborazzi). The emulator is only a
 | Doc | What it covers |
 |---|---|
 | [docs/vision.md](docs/vision.md) | The vision, who it's for, why it can win, the four phases, and what's built so far |
-| [docs/design.md](docs/design.md) | Critical UI evaluation and the parent-mode revamp: screens S1–S15, strings (en/hi/mr), design system |
+| [docs/design.md](docs/design.md) | Critical UI evaluation and the parent-mode revamp: screens S1–S15, strings (en/hi/mr), design system, and the 19 design principles (3.8) |
+| [docs/ux-critique-2026-11-11.md](docs/ux-critique-2026-11-11.md) | UX critique: journey maps, 20 ranked fixes, principles, the sprint plan |
 | [docs/evaluation-2026-11-10.md](docs/evaluation-2026-11-10.md) | Teardown of the original app: the bugs Phase 1 fixed first |
 | [docs/decisions.md](docs/decisions.md) | Decisions log with reasons |
 | [docs/plan.md](docs/plan.md) | Living plan: status, milestones, exit and kill rules |

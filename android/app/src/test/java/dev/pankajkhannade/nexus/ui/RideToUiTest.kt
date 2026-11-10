@@ -80,13 +80,18 @@ class RideToUiTest {
         assertEquals(null, model.rideTo)
     }
 
-    @Test fun olaGetsTheDestinationCopied() {
+    @Test fun olaGetsTheDestinationInTheLinkAndCopiedAsABackup() {
         fakeInstall(CabApp.OLA.pkg)
         val model = model()
         model.chooseDestination(Place("Swargate Bus Stand, Swargate", 18.5018, 73.8636))
         compose.setParent { RideScreen(model) }
-        compose.onNodeWithText("The address will be copied. Paste it in “Where to”.").assertIsDisplayed()
+        compose.onNodeWithText("The place is filled in for you.").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Open Ola").performScrollTo().performClick()
+        val intent = nextStartedIntent()!!
+        assertTrue(intent.dataString!!, intent.dataString!!.contains("drop_lat=18.501800"))
+        assertEquals(CabApp.OLA.pkg, intent.`package`)
+        // Coach line said at the handoff, in the parent's language (Marathi by default in tests).
+        assertEquals("Ola उघडतोय, Swargate Bus Stand भरलेलं आहे. भाडं बघा, मग बुक करा.", model.spoken.last())
         val clip = app.getSystemService(ClipboardManager::class.java).primaryClip!!.getItemAt(0).text.toString()
         assertEquals("Swargate Bus Stand, Swargate", clip)
     }

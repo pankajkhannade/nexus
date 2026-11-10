@@ -20,6 +20,8 @@ data class Person(
     val relation: String = "",
     val askFamily: Boolean = false,
     val alias: String = "",
+    /** A face photo copied into the app's private files (faces/), or "" for a coloured initial. Never uploaded. */
+    val photo: String = "",
 )
 
 /** A saved place. Coordinates come from the on-device Geocoder at setup and may be missing. */

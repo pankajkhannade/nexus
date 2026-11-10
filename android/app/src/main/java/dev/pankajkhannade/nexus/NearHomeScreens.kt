@@ -69,7 +69,7 @@ fun needLabel(need: Need): Int = when (need) {
 @Composable
 fun NearHomeScreen(model: NexusViewModel) {
     val saved = model.saved
-    ScreenColumn {
+    ParentScaffold(onBack = { model.screen = Screen.Home }) {
         Text("📍  " + stringResource(R.string.near_home), style = MaterialTheme.typography.headlineMedium)
         if (saved.pincode.isNotBlank()) {
             Text(stringResource(R.string.near_services_for, saved.pincode), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -85,7 +85,6 @@ fun NearHomeScreen(model: NexusViewModel) {
                 NeedTile(Modifier.weight(1f).fillMaxRowHeight(), need, sub) { model.nearTile(need); model.openNeed(need) }
             }
         }
-        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -115,7 +114,7 @@ private fun NeedTile(modifier: Modifier, need: Need, sub: String?, onClick: () -
 @Composable
 fun NeedHelpScreen(model: NexusViewModel, need: Need) {
     val app = serviceApp(need, model.pickedPackage(need))
-    ScreenColumn {
+    ParentScaffold(onBack = { model.screen = Screen.NearHome }) {
         Text(needIcon(need) + "  " + stringResource(needLabel(need)), style = MaterialTheme.typography.headlineMedium)
         app?.let {
             val res = if (need == Need.DOCTOR) R.string.near_book_on else R.string.near_order_on
@@ -127,7 +126,6 @@ fun NeedHelpScreen(model: NexusViewModel, need: Need) {
             kind = ButtonKind.Secondary,
         )
         Text(stringResource(R.string.near_call_in_maps), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        BigButton(stringResource(R.string.back), { model.screen = Screen.NearHome }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -135,7 +133,7 @@ fun NeedHelpScreen(model: NexusViewModel, need: Need) {
 @Composable
 fun InstallScreen(model: NexusViewModel, need: Need, app: ServiceApp) {
     val context = LocalContext.current
-    ScreenColumn {
+    ParentScaffold(onBack = { model.screen = Screen.NearHome }) {
         Text(needIcon(need), fontSize = 56.sp, modifier = Modifier.clearAndSetSemantics { })
         Text(stringResource(R.string.install_title, app.label), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.install_body), style = MaterialTheme.typography.bodyLarge)
@@ -146,7 +144,6 @@ fun InstallScreen(model: NexusViewModel, need: Need, app: ServiceApp) {
                 askFamilyByText(context, person.phone, context.getString(R.string.install_help_prefill, app.label))
             }, kind = ButtonKind.Secondary)
         }
-        BigButton(stringResource(R.string.back), { model.screen = Screen.NearHome }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -155,7 +152,7 @@ fun InstallScreen(model: NexusViewModel, need: Need, app: ServiceApp) {
 fun EmergencyScreen(model: NexusViewModel) {
     val context = LocalContext.current
     val number = emergencyNumber(model.saved.countryCode)
-    ScreenColumn {
+    ParentScaffold(onBack = { model.screen = Screen.NearHome }) {
         Text("🚑  " + stringResource(R.string.need_emergency), style = MaterialTheme.typography.headlineMedium)
         Surface(
             onClick = { openDial(context, number); model.actionOpened(AppCategory.EMERGENCY) },
@@ -178,7 +175,6 @@ fun EmergencyScreen(model: NexusViewModel) {
             }
         }
         BigButton("🏥  " + stringResource(R.string.emergency_hospital), { model.openNeedMaps(Need.EMERGENCY) }, kind = ButtonKind.Secondary)
-        BigButton(stringResource(R.string.back), { model.screen = Screen.NearHome }, kind = ButtonKind.Quiet)
     }
 }
 

@@ -58,7 +58,7 @@ fun MessageScreen(model: NexusViewModel) {
                     BigButton(stringResource(R.string.msg_find_in_contacts), { contactsLauncher.launch(Manifest.permission.READ_CONTACTS) }, kind = ButtonKind.Secondary)
                 }
             }
-            model.draftChoices.forEach { p -> ContactChoice(p) { model.setDraftPerson(p) } }
+            model.draftChoices.forEachIndexed { i, p -> ContactChoice(p, i) { model.setDraftPerson(p) } }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = 2) {
                 model.saved.people.forEach { p ->
                     Column(
@@ -69,14 +69,14 @@ fun MessageScreen(model: NexusViewModel) {
                             .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Avatar(p.name, 88.dp)
+                        Avatar(p, model.saved.people, 88.dp)
                         Text(p.name, style = MaterialTheme.typography.titleLarge)
                     }
                 }
             }
         } else {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Avatar(person.name, 72.dp)
+                Avatar(person, model.saved.people, 72.dp)
                 Text(stringResource(R.string.msg_to, person.name), style = MaterialTheme.typography.headlineMedium)
             }
         }

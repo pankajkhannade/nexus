@@ -164,6 +164,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         if (cat != null) {
             track(EventType.ACTION_RETURN, category = cat, ms = (nowMs - awayAt).coerceAtLeast(0))
             awayCategory = null
+            // "Done": the last step of heard -> said back -> doing -> done, shown on home after a handoff.
+            if (saved.setupDone && screen == Screen.Home) notice = getApplication<Application>().getString(R.string.welcome_back)
         } else if (startedOnce) {
             track(EventType.FOREGROUND)
         }
@@ -242,7 +244,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     var checkImage by mutableStateOf<File?>(null)
         private set
     var checking by mutableStateOf(false)
-        private set
+        @androidx.annotation.VisibleForTesting internal set
     var verdict by mutableStateOf<Verdict?>(null)
         private set
 
@@ -349,13 +351,28 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Adds or replaces a person in the setup draft. Returns false when the number can't be used. */
-    fun putSetupPerson(original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String): Boolean {
+    fun putSetupPerson(
+        original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String,
+        photo: String = "", typed: Boolean = false,
+    ): Boolean {
         val phone = normalizePhone(rawPhone, dial) ?: return false
-        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim())
-        val others = setupPeople.filterNot { it.id == original?.id || it.phone == phone }
-        setupPeople = (others + person).take(MAX_PEOPLE)
+        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim(), photo)
+        // Keep the old place in the list, so faces keep their colour when someone is edited.
+        val same: (Person) -> Boolean = { it.id == original?.id || it.phone == phone }
+        val at = setupPeople.indexOfFirst(same)
+        val rest = setupPeople.filterNot(same).toMutableList()
+        if (at >= 0) rest.add(at.coerceAtMost(rest.size), person) else rest += person
+        setupPeople = rest.take(MAX_PEOPLE)
+        if (original != null && original.id != person.id) setupTyped = setupTyped - original.id
+        if (typed && original == null) setupTyped = setupTyped + person.id
         return true
     }
+
+    /**
+     * People typed in by number during setup (not picked from the phone book). The family step offers to
+     * save them into the phone's contacts, so the dialer shows a name instead of a bare number.
+     */
+    var setupTyped by mutableStateOf<Set<String>>(emptySet())
 
     fun removeSetupPerson(person: Person) {
         setupPeople = setupPeople.filterNot { it.id == person.id }
@@ -399,9 +416,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- People and places (Family settings) ----
 
-    fun savePerson(original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String): Boolean {
+    fun savePerson(original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String, photo: String = ""): Boolean {
         val phone = normalizePhone(rawPhone, dial) ?: return false
-        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim())
+        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim(), photo)
         val list = saved.people.toMutableList()
         val at = list.indexOfFirst { it.id == original?.id || it.phone == phone }
         if (at >= 0) list[at] = person else list += person
@@ -501,7 +518,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             }
             Need.GROCERY, Need.HOME_SERVICE -> when {
                 picked == null -> screen = Screen.NearHome
-                launchApp(app, picked.pkg) -> { screen = Screen.Home; actionOpened(AppCategory.of(need)) }
+                isInstalled(app, picked.pkg) && speak(R.string.coach_app, picked.label).let { launchApp(app, picked.pkg) } -> {
+                    screen = Screen.Home; actionOpened(AppCategory.of(need))
+                }
                 else -> screen = Screen.Install(need, picked)
             }
         }
@@ -597,7 +616,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         if (command == Command.Unknown) {
             voiceFails += 1
             if (!typed) record(Event.VOICE_FAIL)
-            speak(R.string.not_understood)
+            // Say back what was heard and one thing to try, in one short line.
+            if (text.isBlank()) speak(R.string.not_understood_tts_empty, examplePhrase())
+            else speak(R.string.not_understood_tts, text, examplePhrase())
             screen = Screen.NotUnderstood
             return
         }
@@ -605,8 +626,13 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         tryingInSetup = false
         when (command) {
             is Command.Message -> openDraft(command.dictation)
-            Command.RideHome -> rideHome()
-            is Command.RideTo -> if (command.place != null) chooseDestination(command.place) else findDestination(command.query)
+            Command.RideHome -> { rideHome(); speak(R.string.ride_readback_home) }
+            is Command.RideTo -> if (command.place != null) {
+                chooseDestination(command.place)
+                speak(R.string.ride_readback, command.place.address.substringBefore(',').trim())
+            } else {
+                findDestination(command.query)
+            }
             is Command.OpenNeed -> openNeed(command.need)
             is Command.WhatsApp -> {
                 screen = Screen.Home
@@ -757,8 +783,42 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun hasContactsPermission(): Boolean = contacts.hasPermission()
 
     fun speak(res: Int, vararg args: Any) {
-        val text = getApplication<Application>().inLanguage(language).getString(res, *args)
+        say(getApplication<Application>().inLanguage(language).getString(res, *args))
+    }
+
+    /** Everything Nexus says aloud goes through here, so tests can check what was said and when. */
+    fun say(text: String) {
+        spoken += text
+        if (spoken.size > 20) spoken.removeAt(0)
         speaker.speak(language, text)
+    }
+
+    /** The last 20 spoken lines, in memory only (tests read it; nothing is stored or uploaded). */
+    @androidx.annotation.VisibleForTesting
+    internal val spoken = mutableListOf<String>()
+
+    /** A short example of what to say, in the parent's language, with a real family name. */
+    fun examplePhrase(): String =
+        getApplication<Application>().inLanguage(language).getString(R.string.try_phrase, exampleName())
+
+    /** The name used in examples: the Ask-family person's spoken alias or name, else a sample name. */
+    fun exampleName(): String {
+        val person = saved.people.firstOrNull { it.askFamily } ?: saved.people.firstOrNull()
+        return person?.alias?.ifBlank { person.name } ?: getApplication<Application>().inLanguage(language).getString(R.string.sample_name)
+    }
+
+    /**
+     * "Didn't understand" (UX sprint 1, fix #3): the people the words may have been about, best first, for
+     * one-tap actions. A name or alias that appears in what was heard comes first, then everyone else.
+     */
+    fun candidatePeople(): List<Person> {
+        val words = heard.lowercase().split(Regex("""[\s,.!?]+""")).filter { it.length >= 2 }
+        fun mentioned(p: Person) = words.any { w ->
+            val stem = w.removeSuffix("ला").removeSuffix("ना").removeSuffix("ko").removeSuffix("la")
+            nameMatches(p.name, stem) || (p.alias.isNotBlank() && nameMatches(p.alias, stem)) || nameMatches(p.name, w)
+        }
+        val (hit, rest) = saved.people.partition(::mentioned)
+        return hit + rest
     }
 
     // ---- Calls and messages ----
@@ -769,6 +829,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openWhatsAppFor(person: Person) {
         record(Event.WHATSAPP)
+        // Coach before the handoff: Nexus's voice carries on while WhatsApp opens.
+        if (isInstalled(getApplication(), "com.whatsapp")) speak(R.string.coach_whatsapp_chat, person.name)
         if (openWhatsApp(getApplication(), person.phone, "")) actionOpened(AppCategory.WHATSAPP)
         else notice = getApplication<Application>().getString(R.string.whatsapp_missing)
     }
@@ -857,10 +919,13 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val d = draft ?: return false
         val person = d.person ?: return false
         val app = getApplication<Application>()
+        val waPkg = if (via == Channel.SMS) null else whatsAppPackage(app)
+        // One coaching line before the handoff: where to press in the other app.
+        if (via == Channel.SMS) speak(R.string.coach_sms_send) else if (waPkg != null) speak(R.string.coach_whatsapp_send)
         val opened = if (via == Channel.SMS) {
             openSmsDraft(app, person.phone, d.text)
         } else {
-            whatsAppPackage(app)?.let { openWhatsAppText(app, it, person.phone, d.text) } ?: false
+            waPkg?.let { openWhatsAppText(app, it, person.phone, d.text) } ?: false
         }
         if (!opened) {
             notice = app.getString(R.string.msg_not_opened)
@@ -869,7 +934,6 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         record(Event.MESSAGE)
         actionOpened(if (via == Channel.SMS) AppCategory.SMS else AppCategory.WHATSAPP)
         if (!saved.messageExplained) update(saved.copy(messageExplained = true))
-        speaker.stop()
         draft = null
         screen = Screen.Home
         return true

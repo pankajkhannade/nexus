@@ -49,7 +49,7 @@ fun SettingsScreen(model: NexusViewModel) {
             saved.people.forEachIndexed { i, person ->
                 OutlinedPanel {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Avatar(person.name, 48.dp)
+                        Avatar(person, saved.people, 48.dp)
                         Text(
                             person.name + "\n" + displayPhone(person.phone) + (if (person.askFamily) " · " + stringResource(R.string.ask_tag) else ""),
                             style = MaterialTheme.typography.bodyLarge,
@@ -57,7 +57,7 @@ fun SettingsScreen(model: NexusViewModel) {
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         BigButton(stringResource(R.string.edit), {
-                            editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true)
+                            editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true, photo = person.photo)
                         }, Modifier.weight(1f), kind = ButtonKind.Secondary)
                         if (i > 0) BigButton("↑", { model.movePerson(person, up = true) }, Modifier.weight(0.5f), kind = ButtonKind.Secondary)
                         BigButton(stringResource(R.string.remove), {
@@ -92,7 +92,7 @@ fun SettingsScreen(model: NexusViewModel) {
             }, kind = ButtonKind.Secondary)
 
             Text(stringResource(R.string.place_home), style = MaterialTheme.typography.titleLarge)
-            PlaceBox(stringResource(R.string.place_home), home, saved.countryCode) { home = it }
+            PlaceBox(stringResource(R.string.place_home), home, saved.home) { home = it }
             BigButton(stringResource(R.string.save), {
                 val undo = model.saveHome(home)
                 scope.launch {
@@ -185,7 +185,7 @@ fun SettingsScreen(model: NexusViewModel) {
             dial = model.dial,
             onDismiss = { editing = null },
             onRemove = null,
-            onSave = { d -> model.savePerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias).also { if (it) editing = null } },
+            onSave = { d -> model.savePerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias, d.photo).also { if (it) editing = null } },
             duplicateOf = { phone -> saved.people.firstOrNull { it.phone == phone && it.id != draft.original?.id }?.name },
         )
     }

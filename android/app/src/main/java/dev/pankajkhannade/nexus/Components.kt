@@ -20,6 +20,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,21 +45,6 @@ fun ScreenColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope
         verticalArrangement = Arrangement.spacedBy(16.dp),
         content = content,
     )
-}
-
-/** Circle with the person's initial. Photos are a later step. Decorative: the name is always shown next to it. */
-@Composable
-fun Avatar(name: String, size: Dp = 64.dp) {
-    val initial = name.trim().firstOrNull()?.uppercase() ?: "?"
-    Box(
-        Modifier
-            .size(size)
-            .background(NexusColors.Primary, CircleShape)
-            .clearAndSetSemantics { },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(initial, color = Color.White, fontSize = (size.value * 0.45f).sp, fontWeight = FontWeight.SemiBold)
-    }
 }
 
 @Composable
@@ -165,4 +153,37 @@ fun Centered(content: @Composable ColumnScope.() -> Unit) {
         verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
         content = content,
     )
+}
+
+/** What "बोला / Speak" does on any parent screen. NexusApp provides it (with the mic explainer); tests may too. */
+val LocalOnSpeak = staticCompositionLocalOf<() -> Unit> { {} }
+
+/**
+ * Same place for the same thing (UX sprint 1, principle): every parent screen ends with one bar, मागे on the
+ * left and बोला on the right, each at least 64dp tall, so Back is never a small link that moves around.
+ * [above] is pinned just over it (the safe action on a scam verdict), outside the scrolling content.
+ */
+@Composable
+fun ParentScaffold(onBack: () -> Unit, above: (@Composable ColumnScope.() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
+    val onSpeak = LocalOnSpeak.current
+    Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            content = content,
+        )
+        Surface(color = NexusColors.Background, shadowElevation = 8.dp) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                above?.invoke(this)
+                Row(Modifier.fillMaxWidth().testTag("bottom_bar"), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    BigButton(stringResource(R.string.back), onBack, Modifier.weight(1f).heightIn(min = 64.dp), kind = ButtonKind.Secondary)
+                    BigButton("🎤 " + stringResource(R.string.speak), onSpeak, Modifier.weight(1f).heightIn(min = 64.dp), kind = ButtonKind.Primary)
+                }
+            }
+        }
+    }
 }

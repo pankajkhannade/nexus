@@ -77,7 +77,6 @@
     <string name="found_message">%1$s ला WhatsApp करा</string>
     <string name="check_message">हा मेसेज सुरक्षित आहे का?</string>
     <string name="go_home">घरी जायला गाडी बुक करा</string>
-    <string name="settings_hint">घरच्यांसाठी: सेटिंगसाठी 2 सेकंद दाबून ठेवा</string>
     <string name="whatsapp_missing">या फोनवर WhatsApp नाही.</string>
     <string name="dialer_fallback">डायल पॅड उघडला आहे. फोनसाठी हिरवं बटण दाबा.</string>
     <string name="listening">ऐकत आहे…</string>
@@ -85,8 +84,8 @@
     <string name="voice_online">ऑनलाइन: Google तुमचा आवाज शब्दांत बदलतं.</string>
     <string name="confirm_call">%1$s ला फोन लावायचा?</string>
     <string name="yes_call">हो, फोन करा</string>
-    <string name="not_understood">समजलं नाही. पुन्हा बोला किंवा फोटो दाबा.</string>
-    <string name="not_understood_again">काही हरकत नाही. ज्याला फोन करायचा त्याचा फोटो दाबा.</string>
+    <string name="not_understood">समजलं नाही. पुन्हा बोला किंवा खाली नाव दाबा.</string>
+    <string name="not_understood_again">काही हरकत नाही. ज्याला फोन करायचा त्याचं नाव दाबा.</string>
     <string name="heard_x">ऐकलं: “%1$s”</string>
     <string name="speak_again">पुन्हा बोला</string>
     <string name="calling_x">%1$s ला फोन लावत आहे</string>
@@ -322,4 +321,31 @@
     <string name="consent_where">Cloudflare वरचा Nexus चा एक छोटा सर्व्हर, फक्त Nexus टीमसाठी. 180 दिवस ठेवलं जातं. बंद केल्यावर लगेच थांबतं; सगळा डेटा पुसल्यावर फोनला नवा कोड पण मिळतो.</string>
     <string name="consent_yes">हो, रोजची मोजणी पाठवा</string>
     <string name="consent_no">नको, फोनवरच ठेवा</string>
+    <!-- UX sprint 1 -->
+    <string name="whatsapp_who">WhatsApp कोणाला?</string>
+    <string name="handover_settings">नंतर घरच्यांच्या सेटिंगसाठी वरची तारीख 2 सेकंद दाबून ठेवा.</string>
+    <string name="save_to_phone">%1$s ला फोनच्या संपर्कात सेव्ह करा</string>
+    <string name="save_to_phone_why">Nexus फोन लावेल तेव्हा नंबरऐवजी नाव दिसावं म्हणून:</string>
+    <string name="add_photo">फोटो लावा</string>
+    <string name="change_photo">फोटो बदला</string>
+    <string name="heard_nothing">काहीच ऐकू आलं नाही.</string>
+    <string name="heard_big">ऐकलं: “%1$s”</string>
+    <string name="not_understood_tts">मी ऐकलं: %1$s. पण समजलं नाही. असं बोला: %2$s</string>
+    <string name="not_understood_tts_empty">काहीच ऐकू आलं नाही. बोला दाबा आणि म्हणा: %1$s</string>
+    <string name="try_saying">असं बोला: “%1$s”</string>
+    <string name="maybe_meant">तुम्हाला हे हवं होतं का?</string>
+    <string name="show_message">मेसेज दाखवा</string>
+    <string name="hide_message">मेसेज लपवा</string>
+    <string name="money_gone">पैसे गेले? 1930 ला फोन करा</string>
+    <string name="coach_whatsapp_send">WhatsApp उघडतोय. हिरवं पाठवा बटण दाबा.</string>
+    <string name="coach_whatsapp_chat">%1$s चं WhatsApp उघडतोय.</string>
+    <string name="coach_sms_send">मेसेज उघडतोय. पाठवा बटण दाबा.</string>
+    <string name="coach_ride_link">%1$s उघडतोय, %2$s भरलेलं आहे. भाडं बघा, मग बुक करा.</string>
+    <string name="coach_ride_paste">%1$s उघडतोय. “कुठे जायचे” दाबा, बोट दाबून ठेवा, मग पेस्ट दाबा.</string>
+    <string name="coach_ride_paste_note">Nexus प्रत्येक पायरी मोठ्याने सांगेल.</string>
+    <string name="coach_app">%1$s उघडतोय.</string>
+    <string name="ride_will_fill">ठिकाण आपोआप भरलेलं असेल.</string>
+    <string name="welcome_back">परत Nexus मध्ये. काही चुकलं तर बोला दाबा.</string>
+    <string name="ride_readback">%1$s ला जायची गाडी. कॅब ॲप उघडायला मोठं बटण दाबा.</string>
+    <string name="ride_readback_home">घरी जायची गाडी. कॅब ॲप उघडायला मोठं बटण दाबा.</string>
 </resources>
