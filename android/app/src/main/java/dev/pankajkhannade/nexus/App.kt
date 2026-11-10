@@ -1,68 +1,86 @@
 package dev.pankajkhannade.nexus
 
+import android.Manifest
 import android.app.Activity
-import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
 @Composable
 fun NexusApp(model: NexusViewModel) {
     val saved = model.saved
     val view = LocalView.current
+    val context = LocalContext.current
     SideEffect {
         val window = (view.context as Activity).window
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
     }
-    // Setup is done by the child (child scale); the daily screen uses the larger parent scale.
-    NexusTheme(mode = if (saved.setupDone) UiMode.Parent else UiMode.Child) {
+    var micGate by remember { mutableStateOf(false) }
+    val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        micGate = false
+        model.markMicAsked()
+        if (ok) model.startListening()
+    }
+    // Speak: if the mic is off, explain first (full screen), then ask. Never a bare system dialog.
+    val onSpeak: () -> Unit = {
+        if (granted(context, Manifest.permission.RECORD_AUDIO)) model.startListening() else micGate = true
+    }
+    val screen = model.screen
+    val parentScreen = saved.setupDone && screen != Screen.Settings
+    NexusTheme(mode = if (parentScreen) UiMode.Parent else UiMode.Child) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             if (!model.loaded) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 return@Surface
             }
-            var privacy by rememberSaveable { mutableStateOf(false) }
+            BackHandler(enabled = !saved.setupDone && model.setupStep > 0) { model.setupStep -= 1 }
+            BackHandler(enabled = saved.setupDone && (screen != Screen.Home || micGate)) {
+                when {
+                    micGate -> micGate = false
+                    screen == Screen.Listening -> model.cancelListening()
+                    screen == Screen.Privacy -> model.screen = Screen.Settings
+                    else -> { model.clearCheck(); model.tryingInSetup = false; model.screen = Screen.Home }
+                }
+            }
             Box(Modifier.systemBarsPadding()) {
                 when {
-                    !saved.setupDone -> SetupScreen(onDone = model::finishSetup)
-                    privacy -> PrivacyScreen { privacy = false }
-                    else -> HomeScreen(model, onPrivacy = { privacy = true })
+                    !saved.setupDone -> SetupFlow(model)
+                    micGate -> PermissionCard(
+                        "🎤", stringResource(R.string.mic_title), stringResource(R.string.mic_why_parent),
+                        stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.mic_on_device else R.string.mic_online),
+                        onAllow = { micLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+                        onNotNow = { micGate = false },
+                    )
+                    screen is Screen.Listening -> ListeningScreen(model)
+                    screen is Screen.Confirm -> ConfirmScreen(model, screen.person)
+                    screen is Screen.NotUnderstood -> NotUnderstoodScreen(model, onSpeak)
+                    screen is Screen.Calling -> CallingScreen(model, screen.person)
+                    model.tryingInSetup -> TryItScreen(model, onSpeak)
+                    screen is Screen.Safety -> SafetyScreen(model)
+                    screen is Screen.Ride -> RideScreen(model)
+                    screen is Screen.Settings -> SettingsScreen(model)
+                    screen is Screen.Privacy -> PrivacyScreen(model) { model.screen = Screen.Settings }
+                    else -> ParentHome(model, onSpeak, onSettings = { model.screen = Screen.Settings })
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun PrivacyScreen(onBack: () -> Unit) {
-    Column(
-        Modifier
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(stringResource(R.string.privacy), style = MaterialTheme.typography.headlineMedium)
-        Text(stringResource(R.string.privacy_body), style = MaterialTheme.typography.bodyLarge)
-        BigButton(stringResource(R.string.back), onBack, kind = ButtonKind.Secondary)
     }
 }

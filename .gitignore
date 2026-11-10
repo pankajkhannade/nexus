@@ -9,3 +9,6 @@ artifacts
 .project_id
 .node_modules.lock
 *.log
+
+# Kotlin compiler session files
+android/.kotlin/

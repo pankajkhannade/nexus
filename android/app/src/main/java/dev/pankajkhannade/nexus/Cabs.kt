@@ -76,3 +76,9 @@ fun mapsLink(trip: Trip): String? {
         else -> null
     }
 }
+
+/** Cab apps for the Ride home screen: the last-used one (or the first installed) first, then the rest. */
+fun rideOrder(installed: List<CabApp>, lastId: String): List<CabApp> {
+    val first = installed.firstOrNull { it.id == lastId } ?: installed.firstOrNull() ?: return emptyList()
+    return listOf(first) + installed.filter { it != first }
+}
