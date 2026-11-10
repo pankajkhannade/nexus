@@ -42,7 +42,7 @@ val SERVICE_CATALOG: Map<Need, List<ServiceApp>> = mapOf(
         ServiceApp("Blinkit", "com.grofers.customerapp"),
         ServiceApp("Zepto", "com.zeptoconsumerapp"),
         ServiceApp("Swiggy Instamart", "in.swiggy.android.instamart"),
-        ServiceApp("Swiggy (Instamart)", "in.swiggy.android"),
+        ServiceApp("Swiggy", "in.swiggy.android"),
         ServiceApp("BigBasket", "com.bigbasket.mobileapp"),
         ServiceApp("JioMart", "com.jpl.jiomart"),
         ServiceApp("Flipkart Minutes", "com.flipkart.android"),

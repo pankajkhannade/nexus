@@ -219,4 +219,5 @@
     <string name="action_install">इन्स्टॉल करा</string>
     <string name="service_none">काहीही नाही</string>
     <string name="usage_near">घराजवळ: किराणा %1$d · औषधे %2$d · डॉक्टर %3$d · गाडी %4$d · घरकाम %5$d · आणीबाणी %6$d</string>
+    <string name="emergency_dial_note">डायल पॅडवर %1$s येईल. फोन लावायला हिरवं बटण दाबा.</string>
 </resources>

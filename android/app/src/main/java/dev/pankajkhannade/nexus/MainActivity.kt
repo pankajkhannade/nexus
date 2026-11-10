@@ -59,6 +59,10 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var loaded by mutableStateOf(false)
         private set
+
+    /** Address -> coordinates and postal code, on the phone's Geocoder. A seam so JVM tests can fake it. */
+    @androidx.annotation.VisibleForTesting
+    internal var lookupHome: (String) -> Pair<Place, String?> = { geocodeHome(app, it) }
     var screen by mutableStateOf<Screen>(Screen.Home)
     var notice by mutableStateOf("")
 
@@ -260,7 +264,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val text = address.trim()
         if (text.isEmpty()) return
         viewModelScope.launch {
-            val (place, postal) = withContext(Dispatchers.IO) { geocodeHome(getApplication(), text) }
+            val (place, postal) = withContext(Dispatchers.IO) { lookupHome(text) }
             Log.i("NexusPlace", "HOME geocoded=${place.hasCoordinates} pin=${postal != null} geocoderPresent=${android.location.Geocoder.isPresent()}")
             if (saved.home.address != text) return@launch
             val pin = saved.pincode.ifBlank { homePincode(text, postal) }
@@ -272,7 +276,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     /** The home PIN from the setup address: typed in it, else the phone's Geocoder. Empty when neither has one. */
     suspend fun findPincode(address: String): String {
         pincodeIn(address)?.let { return it }
-        val (_, postal) = withContext(Dispatchers.IO) { geocodeHome(getApplication(), address) }
+        val (_, postal) = withContext(Dispatchers.IO) { lookupHome(address) }
         return homePincode(address, postal)
     }
 

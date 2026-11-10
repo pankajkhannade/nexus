@@ -220,4 +220,5 @@
     <string name="action_install">Install</string>
     <string name="service_none">None</string>
     <string name="usage_near">Near home: groceries %1$d · medicines %2$d · doctor %3$d · ride %4$d · home help %5$d · emergency %6$d</string>
+    <string name="emergency_dial_note">Opens the dial pad with %1$s. Press the green button to call.</string>
 </resources>

@@ -219,4 +219,5 @@
     <string name="action_install">इंस्टॉल करें</string>
     <string name="service_none">कोई नहीं</string>
     <string name="usage_near">घर के पास: राशन %1$d · दवाइयाँ %2$d · डॉक्टर %3$d · गाड़ी %4$d · घर का काम %5$d · इमरजेंसी %6$d</string>
+    <string name="emergency_dial_note">डायल पैड पर %1$s आएगा। कॉल के लिए हरा बटन दबाइए।</string>
 </resources>

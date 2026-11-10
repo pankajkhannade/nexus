@@ -82,7 +82,7 @@ fun NearHomeScreen(model: NexusViewModel) {
                     Need.RIDE -> null
                     else -> app?.label ?: stringResource(R.string.near_on_maps)
                 }
-                NeedTile(Modifier.weight(1f), need, sub) { model.openNeed(need) }
+                NeedTile(Modifier.weight(1f).fillMaxRowHeight(), need, sub) { model.openNeed(need) }
             }
         }
         BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
@@ -170,7 +170,7 @@ fun EmergencyScreen(model: NexusViewModel) {
                 Text("📞  " + stringResource(R.string.emergency_call, number), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
             }
         }
-        Text(stringResource(R.string.dialer_fallback), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.emergency_dial_note, number), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (model.saved.people.isNotEmpty()) {
             Text(stringResource(R.string.emergency_family), style = MaterialTheme.typography.titleLarge)
             model.saved.people.forEach { person ->
