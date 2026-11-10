@@ -1,6 +1,12 @@
 # Nexus for Android
 
-Native app for daily handoffs: home, office, saved people, and one of Uber, Ola, or Rapido at a time.
+Native app. The product direction is the family co-pilot for parents' phones (see `../docs/vision.md`). The sections below describe the current build.
+
+## Build
+
+```bash
+./gradlew assembleDebug testDebugUnitTest
+```
 
 This is the Play-eligible design. It does not read other apps' screens. Google Play rejects accessibility services used to scrape cab fares, and those apps do not share live prices.
 
