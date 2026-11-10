@@ -43,6 +43,7 @@ fun newModel(people: Int = 0, home: String = ""): NexusViewModel {
         idleMain()
         Thread.sleep(2)
     }
+    model.resetLocalDataForTest()
     model.saved.people.forEach { model.removePerson(it) }
     FAMILY.take(people).forEach { (name, phone, relation) ->
         check(model.savePerson(null, name, phone, relation, askFamily = relation == "son", alias = "")) { "bad fixture $phone" }

@@ -110,6 +110,15 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { store.write(next) }
     }
 
+    /** Tests only: Robolectric shares one DataStore per JVM, so each test starts from empty counts. */
+    @androidx.annotation.VisibleForTesting
+    internal fun resetLocalDataForTest() {
+        usage = Usage()
+        feedback = Feedback()
+        update(saved.copy(installDay = 0, lastCab = ""))
+        viewModelScope.launch { store.writeUsage(Usage()); store.writeFeedback(Feedback()) }
+    }
+
     fun record(event: Event) {
         usage = usage.record(event, today)
         val snapshot = usage
