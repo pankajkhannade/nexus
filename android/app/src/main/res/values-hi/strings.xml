@@ -164,11 +164,13 @@
     <string name="privacy_stored_title">क्या सेव होता है</string>
     <string name="privacy_stored">आपके लोग, घर का पता, भाषा और इस्तेमाल की गिनती, सिर्फ़ इसी फ़ोन पर। अपलोड नहीं, Android बैकअप में भी नहीं।</string>
     <string name="privacy_network_title">इंटरनेट का इस्तेमाल</string>
-    <string name="privacy_network">सिर्फ़ घर का पता लिखते समय सुझाव, और ऑनलाइन होने पर आवाज़ सेवा। Nexus का कोई अकाउंट या सर्वर नहीं है।</string>
+    <string name="privacy_network">घर का पता लिखते समय सुझाव (मैप खोज सेवा), घर को मैप पर ढूँढने के लिए फ़ोन की अपनी लोकेशन सेवा, और ऑनलाइन होने पर आवाज़ सेवा। Nexus का कोई अकाउंट, सर्वर या एनालिटिक्स नहीं है।</string>
     <string name="ride_other_app">दूसरा ऐप</string>
     <string name="ride_will_copy">घर का पता कॉपी हो जाएगा। “कहाँ जाना है” में चिपकाएँ।</string>
     <string name="no_cab_app_ask">परिवार से Uber, Ola या Rapido डलवाएँ।</string>
     <string name="home_saved">घर का पता सेव हुआ</string>
     <string name="retest_mic">माइक जाँचें</string>
     <string name="speak_answer">बोलकर बताएँ</string>
+    <string name="privacy_share_title">अपने-आप कुछ नहीं जाता</string>
+    <string name="privacy_share">Nexus ख़ुद कुछ नहीं भेजता। मैसेज, कॉल या इस्तेमाल की जानकारी तभी फ़ोन से जाती है जब आप दूसरे ऐप में भेजें, कॉल या शेयर दबाएँ।</string>
 </resources>

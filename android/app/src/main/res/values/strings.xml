@@ -165,11 +165,13 @@
     <string name="privacy_stored_title">What is saved</string>
     <string name="privacy_stored">Your people, home address, language and simple usage counts, only on this phone. Not uploaded, not in Android backup.</string>
     <string name="privacy_network_title">Internet use</string>
-    <string name="privacy_network">Only address suggestions while typing a home address, and the speech service if it is online. Nexus has no account and no server.</string>
+    <string name="privacy_network">Address suggestions while typing a home address (a map search service), the phone\'s own location service to place home on the map, and the speech service if it is online. Nexus has no account, no server and no analytics.</string>
     <string name="ride_other_app">Other app</string>
     <string name="ride_will_copy">The home address will be copied. Paste it in “Where to”.</string>
     <string name="no_cab_app_ask">Ask family to install Uber, Ola or Rapido.</string>
     <string name="home_saved">Home address saved</string>
     <string name="retest_mic">Test the mic</string>
     <string name="speak_answer">Speak answer</string>
+    <string name="privacy_share_title">Nothing is shared by itself</string>
+    <string name="privacy_share">Nexus never sends anything on its own. A message, call or usage summary leaves this phone only when you press Send, Call or Share in the other app.</string>
 </resources>

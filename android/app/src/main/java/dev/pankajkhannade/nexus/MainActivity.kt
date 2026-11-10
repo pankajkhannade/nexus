@@ -83,6 +83,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
+            // A screenshot from an earlier check is not kept between sessions.
+            withContext(Dispatchers.IO) { File(app.cacheDir, "shared/check.jpg").delete() }
             saved = store.read()
             usage = store.readUsage()
             feedback = store.readFeedback()

@@ -169,26 +169,24 @@ fun SettingsScreen(model: NexusViewModel) {
 private fun permissionLine(context: android.content.Context, permission: String, label: Int): String =
     context.getString(label) + ": " + context.getString(if (granted(context, permission)) R.string.perm_on else R.string.perm_off)
 
-/** S13 Privacy: four plain cards. The voice line reflects what this phone actually does. */
+/** S13 Privacy: short cards in the parent's language. The voice line reflects what this phone actually does. */
 @Composable
 fun PrivacyScreen(model: NexusViewModel, onBack: () -> Unit) {
+    val voice = if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.voice_on_device else R.string.privacy_voice_online
+    val cards = listOf(
+        Triple("👪", R.string.privacy_stored_title, R.string.privacy_stored),
+        Triple("🎤", R.string.privacy_voice_title, voice),
+        Triple("🛡", R.string.privacy_messages_title, R.string.privacy_messages),
+        Triple("📤", R.string.privacy_share_title, R.string.privacy_share),
+        Triple("🌐", R.string.privacy_network_title, R.string.privacy_network),
+    )
     ScreenColumn {
         Text(stringResource(R.string.privacy), style = MaterialTheme.typography.headlineMedium)
-        OutlinedPanel {
-            Text(stringResource(R.string.privacy_voice_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.voice_on_device else R.string.privacy_voice_online), style = MaterialTheme.typography.bodyLarge)
-        }
-        OutlinedPanel {
-            Text(stringResource(R.string.privacy_messages_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.privacy_messages), style = MaterialTheme.typography.bodyLarge)
-        }
-        OutlinedPanel {
-            Text(stringResource(R.string.privacy_stored_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.privacy_stored), style = MaterialTheme.typography.bodyLarge)
-        }
-        OutlinedPanel {
-            Text(stringResource(R.string.privacy_network_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.privacy_network), style = MaterialTheme.typography.bodyLarge)
+        cards.forEach { (icon, title, body) ->
+            OutlinedPanel {
+                Text("$icon  " + stringResource(title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(body), style = MaterialTheme.typography.bodyLarge)
+            }
         }
         BigButton(stringResource(R.string.back), onBack, kind = ButtonKind.Secondary)
     }
