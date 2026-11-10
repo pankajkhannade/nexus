@@ -186,4 +186,11 @@ class DictationTest {
         assertTrue(link, link.startsWith("https://wa.me/919876543210?text=%E0%A4%A4%E0%A5%82%20"))
         assertTrue(link, link.contains("%3F%20")) // "? "
     }
+
+    @Test fun sentMessagesAreCountedInTheExportWithoutTheText() {
+        val usage = Usage().record(Event.MESSAGE, 20_000).record(Event.MESSAGE, 20_000)
+        val text = exportText(usage, Feedback(), installDay = 19_998, today = 20_000, language = "mr")
+        assertTrue(text, text.contains("messages=2"))
+        assertEquals(usage, Usage.parse(usage.serialize()))
+    }
 }

@@ -121,12 +121,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { store.write(next) }
     }
 
-    /** Tests only: Robolectric shares one DataStore per JVM, so each test starts from empty counts. */
+    /** Tests only: Robolectric shares one DataStore per JVM, so each test starts from empty counts, India, the default language and no one-time hints. */
     @androidx.annotation.VisibleForTesting
     internal fun resetLocalDataForTest() {
         usage = Usage()
         feedback = Feedback()
-        update(saved.copy(installDay = 0, lastCab = ""))
+        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN"))
         viewModelScope.launch { store.writeUsage(Usage()); store.writeFeedback(Feedback()) }
     }
 

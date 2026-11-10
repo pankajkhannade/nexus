@@ -16,6 +16,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import dev.pankajkhannade.nexus.SafetyScreen
+import dev.pankajkhannade.nexus.MessageScreen
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -117,5 +118,23 @@ class ScreenshotTest {
         val model = newModel(people = 1)
         compose.setParent { PrivacyScreen(model) {} }
         shot("privacy_en")
+    }
+
+    // ---- Voice-dictated message confirm ----
+    @Config(qualifiers = "+mr")
+    @Test fun messageConfirm_mr() {
+        fakeInstall("com.whatsapp")
+        val model = newModel(people = 1)
+        model.understood("पंकचला वाटसब कर आणि सांग की तू कधी येणार आहेस घरी. आणी येताना एक साबून घेऊन ये.", typed = true)
+        compose.setParent { MessageScreen(model) }
+        shot("message_confirm_mr")
+    }
+
+    @Test fun messageConfirm_en() {
+        fakeInstall("com.whatsapp")
+        val model = newModel(people = 1)
+        model.understood("whatsapp Pankaj when will you come home and bring soap on the way", typed = true)
+        compose.setParent { MessageScreen(model) }
+        shot("message_confirm_en")
     }
 }
