@@ -9,7 +9,7 @@ import { Book } from "./book";
 import { Setup, Tour } from "./setup";
 
 const SAMPLE =
-  "Meet me at 418 Valencia St, apartment 3. Blue door. Call me at (415) 555-0138 if you get lost.";
+  "Meet me at 21 MG Road, Flat 4, Bengaluru. Blue gate. Call me at 98765 43210 if you get lost.";
 
 function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
