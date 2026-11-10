@@ -165,4 +165,7 @@
     <string name="privacy_stored">आपके लोग, घर का पता, भाषा और इस्तेमाल की गिनती, सिर्फ़ इसी फ़ोन पर। अपलोड नहीं, Android बैकअप में भी नहीं।</string>
     <string name="privacy_network_title">इंटरनेट का इस्तेमाल</string>
     <string name="privacy_network">सिर्फ़ घर का पता लिखते समय सुझाव, और ऑनलाइन होने पर आवाज़ सेवा। Nexus का कोई अकाउंट या सर्वर नहीं है।</string>
+    <string name="ride_other_app">दूसरा ऐप</string>
+    <string name="ride_will_copy">घर का पता कॉपी हो जाएगा। “कहाँ जाना है” में चिपकाएँ।</string>
+    <string name="no_cab_app_ask">परिवार से Uber, Ola या Rapido डलवाएँ।</string>
 </resources>

@@ -196,3 +196,6 @@ private fun readTrip(text: String, saved: Saved): Trip? {
     if (pickup == null && dropoff == null) return null
     return Trip(pickup, dropoff)
 }
+
+/** "Ghar jana hai" / "घरी जायचं आहे" / "take me home" with no person named: open Ride home (S10). */
+fun wantsRideHome(reading: Reading): Boolean = reading.person == null && reading.trip?.dropoff?.kind == PlaceKind.HOME

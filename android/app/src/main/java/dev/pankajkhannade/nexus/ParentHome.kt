@@ -173,41 +173,54 @@ private fun FeedbackCard(model: NexusViewModel, round: Int) {
     }
 }
 
-/** S10: book a ride home with an installed cab app. No Maps button in parent mode. */
+/**
+ * S10: book a ride home with an installed cab app. One primary button for the last-used app, then
+ * "Other app" with the remaining installed ones. No Maps button in parent mode. The parent always
+ * checks the fare and confirms inside the cab app.
+ */
 @Composable
 fun RideScreen(model: NexusViewModel) {
     val context = LocalContext.current
     val installed = remember { CabApp.entries.filter { isInstalled(context, it.pkg) } }
-    val last = CabApp.from(model.saved.lastCab)
-    val first = installed.firstOrNull { it == last } ?: installed.firstOrNull()
+    val apps = rideOrder(installed, model.saved.lastCab)
     val trip = Trip(dropoff = Stop(PlaceKind.HOME, model.saved.home))
+    val open: (CabApp) -> Unit = { app ->
+        model.rememberCab(app)
+        model.record(Event.RIDE)
+        when (openRide(context, app, trip)) {
+            RideResult.OPENED_AND_COPIED -> android.widget.Toast.makeText(context, R.string.address_copied, android.widget.Toast.LENGTH_LONG).show()
+            RideResult.NOT_INSTALLED_OPENED_MAPS, RideResult.NOTHING_TO_OPEN, RideResult.OPENED -> Unit
+        }
+        model.screen = Screen.Home
+    }
     ScreenColumn {
         Text("🚕  " + stringResource(R.string.go_home), style = MaterialTheme.typography.headlineMedium)
-        Text(model.saved.home.address, style = MaterialTheme.typography.bodyLarge)
-        if (first == null) {
+        OutlinedPanel {
+            Text(stringResource(R.string.place_home), style = MaterialTheme.typography.titleMedium)
+            Text(model.saved.home.address, style = MaterialTheme.typography.bodyLarge)
+        }
+        if (apps.isEmpty()) {
             OutlinedPanel(color = NexusColors.WarningContainer) {
                 Text(stringResource(R.string.no_cab_app), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.no_cab_app_ask), style = MaterialTheme.typography.bodyLarge)
             }
             model.saved.people.firstOrNull { it.askFamily }?.let { person ->
-                BigButton(stringResource(R.string.ask_x, person.name), {
+                BigButton("💬  " + stringResource(R.string.ask_x, person.name), {
                     model.record(Event.ASK_FAMILY)
                     askFamilyByText(context, person.phone, context.getString(R.string.ride_help_prefill))
                 })
             }
         } else {
-            Text(stringResource(R.string.ride_confirm_in_app), style = MaterialTheme.typography.bodyLarge)
-            (listOf(first) + installed.filter { it != first }).forEachIndexed { i, app ->
-                BigButton(stringResource(R.string.ride_open_app, app.label), {
-                    model.rememberCab(app)
-                    model.record(Event.RIDE)
-                    when (openRide(context, app, trip)) {
-                        RideResult.OPENED_AND_COPIED -> android.widget.Toast.makeText(context, R.string.address_copied, android.widget.Toast.LENGTH_LONG).show()
-                        RideResult.NOT_INSTALLED_OPENED_MAPS, RideResult.NOTHING_TO_OPEN, RideResult.OPENED -> Unit
-                    }
-                    model.screen = Screen.Home
-                }, kind = if (i == 0) ButtonKind.Primary else ButtonKind.Secondary)
+            BigButton(stringResource(R.string.ride_open_app, apps.first().label), { open(apps.first()) })
+            if (cabHandoff(apps.first(), trip).copyText != null) {
+                Text(stringResource(R.string.ride_will_copy), style = MaterialTheme.typography.bodyLarge)
+            }
+            Text(stringResource(R.string.ride_confirm_in_app), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (apps.size > 1) {
+                Text(stringResource(R.string.ride_other_app), style = MaterialTheme.typography.titleLarge)
+                apps.drop(1).forEach { app -> BigButton(app.label, { open(app) }, kind = ButtonKind.Secondary) }
             }
         }
-        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Secondary)
+        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
     }
 }

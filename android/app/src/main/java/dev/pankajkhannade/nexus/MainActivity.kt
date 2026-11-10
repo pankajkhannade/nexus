@@ -249,6 +249,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val reading = readMessage(text, saved)
         val person = reading.person
         if (text.isNotEmpty()) record(Event.VOICE)
+        if (wantsRideHome(reading) && saved.home.isSet) {
+            voiceFails = 0
+            tryingInSetup = false
+            screen = Screen.Ride
+            return
+        }
         if (person == null) {
             voiceFails += 1
             record(Event.VOICE_FAIL)

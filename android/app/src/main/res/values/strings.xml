@@ -166,4 +166,7 @@
     <string name="privacy_stored">Your people, home address, language and simple usage counts, only on this phone. Not uploaded, not in Android backup.</string>
     <string name="privacy_network_title">Internet use</string>
     <string name="privacy_network">Only address suggestions while typing a home address, and the speech service if it is online. Nexus has no account and no server.</string>
+    <string name="ride_other_app">Other app</string>
+    <string name="ride_will_copy">The home address will be copied. Paste it in “Where to”.</string>
+    <string name="no_cab_app_ask">Ask family to install Uber, Ola or Rapido.</string>
 </resources>
