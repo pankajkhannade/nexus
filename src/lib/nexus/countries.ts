@@ -45,3 +45,21 @@ export function international(phone: string, dial: string) {
   if (digits.startsWith(code)) return `+${digits}`;
   return `+${code}${digits}`;
 }
+
+export function phoneProblem(phone: string, dial: string, strict: boolean) {
+  const trimmed = phone.trim();
+  if (!trimmed) return "";
+  if (/[a-z]/i.test(trimmed) || /[^\d+\s().-]/.test(trimmed)) return "Use digits only. Letters are not a phone number.";
+  const digits = trimmed.replace(/\D/g, "");
+  const localIndia = dial === "+91" && !trimmed.startsWith("+") && !trimmed.startsWith("00");
+  if (localIndia) {
+    const local = digits.replace(/^0/, "");
+    if (!strict && local.length < 10) return "";
+    if (local.length !== 10) return "India numbers are 10 digits.";
+    if (!/^[6-9]/.test(local)) return "Indian mobile numbers start with 6, 7, 8, or 9.";
+    return "";
+  }
+  if (!strict && digits.length < 8) return "";
+  if (digits.length < 8 || digits.length > 15) return "Use 8 to 15 digits.";
+  return "";
+}

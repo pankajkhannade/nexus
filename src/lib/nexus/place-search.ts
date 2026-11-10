@@ -17,3 +17,16 @@ export async function searchPlaces(query: string, countryCode: string) {
   }
   return places;
 }
+
+export async function locatePlace(address: string) {
+  const url = new URL("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates");
+  url.searchParams.set("SingleLine", address);
+  url.searchParams.set("f", "json");
+  url.searchParams.set("maxLocations", "1");
+  const response = await fetch(url);
+  if (!response.ok) return null;
+  const data = (await response.json()) as { candidates?: Array<{ location?: { x?: number; y?: number } }> };
+  const location = data.candidates?.[0]?.location;
+  if (typeof location?.x !== "number" || typeof location.y !== "number") return null;
+  return { lat: location.y, lng: location.x };
+}

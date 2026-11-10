@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useNexus } from "@/lib/nexus/store";
-import { COUNTRIES } from "@/lib/nexus/countries";
+import { COUNTRIES, phoneProblem } from "@/lib/nexus/countries";
 import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 import { PlaceField } from "./place-field";
 
@@ -20,6 +20,8 @@ export function Book() {
   const [placeName, setPlaceName] = useState("");
   const [address, setAddress] = useState("");
   const [contactNote, setContactNote] = useState("");
+  const dial = COUNTRIES.find((item) => item.name === country)?.dial ?? "";
+  const phoneNote = phoneProblem(phone, dial, false);
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   if (!ready) {
@@ -89,15 +91,22 @@ export function Book() {
         <button
           type="button"
           onClick={() => {
+            const problem = phone ? phoneProblem(phone, dial, true) : "";
+            if (!name.trim() || problem || (!phone.trim() && !email.trim())) {
+              setContactNote(problem || "Add a name and a valid phone or email.");
+              return;
+            }
             savePerson({ name, phone, email });
             setName("");
             setPhone("");
             setEmail("");
+            setContactNote("");
           }}
           className="h-11 rounded-lg border border-line text-sm"
         >
           Save person
         </button>
+        {phoneNote ? <p className="text-sm text-danger">{phoneNote}</p> : null}
       </div>
       {people.length > 0 ? (
         <ul>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { COUNTRIES } from "@/lib/nexus/countries";
+import { COUNTRIES, phoneProblem } from "@/lib/nexus/countries";
 import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 import { useNexus } from "@/lib/nexus/store";
 import { PlaceField } from "./place-field";
@@ -15,19 +15,27 @@ export function Setup() {
   const [home, setHome] = useState("");
   const [office, setOffice] = useState("");
   const [rows, setRows] = useState(() => Array.from({ length: 5 }, () => ({ ...EMPTY })));
+  const [rowNotes, setRowNotes] = useState<string[]>(() => Array.from({ length: 5 }, () => ""));
   const [note, setNote] = useState("");
 
   const chosen = COUNTRIES.find((item) => item.name === country);
 
   function finish() {
-    const ready = rows.every((row) => row.name.trim() && row.phone.trim());
-    if (!ready) {
-      setNote("Add a name and phone for all five people.");
-      return;
-    }
+    const problems = rows.map((row) => {
+      const name = row.name.trim();
+      const phone = row.phone.trim();
+      if (!name && !phone) return "";
+      if (!name) return "Add a name for this number.";
+      if (!phone) return "Add a phone number.";
+      return phoneProblem(phone, chosen?.dial ?? "", true);
+    });
+    const saved = rows.filter((row, index) => row.name.trim() && row.phone.trim() && !problems[index]);
+    setNote(problems.some(Boolean) ? "" : saved.length ? "" : "Save at least one person.");
+    setRowNotes(problems);
+    if (problems.some(Boolean) || saved.length === 0) return;
     savePlace({ name: "Home", address: home.trim() });
     savePlace({ name: "Office", address: office.trim() });
-    savePeople(rows.map((row) => ({ name: row.name.trim(), phone: row.phone.trim(), email: "" })));
+    savePeople(saved.map((row) => ({ name: row.name.trim(), phone: row.phone.trim(), email: "" })));
     setProfile({
       country,
       dial: chosen?.dial ?? "",
@@ -129,13 +137,13 @@ export function Setup() {
         ) : null}
 
         {step === 2 ? (
-          <section className="flex flex-col gap-3" aria-label="Five contacts">
-            <p className="text-sm text-muted">Save five people you call often. You can choose them from the phone.</p>
+          <section className="flex flex-col gap-3" aria-label="Contacts">
+            <p className="text-sm text-muted">Save at least one person. The other four are optional.</p>
             <button
               type="button"
               onClick={() => {
                 if (!contactsSupported()) {
-                  setNote("Type the five numbers, or open Nexus in Chrome on this phone to choose contacts.");
+                  setNote("Type at least one number, or open Nexus in Chrome on this phone to choose contacts.");
                   return;
                 }
                 void pickContacts()
@@ -149,7 +157,7 @@ export function Setup() {
                         picked[index] ? { name: picked[index].name, phone: picked[index].phone } : row,
                       ),
                     );
-                    setNote(picked.length < 5 ? `Added ${picked.length}. Fill the rest.` : "");
+                    setNote(picked.length ? "" : "No contact selected.");
                   })
                   .catch(() => setNote("Contact picker was closed."));
               }}
@@ -157,29 +165,36 @@ export function Setup() {
             >
               Choose from phone contacts
             </button>
-            {rows.map((row, index) => (
-              <div key={index} className="grid grid-cols-2 gap-2">
-                <input
-                  aria-label={`Contact ${index + 1} name`}
-                  value={row.name}
-                  onChange={(event) =>
-                    setRows((current) => current.map((item, i) => (i === index ? { ...item, name: event.target.value } : item)))
-                  }
-                  placeholder={`Name ${index + 1}`}
-                  className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
-                />
-                <input
-                  aria-label={`Contact ${index + 1} phone`}
-                  value={row.phone}
-                  inputMode="tel"
-                  onChange={(event) =>
-                    setRows((current) => current.map((item, i) => (i === index ? { ...item, phone: event.target.value } : item)))
-                  }
-                  placeholder="Phone"
-                  className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
-                />
-              </div>
-            ))}
+            {rows.map((row, index) => {
+              const live = phoneProblem(row.phone, chosen?.dial ?? "", false);
+              const message = rowNotes[index] || live;
+              return (
+                <div key={index} className="flex flex-col gap-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      aria-label={`Contact ${index + 1} name`}
+                      value={row.name}
+                      onChange={(event) =>
+                        setRows((current) => current.map((item, i) => (i === index ? { ...item, name: event.target.value } : item)))
+                      }
+                      placeholder={index === 0 ? "Name" : `Name ${index + 1}, optional`}
+                      className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
+                    />
+                    <input
+                      aria-label={`Contact ${index + 1} phone`}
+                      value={row.phone}
+                      inputMode="tel"
+                      onChange={(event) =>
+                        setRows((current) => current.map((item, i) => (i === index ? { ...item, phone: event.target.value } : item)))
+                      }
+                      placeholder="Phone"
+                      className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
+                    />
+                  </div>
+                  {message ? <p className="text-sm text-danger">{message}</p> : null}
+                </div>
+              );
+            })}
             {note ? <p className="text-sm text-muted">{note}</p> : null}
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setStep(1)} className="h-11 rounded-lg border border-line text-sm">
@@ -207,7 +222,7 @@ export function Tour() {
   const person = people[0]?.name ?? "someone you saved";
   const steps = [
     {
-      anchor: "",
+      anchor: "intro",
       title: profile.country || "Your country",
       body: profile.dial
         ? `Numbers without a country code are dialed as ${profile.dial}.`
@@ -216,7 +231,12 @@ export function Tour() {
     {
       anchor: "composer",
       title: "Home",
-      body: `Home is ${home}. Type “pick me up at home”, then confirm before Uber or Maps opens.`,
+      body: `Home is ${home}. Type “pick me up at home”, then open Uber, Ola, or Rapido.`,
+    },
+    {
+      anchor: "actions",
+      title: "Uber, Ola, Rapido",
+      body: "These buttons are highlighted. Compare rides opens all three with the same dropoff. Their prices stay inside those apps.",
     },
     {
       anchor: "composer",
@@ -242,9 +262,13 @@ export function Tour() {
   const current = steps[step];
 
   useEffect(() => {
+    const nodes = document.querySelectorAll("[data-setup]");
+    nodes.forEach((node) => node.classList.remove("nexus-spotlight"));
     const anchor = steps[step]?.anchor;
-    if (!anchor) return;
-    document.querySelector(`[data-setup="${anchor}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const target = anchor ? document.querySelector(`[data-setup="${anchor}"]`) : null;
+    target?.classList.add("nexus-spotlight");
+    target?.scrollIntoView({ block: "center", behavior: "smooth" });
+    return () => target?.classList.remove("nexus-spotlight");
   }, [step]);
 
   function done() {
@@ -254,8 +278,10 @@ export function Tour() {
   if (!current) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 px-4 pb-4">
-      <div className="mx-auto w-full max-w-lg rounded-lg border border-line bg-elevated px-4 py-4 shadow-lg">
+    <>
+      <div className="pointer-events-none fixed inset-0 z-20 bg-fg/45" />
+      <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4">
+        <div className="mx-auto w-full max-w-lg rounded-lg border border-line bg-elevated px-4 py-4">
         <p className="text-xs text-faint">
           Tour {step + 1} of {steps.length}
         </p>
@@ -276,7 +302,8 @@ export function Tour() {
             {step === steps.length - 1 ? "Done" : "Next"}
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

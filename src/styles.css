@@ -53,6 +53,16 @@
   }
 }
 
+.nexus-spotlight {
+  position: relative;
+  z-index: 30;
+  border-radius: 12px;
+  background: var(--color-bg);
+  box-shadow:
+    0 0 0 3px var(--color-accent),
+    0 0 0 10px color-mix(in srgb, var(--color-bg) 80%, transparent);
+}
+
 .map-grid {
   background-image:
     linear-gradient(var(--color-line) 1px, transparent 1px),

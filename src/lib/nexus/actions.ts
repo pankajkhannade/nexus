@@ -15,6 +15,7 @@ export interface Action {
   detail: string;
   href: string;
   copy?: string;
+  links?: Array<{ label: string; href: string }>;
 }
 
 export interface Person {
@@ -269,6 +270,24 @@ export function uberUrl(address: string) {
   return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(address)}`;
 }
 
+export function olaUrl(address: string, pin?: { lat: number; lng: number } | null) {
+  const params = new URLSearchParams({ landing_page: "bk", drop_name: address });
+  if (pin) {
+    params.set("drop_lat", pin.lat.toFixed(6));
+    params.set("drop_lng", pin.lng.toFixed(6));
+  }
+  return `olacabs://app/launch?${params.toString()}`;
+}
+
+export function rapidoUrl(address: string, pin?: { lat: number; lng: number } | null) {
+  const params = new URLSearchParams({ drop_address: address });
+  if (pin) {
+    params.set("drop_lat", pin.lat.toFixed(6));
+    params.set("drop_lng", pin.lng.toFixed(6));
+  }
+  return `rapido://app?${params.toString()}`;
+}
+
 export function mapsUrl(address: string) {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
 }
@@ -400,6 +419,7 @@ export function plan(
     places?: SavedPlace[];
     model?: { place?: string; phone?: string; email?: string };
     dial?: string;
+    pin?: { lat: number; lng: number } | null;
   },
 ): Plan {
   const reading = readText(text);
@@ -437,6 +457,29 @@ export function plan(
       label: "Open Uber",
       detail: `Dropoff: ${named}. Uber still asks you to confirm the ride.`,
       href: uberUrl(place),
+    });
+    actions.push({
+      id: "ola",
+      label: "Open Ola",
+      detail: `Dropoff: ${named}. Ola still asks you to confirm the ride.`,
+      href: olaUrl(place, extra?.pin),
+    });
+    actions.push({
+      id: "rapido",
+      label: "Open Rapido",
+      detail: `Dropoff: ${named}. If Rapido does not fill it, search this address in the app.`,
+      href: rapidoUrl(place, extra?.pin),
+    });
+    actions.push({
+      id: "compare",
+      label: "Compare Uber, Ola, Rapido",
+      detail: "These apps do not share live fares. Open each one with this dropoff, then book the lowest price you see.",
+      href: "",
+      links: [
+        { label: "Open Uber", href: uberUrl(place) },
+        { label: "Open Ola", href: olaUrl(place, extra?.pin) },
+        { label: "Open Rapido", href: rapidoUrl(place, extra?.pin) },
+      ],
     });
     actions.push({
       id: "maps",

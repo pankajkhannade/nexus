@@ -3,6 +3,7 @@ import { ClipboardPaste, Download, Mic, Trash2 } from "lucide-react";
 import { asksForMoney, nameMatches, plan, summarize, type Action } from "@/lib/nexus/actions";
 import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 import { modelAvailability, readWithModel, type ModelFill } from "@/lib/nexus/device-model";
+import { locatePlace } from "@/lib/nexus/place-search";
 import { useNexus } from "@/lib/nexus/store";
 import { Book } from "./book";
 import { Setup, Tour } from "./setup";
@@ -50,7 +51,7 @@ function ReadyApp() {
   return (
     <main className="min-h-dvh bg-bg text-fg">
       <div className={`mx-auto flex w-full max-w-lg flex-col gap-6 px-4 pt-6 ${tourDone ? "pb-16" : "pb-56"}`}>
-        <header className="flex flex-wrap items-start justify-between gap-3">
+        <header className="flex flex-wrap items-start justify-between gap-3" data-setup="intro">
           <div>
             <p className="text-xs font-medium tracking-widest text-muted">ON THIS PHONE</p>
             <h1 className="text-xl font-medium tracking-tight">Nexus</h1>
@@ -198,6 +199,7 @@ function Findings() {
   const [modelNote, setModelNote] = useState("");
   const [modelBusy, setModelBusy] = useState(false);
   const [contactNote, setContactNote] = useState("");
+  const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
     setPlaceOverride("");
     setModelFill(null);
@@ -214,10 +216,24 @@ function Findings() {
     places,
     model: modelFill ?? undefined,
     dial: profile.dial,
+    pin,
   };
   const automatic = plan(draft, reply, shared);
   const result = automatic.place ? automatic : plan(draft, reply, { ...shared, place: placeOverride });
   const pending = result.actions.find((action) => action.id === pendingId) ?? null;
+  useEffect(() => {
+    if (!automatic.place) {
+      setPin(null);
+      return;
+    }
+    let ignore = false;
+    void locatePlace(automatic.place).then((next) => {
+      if (!ignore) setPin(next);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [automatic.place]);
   const money = asksForMoney(draft) && !result.place && result.phones.length === 0 && result.emails.length === 0;
   const missed =
     Boolean(draft.trim()) && !result.place && result.phones.length === 0 && result.emails.length === 0 && !result.mapLink;
@@ -394,25 +410,42 @@ function Confirm({ action, onClose }: { action: Action; onClose: () => void }) {
       <p className="text-xs font-medium text-muted">Confirm</p>
       <p className="mt-1 text-base font-medium">{action.label}</p>
       <p className="mt-1 text-sm text-muted">{action.detail}</p>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button type="button" onClick={onClose} className="h-11 rounded-lg border border-line text-sm">
-          Cancel
-        </button>
-        {action.copy ? (
-          <button type="button" onClick={() => void copy()} className="h-11 rounded-lg bg-accent text-sm font-medium text-accent-fg">
-            {copied ? "Copied" : "Copy"}
-          </button>
+        {action.links ? (
+          <div className="mt-4 flex flex-col gap-2">
+            {action.links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                {...(link.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                className="flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-medium text-accent-fg"
+              >
+                {link.label}
+              </a>
+            ))}
+            <button type="button" onClick={onClose} className="h-11 rounded-lg border border-line text-sm">
+              Cancel
+            </button>
+          </div>
         ) : (
-          <a
-            href={action.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-medium text-accent-fg"
-          >
-            Open
-          </a>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button type="button" onClick={onClose} className="h-11 rounded-lg border border-line text-sm">
+              Cancel
+            </button>
+            {action.copy ? (
+              <button type="button" onClick={() => void copy()} className="h-11 rounded-lg bg-accent text-sm font-medium text-accent-fg">
+                {copied ? "Copied" : "Copy"}
+              </button>
+            ) : (
+              <a
+                href={action.href}
+                {...(action.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                className="flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-medium text-accent-fg"
+              >
+                Open
+              </a>
+            )}
+          </div>
         )}
-      </div>
     </div>
   );
 }
