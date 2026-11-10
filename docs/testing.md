@@ -193,6 +193,18 @@ same way when a test needs it.
 
 `seedDemoUsage` in `AnalyticsUiTest.kt` builds a tester's first 9 days pinned to `FIXED_DAY` around midday, so the screenshots are the same in IST and UTC.
 
+## UX sprint 1 tests (added 2026-11-11)
+
+Small-phone and large-text checks. The device is `@Config(qualifiers = "w360dp-h640dp-xhdpi")` (a Rs 8-12k phone at default display size); text size is `RuntimeEnvironment.setFontScale(1.3f / 1.5f)`, reset in `@After`. "On screen without scrolling" is `assertIsDisplayed()` with no `performScrollTo()`: Compose reports a node clipped by the scroll viewport as not displayed.
+
+| File | Layer | What it proves |
+| --- | --- | --- |
+| `FacesAndPlacesTest.kt` | L0 (Robolectric only for `org.json`) | Every face colour carries white text at 4.5:1; four people named P get four colours; a face keeps its colour when someone else is edited; the address URL always asks for India (`countryCode=IND`) and biases to home; the recorded "Shivaji Park, Dadar" response with a US result keeps only India results; India's Geocoder box excludes Altoona, PA |
+| `ui/UxSprint1UiTest.kt` | L1 | Faces: same-initial people differ (read through the `FaceKey` semantics on `face:<name>`), a photo is used when there is one. Home: 4 faces + 4 Calls + 4 tiles + Speak displayed with no scroll at 1.0; Speak and Pankaj at 1.3 and 1.5; no settings hint; the feedback card never pushes the family down. Not understood (mr, hi, en): the heard line, the spoken "मी ऐकलं: …", no "photo" wording, the heard person first, the bottom bar. Verdict: Ask <child> displayed at 1.5x in mr and hi; 1930 dials; the message is folded. Handoffs: the WhatsApp coach line is said before WhatsApp opens; Rapido's paste steps are said; a spoken ride home is read back; Save in phone contacts fires `ACTION_INSERT` with name and number and is not offered for phone-book picks |
+| `ui/UxSprint1ScreenshotTest.kt` | L2 | 18 goldens in `app/src/test/roborazzi/ux1/`: home (en/mr/hi at 1.0, mr at 1.3 and 1.5, en at 1.5), faces with a photo, not understood (en/mr/hi, mr at 1.5), the scam verdict (en/hi at 1.5, mr at 1.3 and 1.5), Rapido paste coach, Ola link, and the re-take of screenshot 21 (reading a picture) |
+
+`model.spoken` (the last 20 lines Nexus said, in memory, test-only) is how tests check what was said aloud and in which order. A screen with a never-ending spinner must freeze the clock (`compose.mainClock.autoAdvance = false`), or Compose never goes idle and later tests in the same JVM fork time out after 60 s.
+
 ## When the emulator (or a phone) is still needed
 
 Only for things Robolectric doesn't really do. Keep it to one short smoke of **at most 10 checks**,

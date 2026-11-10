@@ -80,7 +80,13 @@ class DestinationTest {
         assertTrue(uri, uri.contains("dropoff[latitude]=18.501800"))
         assertTrue(uri, uri.contains("dropoff[nickname]=Swargate%20Bus%20Stand"))
         assertNull(h.copyText)
-        assertEquals("Swargate Bus Stand, Swargate", cabHandoff(CabApp.OLA, Trip(dropoff = Stop(PlaceKind.ADDRESS, place))).copyText)
+        // Ola (UX sprint 1): a found place has coordinates, so its documented app link carries the drop-off.
+        val ola = cabHandoff(CabApp.OLA, Trip(dropoff = Stop(PlaceKind.ADDRESS, place)))
+        assertTrue(ola.uri!!, ola.uri!!.contains("drop_lat=18.501800"))
+        assertNull(ola.copyText)
+        assertEquals("Swargate Bus Stand, Swargate", ola.backupCopy)
+        // Without coordinates Ola still gets the paste fallback.
+        assertEquals("Swargate Bus Stand", cabHandoff(CabApp.OLA, Trip(dropoff = Stop(PlaceKind.ADDRESS, Place("Swargate Bus Stand")))).copyText)
     }
 
     @Test fun distanceIsSane() {

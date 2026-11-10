@@ -62,12 +62,20 @@ Nexus keeps a usage log **on this phone** so the family (and, if they choose, th
 - "Export my usage" shows the exact text first, then opens the Android share sheet. "Share test summary" works the same way.
 - The one exception is the opt-in daily counts above, and only after the family says yes on the consent page.
 
+## Face photos
+- A person's photo comes from their phone contact (when the phone has one) or from a picture the child picks with Android's photo picker. Nexus needs no storage permission for either.
+- The photo is copied as a small picture (256 x 256) into Nexus's private storage on the phone. It is never uploaded, never sent to any service, and excluded from backups. Uninstalling Nexus deletes it.
+
+## Saving family into the phone's contacts
+- For people typed in by number, setup offers "Save in phone contacts". This opens the phone's own Contacts app with the name and number filled in; the child taps Save there. Nexus has no permission to write contacts and doesn't write them itself.
+
 ## Rides to a place
 - When the parent says or types a place ("स्वारगेटला जायचं"), the phone's own location service (Android Geocoder) looks it up near the home coordinates, which may use the internet. Nexus doesn't keep the results after the ride screen closes.
-- The chosen place is handed to the cab app (Uber gets the coordinates and a short name; Ola, Rapido and Namma Yatri get the address on the clipboard) or to Google Maps. The parent confirms the ride there.
+- The chosen place is handed to the cab app (Uber and Ola get the coordinates and the address in their link, and Ola's address is also put on the clipboard as a backup; Rapido and Namma Yatri get the address on the clipboard) or to Google Maps. The parent confirms the ride there.
+- Place searches are limited to India.
 
 ## Internet use
-- **Address suggestions** while typing a home address send the typed text to a map search service (ArcGIS geocoding suggest) to list matches.
+- **Address suggestions** while typing a home address send the typed text to a map search service (ArcGIS geocoding suggest) to list matches in India. In Family settings, the saved home's coordinates are sent too, so nearby matches come first.
 - **Placing home on the map:** the saved address is turned into coordinates by the phone's own location service (Android Geocoder), which may use the internet. The coordinates are stored only on the phone and are used to prefill Uber's drop-off and to centre Near home Maps searches.
 - **Speech**, as above, when on-device recognition isn't available.
 - **Daily counts**, only if turned on (see Usage counts).

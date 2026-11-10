@@ -43,7 +43,8 @@ private fun encode(saved: Saved): String {
     saved.people.forEach { person ->
         people.put(
             JSONObject().put("id", person.id).put("name", person.name).put("phone", person.phone)
-                .put("relation", person.relation).put("askFamily", person.askFamily).put("alias", person.alias),
+                .put("relation", person.relation).put("askFamily", person.askFamily).put("alias", person.alias)
+                .put("photo", person.photo),
         )
     }
     return JSONObject()
@@ -82,6 +83,7 @@ private fun decode(raw: String): Saved {
             relation = item.optString("relation"),
             askFamily = item.optBoolean("askFamily"),
             alias = item.optString("alias"),
+            photo = item.optString("photo"),
         )
     }
     return Saved(

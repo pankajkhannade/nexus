@@ -53,6 +53,9 @@ class ParentHomeUiTest {
         val model = newModel(people = 1)
         compose.setParent { ParentHome(model, onSpeak = {}, onSettings = {}) }
 
+        // One WhatsApp tile, then the face (keeps home on one screen with 4 people).
+        compose.onNodeWithText("WhatsApp", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("WhatsApp who?").assertIsDisplayed()
         compose.onNodeWithContentDescription("WhatsApp Pankaj").performClick()
 
         val intent = nextStartedIntent()!!

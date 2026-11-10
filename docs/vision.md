@@ -21,6 +21,8 @@ Phase 1.5, added at Pankaj's request after Phase 1:
 
 Analytics (added 2026-11-11): an on-device usage log of counts and timings only, a How Nexus is doing screen for the family, a share-able test summary, and an opt-in daily upload of aggregate counts to our own Cloudflare Worker (off by default). This is how the Phase 1 exit metric and kill rule get measured. Definitions: `metrics.md`.
 
+UX sprint 1 (added 2026-11-11, from the UX critique Pankaj asked for): faces you can tell apart, a home that fits one small screen, "Didn't understand" that says what it heard, the scam verdict's "Ask <child>" always on screen, spoken coaching before every handoff (and Ola's drop-off link), India-only place search, and one मागे / बोला bar on every flow screen. The 19 design principles in `design.md` 3.8 are now the standard for Phase 2 and 3 screens too, especially "heard → said back → doing → done" and "continuity across handoffs", which the child companion app (Phase 2) and the risky-moment guard (Phase 3) build on.
+
 Still ahead: Pankaj's real-phone test, a native Hindi and Marathi review of the strings, release prep (signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form), and the 14-day Play closed test with 12 testers (6 parent-child pairs). The Play Console fee needs Pankaj's yes.
 
 Quick-commerce ordering by voice (Blinkit, Instamart, Zepto placing an order or paying) is deferred: none of those apps has a public ordering API, and Play Accessibility policy blocks driving other apps on the user's behalf. Near home opens the chosen app instead (or Maps, or the Play Store).

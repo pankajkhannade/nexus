@@ -70,37 +70,46 @@ fun LiveWords(words: String) {
 fun ConfirmScreen(model: NexusViewModel, person: Person) {
     LaunchedEffect(person.id) { model.speak(R.string.confirm_call, person.name) }
     Centered {
-        Avatar(person.name, 120.dp)
+        Avatar(person, model.saved.people, 120.dp)
         BigCentredText(stringResource(R.string.confirm_call, person.name))
         BigButton(stringResource(R.string.yes_call), { model.startCall(person) }, kind = ButtonKind.Call)
         BigButton(stringResource(R.string.no), { model.cancelled(CommandType.CALL); model.screen = Screen.Home }, kind = ButtonKind.Secondary)
     }
 }
 
-/** S6 Not understood: never a dead end. Faces to tap, or speak again. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * S6 Not understood (UX sprint 1, fix #3). Never a dead end, and never a mystery: it shows what Nexus heard
+ * ("ऐकलं: …", or "heard nothing"), one example of what to say, a big Speak again, and the people the words
+ * may have been about first, each with a one-tap Call. It was already said aloud (heard + example).
+ */
 @Composable
 fun NotUnderstoodScreen(model: NexusViewModel, onSpeak: () -> Unit) {
-    Centered {
+    val back = { model.tryingInSetup = false; model.screen = Screen.Home }
+    ParentScaffold(onBack = back) {
         BigCentredText(stringResource(if (model.voiceFails >= 2) R.string.not_understood_again else R.string.not_understood))
-        if (model.heard.isNotBlank()) Text(stringResource(R.string.heard_x, model.heard), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = 2) {
-            model.saved.people.forEach { person ->
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .heightIn(min = 140.dp)
-                        .clickable { model.tryingInSetup = false; model.tile(CommandType.CALL); model.startCall(person) }
-                        .padding(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Avatar(person.name, 88.dp)
-                    Text(person.name, style = MaterialTheme.typography.titleLarge)
+        OutlinedPanel(Modifier.testTag("heard_line")) {
+            Text(
+                if (model.heard.isBlank()) stringResource(R.string.heard_nothing) else stringResource(R.string.heard_big, model.heard),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Text(stringResource(R.string.try_saying, stringResource(R.string.try_phrase, model.exampleName())), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        BigButton("🎤  " + stringResource(R.string.speak_again), onSpeak)
+        val people = model.candidatePeople()
+        if (people.isNotEmpty()) {
+            Text(stringResource(R.string.maybe_meant), style = MaterialTheme.typography.titleLarge)
+            people.take(4).forEach { person ->
+                OutlinedPanel {
+                    Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Avatar(person, model.saved.people, 56.dp)
+                        Text(person.name, style = MaterialTheme.typography.titleLarge)
+                    }
+                    BigButton("📞 " + stringResource(R.string.found_call, person.name), {
+                        model.tryingInSetup = false; model.tile(CommandType.CALL); model.startCall(person)
+                    }, kind = ButtonKind.Call)
                 }
             }
         }
-        BigButton("🎤  " + stringResource(R.string.speak_again), onSpeak)
-        BigButton(stringResource(R.string.back), { model.tryingInSetup = false; model.screen = Screen.Home }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -116,6 +125,8 @@ fun CallingScreen(model: NexusViewModel, person: Person) {
             left -= 1
         }
         model.record(Event.CALL)
+        // Without direct calling, the dial pad opens: say which button to press before it does.
+        if (!granted(context, android.Manifest.permission.CALL_PHONE)) model.speak(R.string.dialer_fallback)
         val direct = placeCall(context, person.phone)
         model.actionOpened(AppCategory.DIALER)
         Log.i("NexusCall", "placed direct=$direct")
@@ -123,7 +134,7 @@ fun CallingScreen(model: NexusViewModel, person: Person) {
         model.screen = Screen.Home
     }
     Centered {
-        Avatar(person.name, 120.dp)
+        Avatar(person, model.saved.people, 120.dp)
         BigCentredText(stringResource(R.string.calling_x, person.name))
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
             CircularProgressIndicator(progress = { left / 3f }, modifier = Modifier.size(96.dp), strokeWidth = 8.dp)
@@ -136,18 +147,17 @@ fun CallingScreen(model: NexusViewModel, person: Person) {
 /** Phone book "Which one?": up to 3 big choices with the number's last digits, so two Rahuls differ. */
 @Composable
 fun ChooseContactScreen(model: NexusViewModel, choose: Screen.ChooseContact) {
-    ScreenColumn {
+    ParentScaffold(onBack = { model.cancelled(CommandType.FIND_CONTACT); model.screen = Screen.Home }) {
         BigCentredText(stringResource(R.string.which_one))
         Text(stringResource(R.string.heard_x, choose.name), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        choose.options.forEach { person -> ContactChoice(person) { model.chooseContact(person, choose.ask) } }
+        choose.options.forEachIndexed { i, person -> ContactChoice(person, i) { model.chooseContact(person, choose.ask) } }
         BigButton(stringResource(R.string.none_of_these), { model.screen = Screen.ContactNotFound(choose.name) }, kind = ButtonKind.Secondary)
-        BigButton(stringResource(R.string.back), { model.cancelled(CommandType.FIND_CONTACT); model.screen = Screen.Home }, kind = ButtonKind.Quiet)
     }
 }
 
 /** One big tappable contact: initial, name, "Number ending 3210". */
 @Composable
-fun ContactChoice(person: Person, onClick: () -> Unit) {
+fun ContactChoice(person: Person, index: Int = 0, onClick: () -> Unit) {
     val ending = stringResource(R.string.number_ending, numberEnding(person.phone))
     OutlinedPanel(
         Modifier
@@ -156,7 +166,7 @@ fun ContactChoice(person: Person, onClick: () -> Unit) {
             .semantics(mergeDescendants = true) { },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Avatar(person.name, 64.dp)
+            Avatar(person, emptyList(), 64.dp, fallbackIndex = index)
             Column {
                 Text(person.name, style = MaterialTheme.typography.headlineSmall)
                 Text(ending, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -169,12 +179,11 @@ fun ContactChoice(person: Person, onClick: () -> Unit) {
 @Composable
 fun ContactNotFoundScreen(model: NexusViewModel, name: String, onSpeak: () -> Unit) {
     val context = LocalContext.current
-    Centered {
+    ParentScaffold(onBack = { model.screen = Screen.Home }) {
         Text("📒", fontSize = 56.sp)
         BigCentredText(stringResource(R.string.contact_not_found, name))
         BigButton("📞  " + stringResource(R.string.open_dial_pad), { openDial(context, ""); model.actionOpened(AppCategory.DIALER); model.screen = Screen.Home }, kind = ButtonKind.Call)
         BigButton("🎤  " + stringResource(R.string.speak_again), onSpeak, kind = ButtonKind.Secondary)
-        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
     }
 }
 

@@ -4,6 +4,29 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### UX sprint 1 (2026-11-11) — feat/ux-sprint-1
+From the UX critique Pankaj asked for (`docs/ux-critique-2026-11-11.md`): the five-item sprint plus the India-only address fix and the shared bottom bar.
+
+**Faces you can tell apart (#1).** `Faces.kt`: a contact photo when the phone has one (read through the picker's grant at pick time), or one the child picks with the system photo picker in the person sheet ("Add photo", no storage permission). Photos are copied as 256 px JPEGs into the app's private `faces/` folder, excluded from backup, never uploaded. Without a photo, each person gets one of 8 fixed colours by their place in the family list (white text at 4.5:1 or better on every colour, checked in a test), so Pankaj and Priya are no longer two identical blue "P"s. The full first name is written next to every face.
+
+**Home on one screen (#2).** On a 360x640dp phone at default text size, home shows all 4 faces (2x2, each with its own Call), the labelled tiles (Is this safe?, Ride home, Near home, WhatsApp) and the sticky Speak bar, with no scrolling. Per-person WhatsApp buttons became one WhatsApp tile and then a face ("WhatsApp who?"), which is what makes 4 people fit. The day-3 / day-7 feedback card moved below the tiles, so it never pushes the family down. The "for family: hold 2 seconds" hint is gone from the parent's screen: the child holds the date, as the handover screen now says.
+
+**"Didn't understand" (#3).** Shows "ऐकलं: …" (or "heard nothing") in a big panel with one example to say, says the same aloud ("मी ऐकलं: …. पण समजलं नाही. असं बोला: Pankajला फोन लाव"), puts a big Speak again first, then the people the words may have been about (a name heard comes first), each with a one-tap Call. The wrong "tap a photo" wording is gone in en/hi/mr.
+
+**Scam verdict (#4).** "Ask <child>" is pinned above the bottom bar, so it is on screen with no scrolling on a small phone at 1.3x and 1.5x text, in Marathi, Hindi and English. The checked message is folded behind "Show the message". New: "Money already gone? Call 1930" (India's cyber-fraud helpline) opens the dial pad on warnings.
+
+**Handoffs (#5).** One coaching line is said before Nexus hands over: "WhatsApp उघडतोय. हिरवं पाठवा बटण दाबा." (and SMS, Ask family, the dial pad when direct calling is off, Near home apps, and cab apps). Rides: Ola now gets its documented app link with the drop-off (`olacabs://app/launch`, drop_lat / drop_lng / drop_address), with the address also copied quietly as a backup because we have no Ola partner token. Rapido and Namma Yatri publish no destination link, so the paste stays, now with the steps said aloud ("“कुठे जायचे” दाबा, बोट दाबून ठेवा, मग पेस्ट दाबा"). Setup offers "Save <name> in phone contacts" for people typed in by number (the phone's own Contacts screen, prefilled with `ACTION_INSERT`; no WRITE_CONTACTS), so the dialer shows a name.
+
+**India-only address search (#6).** The child's phone reported a US locale, so "Shivaji Park, Dadar" suggested a place in the US (screenshot 07). Suggestions now always ask ArcGIS for India (`countryCode=IND`), bias towards home when it is known, and drop anything that doesn't end in India. The phone's Geocoder searches inside India's bounding box for home and for ride destinations.
+
+**Same bottom bar everywhere (#7).** `ParentScaffold`: मागे and बोला, each 64dp or more, at the bottom of Not understood, Is this safe? (input and verdict), Ride, Where to?, Which one?, Not found, and the Near home screens. The small Back links on those screens are gone.
+
+**Heard → said back → doing → done.** Voice rides are read back ("घरी जायची गाडी. कॅब ॲप उघडायला मोठं बटण दाबा."), the handoff lines are the "doing", and home shows "Back in Nexus. If something went wrong, press Speak." after a handoff. The existing call and message countdowns and read-backs are unchanged.
+
+**Docs:** `docs/design.md` gets section 3.8, the 19 design principles as the standard, with their status after this sprint. The critique is in `docs/ux-critique-2026-11-11.md`.
+
+**Tests:** 359 → 404 JVM tests (after the leave-behind practice merge). New: `FacesAndPlacesTest` (colour contrast, same-initial faces differ, India-only URL and parsing with the recorded "Shivaji Park, Dadar" US result, the India box), `ui/UxSprint1UiTest` (19 acceptance checks on a 360x640dp device, including 1.3x and 1.5x text, mr and hi), and `ui/UxSprint1ScreenshotTest` (18 Roborazzi goldens in `roborazzi/ux1/`, including a re-take of screenshot 21). Existing tests were updated only where the behaviour changed on purpose (Ola link, feedback card position, pinned Ask, WhatsApp tile).
+
 ### Leave-behind practice (2026-11-11)
 The child no longer hands the phone over after one sentence. After setup, the parent is asked, in their language, to say a call, a short message, and (if home is saved) "take me home". Each check passes only when the parser hears that action. Nothing is called, sent, or booked during the check. The result says how many worked and tells the child to stay if the call failed. Family settings can run it again. Phones already set up are not sent back through it.
 

@@ -2,6 +2,7 @@ package dev.pankajkhannade.nexus.ui
 
 import android.content.Intent
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -45,8 +46,9 @@ class SafetyUiTest {
         model.openCheck("Your KYC expires today. Click bit.ly/kyc-upd8 and enter your PIN.")
         compose.setParent { SafetyScreen(model) }
 
-        compose.onNodeWithText("Ask Pankaj", substring = true).performScrollTo().performClick()
-        compose.onNodeWithText("OK").performScrollTo().performClick()
+        // Pinned above the bottom bar: on screen without scrolling.
+        compose.onNodeWithText("Ask Pankaj", substring = true).assertIsDisplayed().performClick()
+        compose.onNodeWithText("OK").assertIsDisplayed().performClick()
 
         val intent = nextStartedIntent()!!
         assertEquals(Intent.ACTION_VIEW, intent.action)

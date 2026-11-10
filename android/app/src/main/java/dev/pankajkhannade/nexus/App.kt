@@ -69,6 +69,7 @@ fun NexusApp(model: NexusViewModel) {
                 }
             }
             Box(Modifier.systemBarsPadding()) {
+              androidx.compose.runtime.CompositionLocalProvider(LocalOnSpeak provides onSpeak) {
                 when {
                     !saved.setupDone -> SetupFlow(model)
                     micGate -> PermissionCard(
@@ -102,6 +103,7 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.UploadConsent -> UploadConsentScreen(model)
                     else -> ParentHome(model, onSpeak, onSettings = { model.screen = Screen.Settings })
                 }
+              }
             }
         }
     }

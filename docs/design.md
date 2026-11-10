@@ -132,6 +132,8 @@ There's no separate permissions-explainer screen. The only explainer is a branch
 6. **Nothing leaves the phone without a visible reason.** Any network use (online speech, place search) is named on screen when it happens. Usage data leaves only when someone taps Share.
 7. **Forgiving by default.** Every irreversible step has a 3-second Cancel or an Undo. Every error says what happened and the next tap to fix it, in the parent's language.
 
+These seven are the original rules. Since 2026-11-11 the standard is the 19 principles in **3.8**; every new screen and every review is checked against them.
+
 ### 3.2 User journeys
 
 #### Child-assisted setup (child on the parent's phone, target under 3 minutes)
@@ -517,6 +519,40 @@ Rules:
 | Runtime `READ_CONTACTS` name lookup | `HomeScreen.kt:138-152`, manifest `:5` | `ACTION_PICK` only (no permission). Phase 2 may revisit. |
 
 ---
+
+### 3.8 Design principles (the standard, adopted 2026-11-11)
+
+From the UX critique (`ux-critique-2026-11-11.md`). Every parent screen is reviewed against these 19. "Status" is after UX sprint 1 (feat/ux-sprint-1); "Next" is what is still owed.
+
+| # | Principle | What it means for Nexus | Status after sprint 1 | Next |
+|---|---|---|---|---|
+| 1 | **Heard → said back → doing → done** | Every voice result shows and says what was heard, says what Nexus will do, says the step in the other app, and says what happened on return | Heard line on Not understood, Which one? and Where to?; spoken read-back for calls, messages and rides; spoken handoff lines; a done line on home after a handoff | "Did it work?" with Yes/No on return |
+| 2 | **Continuity across handoffs** | Nexus's care doesn't stop where its screen ends | Spoken coach before WhatsApp, SMS, dialer, cab and Near home apps; Ola drop-off link; Add to phone contacts in setup | A return check that offers help when the parent comes back fast |
+| 3 | **Same place for the same thing** | Back and Speak always sit in one bottom bar (मागे left, बोला right, 64dp+) | `ParentScaffold` on Not understood, Safety, Ride, Where to?, Which one?, Not found, Near home screens | Message, Confirm, Calling and Listening keep their own big buttons for now |
+| 4 | **Recognisable at a glance** | A photo, or one of 8 distinct colours, plus the full first name | Done (`Faces.kt`) | Optional Devanagari display name |
+| 5 | **One job per screen** | One pinned primary action | Verdict pins Ask <child>; home has one action per face | Settings and metrics screens |
+| 6 | **Never a dead end** | Back, Speak and Ask child reachable from every screen | Bottom bar adds Speak to every flow screen | A permanent मदत / call child on home |
+| 7 | **Undo window** | Irreversible steps have a visible countdown or Undo | 3-second call countdown, message confirm, settings Undo | Adjustable 3 / 5 / 8 s (WCAG 2.2.1) |
+| 8 | **Forgiving input** | Speak any answer; never show impossible choices | India-only place search | Speak the feedback answer by default |
+| 9 | **Large text, big targets, tested at 200%** | Every parent screen tested on 360x640dp at 1.0, 1.3, 1.5 (and later 2.0) | Home, Not understood and the verdict at 1.0/1.3/1.5 in Roborazzi and Compose tests | 2.0x and the remaining screens |
+| 10 | **Every icon has a word** | No icon-only control | Home tiles all labelled | Settings ↑ arrow; a lint check |
+| 11 | **Plain local language, one script** | No English mid-sentence in Marathi/Hindi | Unchanged | Native review; banned-words list ("Send बटण") |
+| 12 | **The child is the support channel** | A way to reach the child from every screen | Ask <child> pinned on the verdict | Permanent help on home |
+| 13 | **No surprise permissions** | Each permission explained first, asked at first need | Kept: no new permissions in this sprint (photo picker, ACTION_INSERT need none) | Per-permission fix in Settings |
+| 14 | **Calm errors** | Say what happened and the next tap | Not understood rewritten | Clear resolved setup errors |
+| 15 | **Safe path is the easy path** | The safest action is the biggest and always visible | Pinned Ask <child>; 1930 for "money gone" | The full पैसे गेले flow (roadmap N3) |
+| 16 | **Honest progress and time** | Step counts and waits are true | Unchanged | Honest setup steps |
+| 17 | **Design for shaky hands** | 16dp gaps, destructive actions away from common ones, ignore double taps | Unchanged | Settings Remove away from Edit |
+| 18 | **Privacy you can see** | Show when data leaves the phone | Photos stay on the phone, stated in PRIVACY.md | Show on home when uploads are on |
+| 19 | **Test with real 60+ users** | 5 moderated sessions per language before the closed test | Not yet | Recruit (drafts for Pankaj to send) |
+
+#### UX sprint 1 screens (2026-11-11)
+- **S5 Home:** 2x2 face cards (photo or colour, full first name, one green Call each), a 2-column grid of labelled tiles (Is this safe?, Ride home, Near home, WhatsApp → "WhatsApp who?" → face), the notice / done line, then the feedback card. Date in the corner is the 2-second hold for Family settings (no visible hint). Fits 360x640dp at 1.0 with 4 people; at 1.3/1.5 the first face row and Speak stay on screen.
+- **S6 Not understood:** headline, a panel with "ऐकलं: …" and "असं बोला: …", Speak again, "Did you mean:" with the people heard first and a Call each, bottom bar.
+- **S8 Verdict:** banner, reasons, Never share, "Money already gone? Call 1930", "Show the message" (folded), OK close; Ask <child> pinned above the bottom bar.
+- **S10 Ride:** "The place is filled in for you" for Uber/Ola with coordinates, else the copy line plus "Nexus will say each step aloud"; bottom bar.
+- **S2 Family:** Add photo in the person sheet; "Save <name> in phone contacts" for people typed in by number.
+
 
 ## 4. Phase 1 build order (screens)
 

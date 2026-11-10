@@ -148,7 +148,8 @@ class AndroidPlaceFinder(private val context: Context) : PlaceFinder {
                 val dLng = NEAR_KM / (111.0 * Math.cos(Math.toRadians(near.lat!!))).coerceAtLeast(1.0)
                 geocoder.getFromLocationName(q, 3, near.lat - dLat, near.lng!! - dLng, near.lat + dLat, near.lng + dLng)
             } else {
-                geocoder.getFromLocationName(q, 3)
+                // Never abroad: a "Shivaji Park" search must not come back from another country.
+                geocoder.getFromLocationName(q, 3, IndiaBox.SOUTH, IndiaBox.WEST, IndiaBox.NORTH, IndiaBox.EAST)
             }.orEmpty()
         }.getOrDefault(emptyList())
         val spoken = query.trim()
@@ -159,7 +160,7 @@ class AndroidPlaceFinder(private val context: Context) : PlaceFinder {
             hits = (lookup(spoken, bounded = false).ifEmpty { latin?.let { lookup(it, bounded = false) }.orEmpty() })
                 .filter { a -> !near.hasCoordinates || distanceKm(near.lat!!, near.lng!!, a.latitude, a.longitude) <= 2 * NEAR_KM }
         }
-        return hits.filter { it.hasLatitude() && it.hasLongitude() }
+        return hits.filter { it.hasLatitude() && it.hasLongitude() && IndiaBox.contains(it.latitude, it.longitude) }
             .map { Place(placeLabel(it).ifBlank { spoken }, it.latitude, it.longitude) }
             .distinctBy { it.address }
             .take(3)

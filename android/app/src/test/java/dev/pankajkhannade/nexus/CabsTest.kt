@@ -55,12 +55,19 @@ class CabsTest {
         }
     }
 
-    @Test fun olaAndRapidoOpenTheAppAndCopyTheAddress() {
+    @Test fun olaGetsADropOffDeepLinkAndRapidoCopiesTheAddress() {
         val trip = Trip(dropoff = Stop(PlaceKind.HOME, home))
         val ola = cabHandoff(CabApp.OLA, trip)
-        assertNull(ola.uri)
+        // developers.olacabs.com/docs/deep-linking: olacabs://app/launch with drop_lat / drop_lng / drop_address.
+        val uri = ola.uri!!
+        assertTrue(uri, uri.startsWith("olacabs://app/launch?landing_page=bk"))
+        assertTrue(uri, uri.contains("drop_lat=18.520430") && uri.contains("drop_lng=73.856744"))
+        assertTrue(uri, uri.contains("drop_address=Flat%204%2C%2021%20MG%20Road%2C%20Pune"))
+        assertFalse("no pickup: Ola uses where the parent is", uri.contains("&lat="))
         assertEquals("com.olacabs.customer", ola.pkg)
-        assertEquals(home.address, ola.copyText)
+        assertNull("nothing to paste", ola.copyText)
+        assertTrue(ola.carriesDropoff)
+        assertEquals("copied quietly in case Ola ignores the link", home.address, ola.backupCopy)
         val rapido = cabHandoff(CabApp.RAPIDO, trip)
         assertNull(rapido.uri)
         assertEquals("com.rapido.passenger", rapido.pkg)

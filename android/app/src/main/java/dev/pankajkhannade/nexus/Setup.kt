@@ -152,6 +152,8 @@ private fun FamilyStep(model: NexusViewModel) {
         if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
         val uri = result.data?.data ?: return@rememberLauncherForActivityResult
         val (name, raw) = readPickedPhone(context, uri) ?: return@rememberLauncherForActivityResult
+        // The contact's own photo, when the phone has one we may read (copied into Nexus, never uploaded).
+        val photo = contactPhotoUri(context, uri)?.let { saveFace(context, it) }.orEmpty()
         val phone = normalizePhone(raw, guessCountry(context).dial)
         if (phone == null) {
             note = context.getString(R.string.contact_number_unusable)
@@ -162,7 +164,7 @@ private fun FamilyStep(model: NexusViewModel) {
             return@rememberLauncherForActivityResult
         }
         note = null
-        editing = PersonDraft(null, name, displayPhone(phone), "", askFamily = model.setupPeople.none { it.askFamily }, alias = "", typed = false)
+        editing = PersonDraft(null, name, displayPhone(phone), "", askFamily = model.setupPeople.none { it.askFamily }, alias = "", typed = false, photo = photo)
     }
     val people = model.setupPeople
     ScreenColumn {
@@ -170,8 +172,8 @@ private fun FamilyStep(model: NexusViewModel) {
         Text(stringResource(R.string.family_body), style = MaterialTheme.typography.bodyLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), maxItemsInEachRow = 2) {
             people.forEach { person ->
-                PersonTile(Modifier.weight(1f), person) {
-                    editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true)
+                PersonTile(Modifier.weight(1f), person, people) {
+                    editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true, photo = person.photo)
                 }
             }
             if (people.size < NexusViewModel.MAX_PEOPLE) {
@@ -186,6 +188,7 @@ private fun FamilyStep(model: NexusViewModel) {
             }, kind = ButtonKind.Quiet)
         }
         note?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge) }
+        SaveToPhoneContacts(people.filter { it.id in model.setupTyped })
         PhoneBookOption { model.permissionAnswered(Perm.CONTACTS, it) }
         val reason = when {
             people.isEmpty() -> R.string.need_one_person
@@ -201,9 +204,31 @@ private fun FamilyStep(model: NexusViewModel) {
             dial = guessCountry(context).dial,
             onDismiss = { editing = null },
             onRemove = draft.original?.let { original -> { model.removeSetupPerson(original); editing = null } },
-            onSave = { d -> model.putSetupPerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias).also { if (it) editing = null } },
+            onSave = { d -> model.putSetupPerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias, d.photo, typed = d.typed).also { if (it) editing = null } },
             duplicateOf = { phone -> model.setupPeople.firstOrNull { it.phone == phone && it.id != draft.original?.id }?.name },
         )
+    }
+}
+
+/**
+ * Handoff continuity (UX sprint 1, fix #5): a person typed in by number is not in the phone's contacts, so
+ * the dialer would show a bare number. One tap opens the phone's own "new contact" screen with the name and
+ * number filled in (ACTION_INSERT: no WRITE_CONTACTS permission; the child taps Save there).
+ */
+@Composable
+private fun SaveToPhoneContacts(typed: List<Person>) {
+    if (typed.isEmpty()) return
+    val context = LocalContext.current
+    var done by remember { mutableStateOf<Set<String>>(emptySet()) }
+    val left = typed.filter { it.id !in done }
+    if (left.isEmpty()) return
+    OutlinedPanel {
+        Text(stringResource(R.string.save_to_phone_why), style = MaterialTheme.typography.bodyLarge)
+        left.forEach { person ->
+            BigButton(stringResource(R.string.save_to_phone, person.name), {
+                if (openAddContact(context, person.name, person.phone)) done = done + person.id
+            }, kind = ButtonKind.Secondary)
+        }
     }
 }
 
@@ -225,7 +250,7 @@ private fun PhoneBookOption(onAnswer: (Boolean) -> Unit = {}) {
 }
 
 @Composable
-private fun PersonTile(modifier: Modifier, person: Person, onClick: () -> Unit) {
+private fun PersonTile(modifier: Modifier, person: Person, family: List<Person>, onClick: () -> Unit) {
     Surface(
         shape = CardShape,
         color = NexusColors.SurfaceContainer,
@@ -236,7 +261,7 @@ private fun PersonTile(modifier: Modifier, person: Person, onClick: () -> Unit) 
             .clickable(onClick = onClick),
     ) {
         Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Avatar(person.name, 56.dp)
+            Avatar(person, family, 56.dp)
             Text(person.name, style = MaterialTheme.typography.titleMedium)
             val relation = if (person.relation.isNotBlank()) stringResource(relationText(person.relation)) else ""
             val ask = if (person.askFamily) stringResource(R.string.ask_tag) else ""
@@ -270,6 +295,8 @@ data class PersonDraft(
     val askFamily: Boolean,
     val alias: String,
     val typed: Boolean,
+    /** faces/ path ("" = coloured initial). From the photo picker or the contact's own photo. */
+    val photo: String = "",
 )
 
 /** Details for one person: name as the parent says it, relation, Ask-family flag, spoken alias. */
@@ -286,6 +313,10 @@ fun PersonSheet(
     var d by remember { mutableStateOf(draft) }
     var error by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    // The child can pick a face from the gallery (system photo picker: no storage permission).
+    val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { saveFace(context, it) }?.let { d = d.copy(photo = it) }
+    }
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(20.dp), color = NexusColors.Background) {
             Column(
@@ -294,6 +325,14 @@ fun PersonSheet(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Avatar(Person(id = draft.original?.id ?: "new", name = d.name.ifBlank { "?" }, phone = "", photo = d.photo), emptyList(), 56.dp)
+                    BigButton(
+                        stringResource(if (d.photo.isBlank()) R.string.add_photo else R.string.change_photo),
+                        { pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        Modifier.weight(1f), kind = ButtonKind.Secondary,
+                    )
+                }
                 OutlinedTextField(
                     d.name, { d = d.copy(name = it) }, Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.name_as_said)) }, singleLine = true,
@@ -354,7 +393,7 @@ private fun HomeStep(model: NexusViewModel) {
     val context = LocalContext.current
     ScreenColumn {
         Text(stringResource(R.string.home_step_title), style = MaterialTheme.typography.headlineMedium)
-        PlaceBox(stringResource(R.string.place_home), model.setupHome, guessCountry(context).code) { model.setupHome = it }
+        PlaceBox(stringResource(R.string.place_home), model.setupHome) { model.setupHome = it }
         Text(stringResource(R.string.place_search_network), color = MaterialTheme.colorScheme.onSurfaceVariant)
         BigButton(stringResource(R.string.continue_), { model.setupStep = 3 }, enabled = model.setupHome.trim().length >= 4)
         BigButton(stringResource(R.string.skip), { model.setupHome = ""; model.setupStep = 3 }, kind = ButtonKind.Secondary)
@@ -406,6 +445,7 @@ private fun PermissionsStep(model: NexusViewModel) {
         else -> ScreenColumn {
             Text(stringResource(R.string.handover_title), style = MaterialTheme.typography.headlineMedium)
             Text(stringResource(R.string.handover_body), style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.handover_settings), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (!granted(context, Manifest.permission.RECORD_AUDIO)) {
                 Text(stringResource(R.string.mic_off_setup), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -425,7 +465,7 @@ fun granted(context: android.content.Context, permission: String) =
 fun TryItScreen(model: NexusViewModel, onSpeak: () -> Unit) {
     val askPerson = model.saved.people.firstOrNull { it.askFamily } ?: model.saved.people.firstOrNull()
     Centered {
-        askPerson?.let { Avatar(it.name, 120.dp) }
+        askPerson?.let { Avatar(it, model.saved.people, 120.dp) }
         BigCentredText(stringResource(R.string.try_title))
         Text(
             "“" + stringResource(R.string.try_phrase, askPerson?.alias?.ifBlank { askPerson.name } ?: "") + "”",
@@ -457,10 +497,10 @@ fun MicButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun PlaceBox(label: String, value: String, countryCode: String, onChange: (String) -> Unit) {
+fun PlaceBox(label: String, value: String, near: Place? = null, onChange: (String) -> Unit) {
     var hits by remember { mutableStateOf<List<String>>(emptyList()) }
     var picked by remember { mutableStateOf("") }
-    LaunchedEffect(value, countryCode) {
+    LaunchedEffect(value) {
         val query = value.trim()
         if (query.length < 3 || query == picked) {
             hits = emptyList()
@@ -468,7 +508,7 @@ fun PlaceBox(label: String, value: String, countryCode: String, onChange: (Strin
         }
         delay(300)
         hits = withContext(Dispatchers.IO) {
-            runCatching { suggestPlaces(query, countryCode) }.getOrDefault(emptyList())
+            runCatching { suggestPlaces(query, near) }.getOrDefault(emptyList())
         }
     }
     OutlinedTextField(

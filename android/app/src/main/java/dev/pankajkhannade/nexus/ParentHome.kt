@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +42,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.withTimeoutOrNull
@@ -46,55 +54,124 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** S5: the parent's daily screen. Up to 4 people, Check a message, Go home, Near home (S15), and a sticky Speak bar. */
+/**
+ * S5: the parent's daily screen, on one screen (UX sprint 1, fix #2). On a 360x640dp phone at default text
+ * size it shows, without scrolling: up to 4 faces in a 2x2 grid each with its own Call, the labelled tiles
+ * (Is this safe?, Go home, Near home, WhatsApp), and the sticky Speak bar. Bigger text scrolls, but Speak
+ * never moves. The feedback card sits after the tiles, so it never pushes the family down. There is no
+ * visible settings hint: the child holds the date for 2 seconds (taught on the handover screen).
+ */
 @Composable
 fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Unit) {
     val context = LocalContext.current
     val saved = model.saved
     val hasWhatsApp = remember { isInstalled(context, "com.whatsapp") }
+    var choosingWhatsApp by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
-            ScreenColumn {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 val date = LocalDate.ofEpochDay(model.today).format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault()))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.greeting), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
-                    Text(date, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.greeting), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                    HoldToOpen(date, onSettings)
                 }
+                if (choosingWhatsApp) {
+                    Text(stringResource(R.string.whatsapp_who), style = MaterialTheme.typography.titleLarge)
+                }
+                FaceGrid(saved.people) { person ->
+                    if (choosingWhatsApp) {
+                        BigButton(stringResource(R.string.whatsapp), {
+                            choosingWhatsApp = false
+                            model.tile(CommandType.WHATSAPP); model.openWhatsAppFor(person)
+                        }, Modifier.semantics { contentDescription = context.getString(R.string.found_message, person.name) }, kind = ButtonKind.Call)
+                    } else {
+                        BigButton("📞 " + stringResource(R.string.call), { model.tile(CommandType.CALL); model.startCall(person) },
+                            Modifier.semantics { contentDescription = context.getString(R.string.found_call, person.name) }, kind = ButtonKind.Call)
+                    }
+                }
+                if (choosingWhatsApp) {
+                    BigButton(stringResource(R.string.back), { choosingWhatsApp = false }, kind = ButtonKind.Secondary)
+                } else {
+                    val tiles = buildList<Triple<String, String, () -> Unit>> {
+                        add(Triple("🛡", context.getString(R.string.check_message)) { model.tile(CommandType.SAFETY); model.clearCheck(); model.screen = Screen.Safety })
+                        if (saved.home.isSet) add(Triple("🚕", context.getString(R.string.go_home)) { model.tile(CommandType.RIDE_HOME); model.screen = Screen.Ride })
+                        add(Triple("📍", context.getString(R.string.near_home)) { model.screen = Screen.NearHome })
+                        if (hasWhatsApp && saved.people.isNotEmpty()) add(Triple("💬", context.getString(R.string.whatsapp)) { choosingWhatsApp = true })
+                    }
+                    TileGrid(tiles)
+                }
+                if (model.notice.isNotEmpty()) Text(model.notice, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("home_notice"))
                 model.feedback.due(saved.installDay, model.today)?.let { round -> FeedbackCard(model, round) }
-                saved.people.forEach { person ->
-                    PersonRow(person, hasWhatsApp, onCall = { model.tile(CommandType.CALL); model.startCall(person) }, onWhatsApp = { model.tile(CommandType.WHATSAPP); model.openWhatsAppFor(person) })
-                }
-                BigButton("🛡  " + stringResource(R.string.check_message), { model.tile(CommandType.SAFETY); model.clearCheck(); model.screen = Screen.Safety }, kind = ButtonKind.Secondary)
-                if (saved.home.isSet) {
-                    BigButton("🚕  " + stringResource(R.string.go_home), { model.tile(CommandType.RIDE_HOME); model.screen = Screen.Ride }, kind = ButtonKind.Secondary)
-                }
-                BigButton("📍  " + stringResource(R.string.near_home), { model.screen = Screen.NearHome }, kind = ButtonKind.Secondary)
-                if (model.notice.isNotEmpty()) Text(model.notice, style = MaterialTheme.typography.bodyLarge)
-                HoldToOpen(onSettings)
             }
         }
         SpeakBar(onSpeak)
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** Up to 4 faces, two per row, each a card with a big face, the full first name and one action. */
 @Composable
-private fun PersonRow(person: Person, hasWhatsApp: Boolean, onCall: () -> Unit, onWhatsApp: () -> Unit) {
-    val callLabel = stringResource(R.string.found_call, person.name)
-    val waLabel = stringResource(R.string.found_message, person.name)
-    OutlinedPanel(Modifier.heightIn(min = 112.dp)) {
-        Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Avatar(person.name)
-            Column {
-                Text(person.name, style = MaterialTheme.typography.titleLarge)
-                if (person.relation.isNotBlank()) Text(stringResource(relationText(person.relation)), style = MaterialTheme.typography.bodyMedium)
+private fun FaceGrid(people: List<Person>, action: @Composable (Person) -> Unit) {
+    people.chunked(2).forEach { row ->
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            row.forEach { person ->
+                Surface(
+                    shape = CardShape,
+                    color = NexusColors.SurfaceContainer,
+                    contentColor = NexusColors.OnSurface,
+                    modifier = Modifier
+                        .weight(1f)
+                        .border(CardBorder, CardShape),
+                ) {
+                    Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Avatar(person, people, 48.dp)
+                            Text(firstName(person.name), style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                        }
+                        action(person)
+                    }
+                }
             }
+            if (row.size == 1) Box(Modifier.weight(1f))
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), maxItemsInEachRow = 2) {
-            BigButton("📞 " + stringResource(R.string.call), onCall, Modifier.weight(1f).semantics { contentDescription = callLabel }, kind = ButtonKind.Call)
-            if (hasWhatsApp) {
-                BigButton(stringResource(R.string.whatsapp), onWhatsApp, Modifier.weight(1f).semantics { contentDescription = waLabel }, kind = ButtonKind.Secondary)
+    }
+}
+
+/** The person's first name in full ("Pankaj", not "P"): the face's label on small screens. */
+fun firstName(name: String): String = name.trim().substringBefore(' ').ifBlank { name.trim() }
+
+/** Labelled tiles, two per row: an icon and always a word (never an icon alone). */
+@Composable
+private fun TileGrid(tiles: List<Triple<String, String, () -> Unit>>) {
+    tiles.chunked(2).forEach { row ->
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            row.forEach { (icon, label, onClick) ->
+                OutlinedButtonTile(icon, label, onClick, Modifier.weight(1f).fillMaxHeight())
             }
+            if (row.size == 1) Box(Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun OutlinedButtonTile(icon: String, label: String, onClick: () -> Unit, modifier: Modifier) {
+    Surface(
+        onClick = onClick,
+        shape = CardShape,
+        color = NexusColors.Background,
+        contentColor = NexusColors.OnSurface,
+        modifier = modifier
+            .heightIn(min = 64.dp)
+            .border(androidx.compose.foundation.BorderStroke(2.dp, NexusColors.Outline), CardShape),
+    ) {
+        Row(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(icon, style = MaterialTheme.typography.titleMedium, modifier = Modifier.clearAndSetSemantics { })
+            Text(label, style = MaterialTheme.typography.labelMedium)
         }
     }
 }
@@ -102,7 +179,7 @@ private fun PersonRow(person: Person, hasWhatsApp: Boolean, onCall: () -> Unit, 
 @Composable
 private fun SpeakBar(onSpeak: () -> Unit) {
     Surface(color = NexusColors.Background, shadowElevation = 8.dp) {
-        Box(Modifier.padding(16.dp)) {
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
             Surface(
                 onClick = onSpeak,
                 shape = CardShape,
@@ -110,7 +187,8 @@ private fun SpeakBar(onSpeak: () -> Unit) {
                 contentColor = androidx.compose.ui.graphics.Color.White,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 88.dp),
+                    .heightIn(min = 80.dp)
+                    .testTag("speak_bar"),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text("🎤  " + stringResource(R.string.speak), style = MaterialTheme.typography.displaySmall)
@@ -120,18 +198,21 @@ private fun SpeakBar(onSpeak: () -> Unit) {
     }
 }
 
-/** "For family: hold 2 seconds for settings". A 2-second press opens Family settings; TalkBack gets an action. */
+/**
+ * The date in the corner. A 2-second press opens Family settings (the child learns this at handover); the
+ * parent sees only a date, no "for family" hint. TalkBack users get it as a named action.
+ */
 @Composable
-private fun HoldToOpen(onOpen: () -> Unit) {
+private fun HoldToOpen(date: String, onOpen: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     val label = stringResource(R.string.family_settings)
     Text(
-        stringResource(R.string.settings_hint),
+        date,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
+            .heightIn(min = 48.dp)
+            .testTag("settings_hold")
             .semantics { customActions = listOf(CustomAccessibilityAction(label) { onOpen(); true }) }
             .pointerInput(Unit) {
                 awaitEachGesture {
@@ -143,7 +224,7 @@ private fun HoldToOpen(onOpen: () -> Unit) {
                     }
                 }
             }
-            .padding(vertical = 16.dp),
+            .padding(vertical = 10.dp),
     )
 }
 
@@ -202,9 +283,16 @@ fun RideScreen(model: NexusViewModel) {
         else -> Trip(dropoff = Stop(PlaceKind.HOME, home))
     }
     val hasPlace = target != null || home.isSet
+    val placeName = trip.dropoff?.label?.ifBlank { null } ?: (target ?: home).address.substringBefore(',').trim()
     val open: (CabApp) -> Unit = { app ->
         model.rememberCab(app)
         model.record(Event.RIDE)
+        // Coach before the handoff: either "it's filled in, check the fare" or the paste steps, aloud.
+        val handoff = cabHandoff(app, trip)
+        if (isInstalled(context, app.pkg)) {
+            if (handoff.copyText != null) model.speak(R.string.coach_ride_paste, app.label)
+            else model.speak(R.string.coach_ride_link, app.label, placeName)
+        }
         when (openRide(context, app, trip)) {
             RideResult.OPENED_AND_COPIED -> {
                 model.actionOpened(AppCategory.CAB)
@@ -216,7 +304,8 @@ fun RideScreen(model: NexusViewModel) {
         }
         model.leaveRide()
     }
-    ScreenColumn {
+    val back = { model.cancelled(if (model.rideTo == null) CommandType.RIDE_HOME else CommandType.RIDE_TO); model.leaveRide() }
+    ParentScaffold(onBack = back) {
         Text(
             "🚕  " + if (target != null) stringResource(R.string.go_to_x, target.address.substringBefore(',').trim()) else stringResource(R.string.go_home),
             style = MaterialTheme.typography.headlineMedium,
@@ -247,6 +336,9 @@ fun RideScreen(model: NexusViewModel) {
             BigButton(stringResource(R.string.ride_open_app, apps.first().label), { open(apps.first()) })
             if (cabHandoff(apps.first(), trip).copyText != null) {
                 Text(stringResource(if (target != null) R.string.ride_will_copy_dest else R.string.ride_will_copy), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.coach_ride_paste_note), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                Text(stringResource(R.string.ride_will_fill), style = MaterialTheme.typography.bodyLarge)
             }
             Text(stringResource(R.string.ride_confirm_in_app), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (apps.size > 1) {
@@ -270,7 +362,6 @@ fun RideScreen(model: NexusViewModel) {
         if (target != null && home.isSet) {
             BigButton(stringResource(R.string.go_home), { model.rideHome() }, kind = ButtonKind.Quiet)
         }
-        BigButton(stringResource(R.string.back), { model.cancelled(if (model.rideTo == null) CommandType.RIDE_HOME else CommandType.RIDE_TO); model.leaveRide() }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -281,7 +372,7 @@ fun RideScreen(model: NexusViewModel) {
 @Composable
 fun DestinationScreen(model: NexusViewModel) {
     val hits = model.destHits
-    ScreenColumn {
+    ParentScaffold(onBack = { model.cancelled(if (model.rideTo == null) CommandType.RIDE_HOME else CommandType.RIDE_TO); model.leaveRide() }) {
         Text("📍  " + stringResource(R.string.dest_title), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.heard_x, model.destQuery), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         when {
@@ -303,6 +394,5 @@ fun DestinationScreen(model: NexusViewModel) {
         if (hits != null && hits.isNotEmpty()) {
             BigButton(stringResource(R.string.dest_use_words, model.destQuery), { model.useSpokenDestination() }, kind = ButtonKind.Quiet)
         }
-        BigButton(stringResource(R.string.back), { model.cancelled(if (model.rideTo == null) CommandType.RIDE_HOME else CommandType.RIDE_TO); model.leaveRide() }, kind = ButtonKind.Quiet)
     }
 }
