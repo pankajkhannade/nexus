@@ -144,6 +144,9 @@ Conventions:
 4. **Pin anything that changes:** the date (`FIXED_DAY` via `model.dayOffset`), people and home.
    `newModel()` clears saved people and home first. Robolectric reuses one DataStore singleton per
    JVM fork, so without that, state leaks between tests.
+   `resetLocalDataForTest()` also resets the saved language, the country (India) and one-time hints
+   such as `messageExplained`. Before that, a test calling `finishSetup` in English made later Marathi
+   TTS checks hear "Calling Pankaj", depending on which fork ran first. Add new saved one-time flags there too.
 5. **One behaviour per test, with a name a non-engineer can read**, for example
    `stopDuringCountdownCancelsTheCall`.
 6. **Locale:** use `@Config(qualifiers = "+mr")` or `"+hi"` to render in Marathi or Hindi. Remember
