@@ -45,6 +45,10 @@ data class Saved(
     val home: Place = Place(),
     val office: Place = Place(),
     val people: List<Person> = emptyList(),
+    /** Home PIN code (S15): from the address, the Geocoder, or typed by the child. Display and maps search only. */
+    val pincode: String = "",
+    /** S15: the app the child picked per need key ([Need.key] -> package, "" = none). Ride uses [lastCab]. */
+    val services: Map<String, String> = emptyMap(),
 )
 
 data class Country(val name: String, val dial: String, val code: String)

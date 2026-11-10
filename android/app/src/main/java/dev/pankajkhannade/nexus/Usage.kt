@@ -13,7 +13,14 @@ enum class Event(val key: String) {
     ASK_FAMILY("ask_family"),
     RIDE("rides"),
     /** A voice-dictated message handed to WhatsApp or SMS (the parent still taps Send there). */
-    MESSAGE("messages");
+    MESSAGE("messages"),
+    /** S15 Near home tile opens, one count per need (no app names, no places). */
+    NEAR_GROCERY("near_grocery"),
+    NEAR_MEDICINE("near_medicine"),
+    NEAR_DOCTOR("near_doctor"),
+    NEAR_RIDE("near_ride"),
+    NEAR_HOME_SERVICE("near_home_service"),
+    NEAR_EMERGENCY("near_emergency");
 
     companion object {
         fun from(key: String): Event? = entries.firstOrNull { it.key == key }

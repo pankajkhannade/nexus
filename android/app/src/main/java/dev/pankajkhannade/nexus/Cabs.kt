@@ -5,8 +5,10 @@ import java.util.Locale
 
 enum class CabApp(val id: String, val label: String, val pkg: String) {
     UBER("uber", "Uber", "com.ubercab"),
-    OLA("ola", "Ola", "com.olacabs"),
-    RAPIDO("rapido", "Rapido", "com.rapido.passenger");
+    // Play package checked 2026-11-10: "com.olacabs" is 404 on Play; the live Ola app is com.olacabs.customer.
+    OLA("ola", "Ola", "com.olacabs.customer"),
+    RAPIDO("rapido", "Rapido", "com.rapido.passenger"),
+    NAMMA_YATRI("namma_yatri", "Namma Yatri", "in.juspay.nammayatri");
 
     companion object {
         fun from(id: String): CabApp? = entries.firstOrNull { it.id == id }
@@ -31,7 +33,7 @@ private fun coord(value: Double): String = String.format(Locale.US, "%.6f", valu
  *   action=setPickup, pickup=my_location or pickup[latitude|longitude|formatted_address],
  *   dropoff[latitude|longitude|formatted_address]. Coordinates are required for a prefilled stop,
  *   so a stop without them is copied to the clipboard instead.
- * - Ola and Rapido have no public deep-link format for a destination, so Nexus opens the app and
+ * - Ola, Rapido and Namma Yatri have no public deep-link format for a destination, so Nexus opens the app and
  *   copies the address for the user to paste.
  */
 fun cabHandoff(app: CabApp, trip: Trip): Handoff {

@@ -56,7 +56,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-private const val SETUP_STEPS = 4
+private const val SETUP_STEPS = 5
 
 val LANGUAGES = listOf("mr" to "मराठी", "hi" to "हिंदी", "en" to "English")
 
@@ -81,6 +81,7 @@ fun SetupFlow(model: NexusViewModel) {
             0 -> WelcomeStep(model)
             1 -> FamilyStep(model)
             2 -> HomeStep(model)
+            3 -> NearHomeStep(model)
             else -> PermissionsStep(model)
         }
     }
@@ -339,6 +340,28 @@ private fun HomeStep(model: NexusViewModel) {
         Text(stringResource(R.string.place_search_network), color = MaterialTheme.colorScheme.onSurfaceVariant)
         BigButton(stringResource(R.string.continue_), { model.setupStep = 3 }, enabled = model.setupHome.trim().length >= 4)
         BigButton(stringResource(R.string.skip), { model.setupHome = ""; model.setupStep = 3 }, kind = ButtonKind.Secondary)
+    }
+}
+
+/** S15 setup: one app per need (top apps, Installed tag or Install), and the home PIN. Also in Family settings. */
+@Composable
+fun NearHomeStep(model: NexusViewModel) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        if (model.setupServices.isEmpty()) model.setupServices = defaultPicks { isInstalled(context, it) }
+        if (model.setupPincode.isBlank() && model.setupHome.isNotBlank()) model.setupPincode = model.findPincode(model.setupHome)
+    }
+    ScreenColumn {
+        Text(stringResource(R.string.near_setup_title), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.near_setup_body), style = MaterialTheme.typography.bodyLarge)
+        NearHomePickers(
+            pincode = model.setupPincode,
+            onPincode = { model.setupPincode = it },
+            pickedFor = { model.setupServices[it.key].orEmpty() },
+            onPick = { need, pkg -> model.setupServices = model.setupServices + (need.key to pkg) },
+            showRide = model.setupHome.isNotBlank(),
+        )
+        BigButton(stringResource(R.string.continue_), { model.setupStep = 4 })
     }
 }
 

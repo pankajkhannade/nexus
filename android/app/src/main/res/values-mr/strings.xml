@@ -187,4 +187,37 @@
     <string name="msg_explain_sms">मेसेज ॲप उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे Send दाबा.</string>
     <string name="msg_cancel">नको, पाठवू नका</string>
     <string name="msg_not_opened">ॲप उघडले नाही. दुसरे बटण दाबा.</string>
+    <!-- S15 Near home -->
+    <string name="near_home">घराजवळ</string>
+    <string name="near_services_for">%1$s साठी सेवा</string>
+    <string name="near_on_maps">Google Maps वर</string>
+    <string name="need_grocery">दूध-किराणा</string>
+    <string name="need_medicine">औषधे</string>
+    <string name="need_doctor">डॉक्टर</string>
+    <string name="need_ride">रिक्षा / कॅब</string>
+    <string name="need_home_service">घरकाम / दुरुस्ती</string>
+    <string name="need_emergency">आणीबाणी</string>
+    <string name="near_order_on">%1$s वर औषधे मागवा</string>
+    <string name="near_book_on">%1$s वर डॉक्टर बुक करा</string>
+    <string name="near_medical_stores">जवळची मेडिकल दुकाने</string>
+    <string name="near_doctors">जवळचे डॉक्टर आणि दवाखाने</string>
+    <string name="near_call_in_maps">Maps मध्ये दुकानावर टॅप करा, तिथे फोन नंबर आणि कॉल बटण दिसेल.</string>
+    <string name="install_title">%1$s या फोनवर नाही</string>
+    <string name="install_body">Play Store मधून इन्स्टॉल करा. डाउनलोड मोफत आहे.</string>
+    <string name="install_x">%1$s इन्स्टॉल करा</string>
+    <string name="install_help_prefill">माझ्या फोनवर %1$s इन्स्टॉल करायला मदत कर.</string>
+    <string name="emergency_call">%1$s ला फोन करा (रुग्णवाहिका)</string>
+    <string name="emergency_family">घरच्यांना फोन करा</string>
+    <string name="emergency_hospital">जवळचे हॉस्पिटल</string>
+    <string name="near_setup_title">“घराजवळ” साठी ॲप्स</string>
+    <string name="near_setup_body">प्रत्येक गरजेसाठी एक ॲप निवडा. आई-बाबांना त्यांच्या भाषेत मोठी बटणे दिसतील, ॲप आयकॉन नाही. फोनवर नसलेली ॲप्स Play Store मधून इन्स्टॉल करता येतात.</string>
+    <string name="near_apps">घराजवळ ॲप्स</string>
+    <string name="near_pincode">घराचा पिन कोड</string>
+    <string name="near_pincode_missing">पत्त्यावरून पिन कोड सापडला नाही. 6 अंकी पिन टाइप करा.</string>
+    <string name="near_pincode_note">जवळची ठिकाणे शोधायला वापरतो. ॲप इथे डिलिव्हरी देते का हे Nexus तपासू शकत नाही: एकदा ॲप उघडून बघा.</string>
+    <string name="tag_installed">इन्स्टॉल आहे</string>
+    <string name="action_install">इन्स्टॉल करा</string>
+    <string name="service_none">काहीही नाही</string>
+    <string name="usage_near">घराजवळ: किराणा %1$d · औषधे %2$d · डॉक्टर %3$d · गाडी %4$d · घरकाम %5$d · आणीबाणी %6$d</string>
+    <string name="emergency_dial_note">डायल पॅडवर %1$s येईल. फोन लावायला हिरवं बटण दाबा.</string>
 </resources>

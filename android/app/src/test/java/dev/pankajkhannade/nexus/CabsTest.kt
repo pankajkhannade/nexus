@@ -59,7 +59,7 @@ class CabsTest {
         val trip = Trip(dropoff = Stop(PlaceKind.HOME, home))
         val ola = cabHandoff(CabApp.OLA, trip)
         assertNull(ola.uri)
-        assertEquals("com.olacabs", ola.pkg)
+        assertEquals("com.olacabs.customer", ola.pkg)
         assertEquals(home.address, ola.copyText)
         val rapido = cabHandoff(CabApp.RAPIDO, trip)
         assertNull(rapido.uri)

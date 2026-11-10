@@ -13,6 +13,7 @@ import dev.pankajkhannade.nexus.RideScreen
 import dev.pankajkhannade.nexus.SettingsScreen
 import dev.pankajkhannade.nexus.UiMode
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import dev.pankajkhannade.nexus.SafetyScreen
@@ -136,5 +137,45 @@ class ScreenshotTest {
         model.understood("whatsapp Pankaj when will you come home and bring soap on the way", typed = true)
         compose.setParent { MessageScreen(model) }
         shot("message_confirm_en")
+    }
+
+    // ---- S15 Near home ----
+    private fun nearHomeModel() = newModel(people = 2).homeWithCoordinates().also {
+        fakeInstall(BLINKIT); fakeInstall(URBAN_COMPANY); fakeInstall(TATA_1MG)
+        it.pickService(dev.pankajkhannade.nexus.Need.GROCERY, BLINKIT)
+        it.pickService(dev.pankajkhannade.nexus.Need.MEDICINE, TATA_1MG)
+        it.pickService(dev.pankajkhannade.nexus.Need.HOME_SERVICE, URBAN_COMPANY)
+    }
+
+    @Config(qualifiers = "+mr")
+    @Test fun nearHome_mr() {
+        val model = nearHomeModel()
+        compose.setParent { dev.pankajkhannade.nexus.NearHomeScreen(model) }
+        shot("near_home_mr")
+    }
+
+    @Test fun nearHome_en() {
+        val model = nearHomeModel()
+        compose.setParent { dev.pankajkhannade.nexus.NearHomeScreen(model) }
+        shot("near_home_en")
+    }
+
+    @Config(qualifiers = "+mr")
+    @Test fun nearEmergency_mr() {
+        val model = nearHomeModel()
+        compose.setParent { dev.pankajkhannade.nexus.EmergencyScreen(model) }
+        shot("near_emergency_mr")
+    }
+
+    @Test fun nearSetupDropdown_en() {
+        fakeInstall(ZEPTO); fakeInstall("com.bigbasket.mobileapp")
+        val model = newModel(people = 1)
+        model.setupHome = "Baner Road, Pune 411045"
+        model.setupServices = emptyMap()
+        model.setupPincode = ""
+        compose.setContent { NexusTheme(mode = UiMode.Child) { dev.pankajkhannade.nexus.NearHomeStep(model) } }
+        compose.onNodeWithTag("picker_grocery").performClick()
+        compose.waitForIdle()
+        com.github.takahirom.roborazzi.captureScreenRoboImage("src/test/roborazzi/near_setup_dropdown_en.png")
     }
 }

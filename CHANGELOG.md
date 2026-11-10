@@ -4,6 +4,19 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Near home (S15) (2026-11-10) — feature/near-home
+**Added**
+- Parent home has one "📍 Near home / घराजवळ / घर के पास" button. It opens up to 6 big need tiles in the parent's language (not an app grid): Milk & groceries (दूध-किराणा), Medicines (औषधे), Doctor (डॉक्टर), Rickshaw / cab (the existing Ride home flow), Home help & repairs (घरकाम / दुरुस्ती) and Emergency (आणीबाणी). The header shows "Services for 411045" when the home PIN is known.
+- Child setup has a new step (setup is now 5 steps), also editable in Family settings: for each need, a dropdown of the top Indian apps. Each app shows a green "Installed" tag, or an "Install" action that opens its Play Store page (`market://details?id=`, falling back to the https Play page). The first installed app is preselected; "None" is allowed. The PIN comes from the address, then the phone's Geocoder postal code, or the child types it.
+- Tiles: groceries and home help open the picked app's launcher intent. A picked app that's no longer installed shows a big "Install <app>" screen (plus "Ask <child>"). Medicines and Doctor open the picked app or Google Maps search around the home coordinates (`geo:lat,lng?q=medical store` / `doctor clinic`; the PIN or address when there are no coordinates; the Maps web URL when no app handles geo:). Emergency opens the dial pad with 108 (never an automatic call), family call buttons and the nearest hospital on Maps. Tiles with no picked app are hidden, except Medicines, Doctor and Emergency.
+- Voice: "औषध पाहिजे", "dawai chahiye", "दूध मागव", "doodh mangao", "groceries", "डॉक्टर", "plumber", "electrician chahiye", "रिक्षा पाहिजे", "ambulance bulao" and more go straight to the tile. Calls, dictated messages and "ghar jana hai" are checked first, and sentences with सांग/bolo/tell/whatsapp are never read as a need.
+- Usage counts per tile (near_grocery, near_medicine, near_doctor, near_ride, near_home_service, near_emergency) in Family settings and the export. Counts only, no app names or places.
+- `SERVICE_CATALOG` (NearHome.kt): 21 apps, each Play package checked on 2026-11-10 (see docs/decisions.md). Manifest `<queries>` lists every package plus market: and geo: intents.
+- Tests: 11 pure tests (`NearHomeTest`: catalog sanity, PIN parsing, 23 spoken phrases, 11 guard phrases, maps URIs, tile visibility, 108/112, export) and 15 Robolectric UI tests (`NearHomeUiTest`: Installed/Install tags, picking, market:// and the https fallback, setup preselect and PIN, Geocoder PIN, launch intent, Install screen, maps intents with home coordinates, 108 dial, voice routing, call/message/ride guards). 4 Roborazzi screenshots. 237 JVM tests in total.
+
+**Fixed**
+- Ola's package was `com.olacabs`, which is 404 on Play, so Ola never showed as installed. It's now `com.olacabs.customer`. Namma Yatri (`in.juspay.nammayatri`) has been added to the cab apps.
+
 ### Voice-dictated WhatsApp and SMS messages (2026-11-10) — feature/voice-messages
 **Added**
 - Parents can dictate a message: "पंकजला व्हॉट्सॲप कर आणि सांग की तू कधी येणार आहेस घरी", "pankaj ko whatsapp karo ki main late aaungi", "text Pankaj that dinner is ready". `Dictation.kt` reads the person (saved name, alias or relation word; Marathi/Hindi endings -ला/-ना/-को/-la/-ko; misheard names like "पंकच" for Pankaj), the app (WhatsApp spellings such as वाटसब/व्हॉट्सॲप/व्हाट्सएप/whats app, or SMS/मेसेज/message/msg/text) and the message after सांग की / बोल की / कह दो कि / bol ki / bata do ki / tell him that / say that, or everything after the verb.

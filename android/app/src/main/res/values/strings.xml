@@ -188,4 +188,37 @@
     <string name="msg_explain_sms">Messages will open with this message written. Then you tap Send there.</string>
     <string name="msg_cancel">Don\'t send</string>
     <string name="msg_not_opened">Could not open the app. Try the other button.</string>
+    <!-- S15 Near home -->
+    <string name="near_home">Near home</string>
+    <string name="near_services_for">Services for %1$s</string>
+    <string name="near_on_maps">On Google Maps</string>
+    <string name="need_grocery">Milk &amp; groceries</string>
+    <string name="need_medicine">Medicines</string>
+    <string name="need_doctor">Doctor</string>
+    <string name="need_ride">Rickshaw / cab</string>
+    <string name="need_home_service">Home help &amp; repairs</string>
+    <string name="need_emergency">Emergency</string>
+    <string name="near_order_on">Order on %1$s</string>
+    <string name="near_book_on">Book a doctor on %1$s</string>
+    <string name="near_medical_stores">Nearby medical stores</string>
+    <string name="near_doctors">Nearby doctors and clinics</string>
+    <string name="near_call_in_maps">In Maps, tap a place to see its phone number and the Call button.</string>
+    <string name="install_title">%1$s is not on this phone</string>
+    <string name="install_body">Install it from the Play Store. Downloading it is free.</string>
+    <string name="install_x">Install %1$s</string>
+    <string name="install_help_prefill">Please help me install %1$s on my phone.</string>
+    <string name="emergency_call">Call %1$s (ambulance)</string>
+    <string name="emergency_family">Call family</string>
+    <string name="emergency_hospital">Nearest hospital</string>
+    <string name="near_setup_title">Apps for “Near home”</string>
+    <string name="near_setup_body">Pick one app for each need. Your parent sees big buttons in their language, not app icons. Apps not on this phone can be installed from the Play Store.</string>
+    <string name="near_apps">Near home apps</string>
+    <string name="near_pincode">Home PIN code</string>
+    <string name="near_pincode_missing">Couldn’t find the PIN from the address. Type the 6-digit PIN.</string>
+    <string name="near_pincode_note">Used to search nearby places. Nexus can’t check if an app delivers here: open the app once to check.</string>
+    <string name="tag_installed">Installed</string>
+    <string name="action_install">Install</string>
+    <string name="service_none">None</string>
+    <string name="usage_near">Near home: groceries %1$d · medicines %2$d · doctor %3$d · ride %4$d · home help %5$d · emergency %6$d</string>
+    <string name="emergency_dial_note">Opens the dial pad with %1$s. Press the green button to call.</string>
 </resources>

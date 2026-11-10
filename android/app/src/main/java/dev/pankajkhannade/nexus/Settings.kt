@@ -39,6 +39,7 @@ fun SettingsScreen(model: NexusViewModel) {
     var editing by remember { mutableStateOf<PersonDraft?>(null) }
     var home by remember { mutableStateOf(saved.home.address) }
     var command by remember { mutableStateOf("") }
+    var pin by remember(saved.pincode) { mutableStateOf(saved.pincode) }
     var exportText by remember { mutableStateOf<String?>(null) }
     Box(Modifier.fillMaxSize()) {
         ScreenColumn {
@@ -107,6 +108,15 @@ fun SettingsScreen(model: NexusViewModel) {
                 }
             }, enabled = home.trim() != saved.home.address, kind = ButtonKind.Secondary)
 
+            Text("📍  " + stringResource(R.string.near_apps), style = MaterialTheme.typography.titleLarge)
+            NearHomePickers(
+                pincode = pin,
+                onPincode = { pin = it; model.setPincode(it) },
+                pickedFor = { model.pickedPackage(it) },
+                onPick = { need, pkg -> model.pickService(need, pkg) },
+                showRide = saved.home.isSet,
+            )
+
             Text(stringResource(R.string.country), style = MaterialTheme.typography.titleLarge)
             CountryPicker(COUNTRIES.firstOrNull { it.code == saved.countryCode } ?: guessCountry(context)) { model.setCountry(it) }
 
@@ -132,6 +142,18 @@ fun SettingsScreen(model: NexusViewModel) {
                     model.usage.total(Event.RIDE),
                     model.usage.total(Event.WHATSAPP),
                     model.usage.total(Event.MESSAGE),
+                ),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                stringResource(
+                    R.string.usage_near,
+                    model.usage.total(Event.NEAR_GROCERY),
+                    model.usage.total(Event.NEAR_MEDICINE),
+                    model.usage.total(Event.NEAR_DOCTOR),
+                    model.usage.total(Event.NEAR_RIDE),
+                    model.usage.total(Event.NEAR_HOME_SERVICE),
+                    model.usage.total(Event.NEAR_EMERGENCY),
                 ),
                 style = MaterialTheme.typography.bodyLarge,
             )

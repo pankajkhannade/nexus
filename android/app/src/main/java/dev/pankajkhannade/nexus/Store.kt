@@ -62,6 +62,8 @@ private fun encode(saved: Saved): String {
         .put("office", saved.office.address)
         .putCoordinates("office", saved.office)
         .put("people", people)
+        .put("pincode", saved.pincode)
+        .put("services", JSONObject(saved.services as Map<*, *>))
         .toString()
 }
 
@@ -95,6 +97,8 @@ private fun decode(raw: String): Saved {
         home = json.readPlace("home"),
         office = json.readPlace("office"),
         people = people,
+        pincode = json.optString("pincode"),
+        services = json.optJSONObject("services")?.let { s -> s.keys().asSequence().associateWith { s.optString(it) } }.orEmpty(),
     )
 }
 
