@@ -146,7 +146,7 @@
     <string name="perm_off">off</string>
     <string name="open_phone_settings">Open phone settings</string>
     <string name="usage_title">Usage on this phone</string>
-    <string name="usage_summary">Days used: %1$d · Calls: %2$d · Voice commands: %3$d · Messages checked: %4$d · Asked family: %5$d · Rides: %6$d · WhatsApp: %7$d</string>
+    <string name="usage_summary">Days used: %1$d · Calls: %2$d · Voice commands: %3$d · Messages checked: %4$d · Asked family: %5$d · Rides: %6$d · WhatsApp: %7$d · Messages sent: %8$d</string>
     <string name="export_usage">Export my usage</string>
     <string name="export_note">Only counts and the feedback answers. No names, numbers or messages.</string>
     <string name="test_command">Type a command (testing)</string>
@@ -174,4 +174,18 @@
     <string name="speak_answer">Speak answer</string>
     <string name="privacy_share_title">Nothing is shared by itself</string>
     <string name="privacy_share">Nexus never sends anything on its own. A message, call or usage summary leaves this phone only when you press Send, Call or Share in the other app.</string>
+    <!-- Voice-dictated messages -->
+    <string name="msg_confirm_tts">Send this message to %1$s? %2$s</string>
+    <string name="msg_to">To: %1$s</string>
+    <string name="msg_who">Who should get this message?</string>
+    <string name="msg_who_unknown">%1$s is not saved. Tap who should get it.</string>
+    <string name="msg_what">What should I say?</string>
+    <string name="msg_tap_to_edit">Tap the message to change it</string>
+    <string name="msg_edit_label">Message</string>
+    <string name="msg_send_whatsapp">Send on WhatsApp</string>
+    <string name="msg_send_sms">Send as SMS</string>
+    <string name="msg_explain_whatsapp">WhatsApp will open with this message written. Then you tap the green Send button there.</string>
+    <string name="msg_explain_sms">Messages will open with this message written. Then you tap Send there.</string>
+    <string name="msg_cancel">Don\'t send</string>
+    <string name="msg_not_opened">Could not open the app. Try the other button.</string>
 </resources>

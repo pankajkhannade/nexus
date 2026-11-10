@@ -244,3 +244,29 @@ fun guessCountry(context: Context): Country {
     val iso = tm?.simCountryIso?.uppercase().orEmpty().ifBlank { java.util.Locale.getDefault().country.uppercase() }
     return COUNTRIES.firstOrNull { it.code == iso } ?: COUNTRIES.first { it.code == "IN" }
 }
+
+/** WhatsApp, then WhatsApp Business. Both open wa.me links. */
+val WHATSAPP_PACKAGES = listOf("com.whatsapp", "com.whatsapp.w4b")
+
+fun whatsAppPackage(context: Context): String? = WHATSAPP_PACKAGES.firstOrNull { isInstalled(context, it) }
+
+/** Opens the chat with [phone] in [pkg] with [text] typed in. The parent taps Send; nothing is sent from Nexus. */
+fun openWhatsAppText(context: Context, pkg: String, phone: String, text: String): Boolean {
+    val link = whatsAppLink(phone, text)
+    Log.i("NexusMessage", "open $pkg ${link.substringBefore('?')} chars=${text.length}")
+    return try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).setPackage(pkg).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    }
+}
+
+/** Opens the SMS app with [text] typed in (no SEND_SMS permission: the parent taps Send). */
+fun openSmsDraft(context: Context, phone: String, text: String): Boolean = try {
+    Log.i("NexusMessage", "open sms chars=${text.length}")
+    openSms(context, phone, text)
+    true
+} catch (_: ActivityNotFoundException) {
+    false
+}

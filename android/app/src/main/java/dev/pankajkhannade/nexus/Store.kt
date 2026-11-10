@@ -52,6 +52,7 @@ private fun encode(saved: Saved): String {
         .put("installDay", saved.installDay)
         .put("micAsked", saved.micAsked)
         .put("callAsked", saved.callAsked)
+        .put("messageExplained", saved.messageExplained)
         .put("country", saved.country)
         .put("dial", saved.dial)
         .put("countryCode", saved.countryCode)
@@ -86,6 +87,7 @@ private fun decode(raw: String): Saved {
         installDay = json.optLong("installDay"),
         micAsked = json.optBoolean("micAsked"),
         callAsked = json.optBoolean("callAsked"),
+        messageExplained = json.optBoolean("messageExplained"),
         country = json.optString("country"),
         dial = dial,
         countryCode = json.optString("countryCode"),

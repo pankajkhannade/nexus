@@ -34,6 +34,8 @@ sealed interface Screen {
     data object Ride : Screen
     data object Settings : Screen
     data object Privacy : Screen
+    /** A dictated message waiting for the parent's OK ([NexusViewModel.draft]). */
+    data object Message : Screen
 }
 
 class NexusViewModel(app: Application) : AndroidViewModel(app) {
@@ -71,6 +73,15 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         private set
     /** True while the setup "Try it" step is running, so success finishes setup. */
     var tryingInSetup by mutableStateOf(false)
+
+    // ---- Dictated messages ----
+    var draft by mutableStateOf<Dictation?>(null)
+        private set
+    /** Bumped when the draft comes from voice or gets a recipient, so it is read aloud again. */
+    var draftVersion by mutableStateOf(0)
+        private set
+    var dictating by mutableStateOf(false)
+        private set
 
     // ---- Is this safe? ----
     var checkText by mutableStateOf("")
@@ -270,6 +281,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val reading = readMessage(text, saved)
         val person = reading.person
         if (text.isNotEmpty() && !typed) record(Event.VOICE)
+        readDictation(text, saved)?.let { dictation ->
+            voiceFails = 0
+            tryingInSetup = false
+            openDraft(dictation)
+            return
+        }
         if (wantsRideHome(reading) && saved.home.isSet) {
             voiceFails = 0
             tryingInSetup = false
@@ -308,6 +325,93 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun openWhatsAppFor(person: Person) {
         record(Event.WHATSAPP)
         if (!openWhatsApp(getApplication(), person.phone, "")) notice = getApplication<Application>().getString(R.string.whatsapp_missing)
+    }
+
+    // ---- Dictated messages ----
+
+    fun openDraft(dictation: Dictation) {
+        draft = dictation
+        draftVersion += 1
+        screen = Screen.Message
+    }
+
+    fun setDraftText(text: String) {
+        draft = draft?.copy(text = text)
+    }
+
+    fun setDraftPerson(person: Person) {
+        draft = draft?.copy(person = person, askedName = null)
+        draftVersion += 1
+    }
+
+    /** "Speak again" on the message screen: the new words replace the message (or the whole command is re-read). */
+    fun dictateAgain() {
+        if (voiceMode == VoiceMode.UNAVAILABLE || !listener.available()) return
+        speaker.stop()
+        dictating = true
+        listener.start(language, voiceMode, onPartial = {}) { said ->
+            listener.stop()
+            dictating = false
+            said?.let(::redictate)
+        }
+    }
+
+    fun redictate(said: String) {
+        val current = draft ?: return
+        val again = readDictation(said, saved)
+        draft = if (again != null && again.text.isNotBlank()) {
+            current.copy(
+                person = again.person ?: current.person,
+                askedName = if (again.person != null) null else current.askedName,
+                channel = if (again.channel != Channel.ANY) again.channel else current.channel,
+                text = again.text,
+                rawBody = again.rawBody,
+            )
+        } else {
+            current.copy(text = polishMessage(said), rawBody = said)
+        }
+        draftVersion += 1
+    }
+
+    /** Reads the draft back in the parent's language, or asks who / what. */
+    fun speakDraft() {
+        val d = draft ?: return
+        val person = d.person
+        when {
+            person == null -> speak(R.string.msg_who)
+            d.text.isBlank() -> speak(R.string.msg_what)
+            else -> speak(R.string.msg_confirm_tts, person.name, d.text)
+        }
+    }
+
+    /** Opens WhatsApp or the SMS app with the message typed in. Returns false when nothing could open. */
+    fun sendDraft(via: Channel): Boolean {
+        val d = draft ?: return false
+        val person = d.person ?: return false
+        val app = getApplication<Application>()
+        val opened = if (via == Channel.SMS) {
+            openSmsDraft(app, person.phone, d.text)
+        } else {
+            whatsAppPackage(app)?.let { openWhatsAppText(app, it, person.phone, d.text) } ?: false
+        }
+        if (!opened) {
+            notice = app.getString(R.string.msg_not_opened)
+            return false
+        }
+        record(Event.MESSAGE)
+        if (!saved.messageExplained) update(saved.copy(messageExplained = true))
+        speaker.stop()
+        draft = null
+        screen = Screen.Home
+        return true
+    }
+
+    fun cancelDraft() {
+        speaker.stop()
+        listener.stop()
+        dictating = false
+        draft = null
+        screen = Screen.Home
     }
 
     // ---- Is this safe? ----

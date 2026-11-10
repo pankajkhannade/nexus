@@ -113,7 +113,7 @@ private fun cleanName(raw: String): String? {
 }
 
 /** Relation words a parent may say instead of a name ("मुलाला फोन लाव" calls the person marked Son). */
-private val RELATION_WORDS: Map<String, String> = buildMap {
+internal val RELATION_WORDS: Map<String, String> = buildMap {
     listOf("son", "beta", "bete", "mulga", "mula", "mulala", "बेटा", "बेटे", "मुलगा", "मुला").forEach { put(it, Relation.SON) }
     listOf("daughter", "beti", "mulgi", "muli", "mulila", "बेटी", "मुलगी", "मुली").forEach { put(it, Relation.DAUGHTER) }
     listOf("husband", "wife", "pati", "patni", "navra", "bayko", "पति", "पत्नी", "नवरा", "बायको", "अहो").forEach { put(it, Relation.SPOUSE) }

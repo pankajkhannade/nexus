@@ -57,6 +57,7 @@ fun NexusApp(model: NexusViewModel) {
                     micGate -> micGate = false
                     screen == Screen.Listening -> model.cancelListening()
                     screen == Screen.Privacy -> model.screen = Screen.Settings
+                    screen == Screen.Message -> model.cancelDraft()
                     else -> { model.clearCheck(); model.tryingInSetup = false; model.screen = Screen.Home }
                 }
             }
@@ -73,6 +74,7 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.Confirm -> ConfirmScreen(model, screen.person)
                     screen is Screen.NotUnderstood -> NotUnderstoodScreen(model, onSpeak)
                     screen is Screen.Calling -> CallingScreen(model, screen.person)
+                    screen is Screen.Message -> MessageScreen(model)
                     model.tryingInSetup -> TryItScreen(model, onSpeak)
                     screen is Screen.Safety -> SafetyScreen(model)
                     screen is Screen.Ride -> RideScreen(model)

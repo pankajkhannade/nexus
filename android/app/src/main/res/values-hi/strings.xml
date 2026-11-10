@@ -145,7 +145,7 @@
     <string name="perm_off">बंद</string>
     <string name="open_phone_settings">फ़ोन सेटिंग खोलें</string>
     <string name="usage_title">इस फ़ोन पर इस्तेमाल</string>
-    <string name="usage_summary">इस्तेमाल के दिन: %1$d · फ़ोन: %2$d · आवाज़: %3$d · जाँचे मैसेज: %4$d · परिवार से पूछा: %5$d · गाड़ी: %6$d · WhatsApp: %7$d</string>
+    <string name="usage_summary">इस्तेमाल के दिन: %1$d · फ़ोन: %2$d · आवाज़: %3$d · जाँचे मैसेज: %4$d · परिवार से पूछा: %5$d · गाड़ी: %6$d · WhatsApp: %7$d · भेजे मैसेज: %8$d</string>
     <string name="export_usage">मेरा इस्तेमाल भेजें</string>
     <string name="export_note">सिर्फ़ गिनती और फ़ीडबैक जवाब। कोई नाम, नंबर या मैसेज नहीं।</string>
     <string name="test_command">कमांड लिखें (जाँच के लिए)</string>
@@ -173,4 +173,18 @@
     <string name="speak_answer">बोलकर बताएँ</string>
     <string name="privacy_share_title">अपने-आप कुछ नहीं जाता</string>
     <string name="privacy_share">Nexus ख़ुद कुछ नहीं भेजता। मैसेज, कॉल या इस्तेमाल की जानकारी तभी फ़ोन से जाती है जब आप दूसरे ऐप में भेजें, कॉल या शेयर दबाएँ।</string>
+    <!-- Voice-dictated messages -->
+    <string name="msg_confirm_tts">%1$s को यह मैसेज भेजूँ? %2$s</string>
+    <string name="msg_to">किसे: %1$s</string>
+    <string name="msg_who">यह मैसेज किसे भेजना है?</string>
+    <string name="msg_who_unknown">%1$s सेव नहीं है। किसे भेजना है, उस पर दबाएँ।</string>
+    <string name="msg_what">क्या कहूँ?</string>
+    <string name="msg_tap_to_edit">बदलना हो तो मैसेज पर दबाएँ</string>
+    <string name="msg_edit_label">मैसेज</string>
+    <string name="msg_send_whatsapp">WhatsApp पर भेजें</string>
+    <string name="msg_send_sms">SMS से भेजें</string>
+    <string name="msg_explain_whatsapp">WhatsApp खुलेगा और यह मैसेज लिखा होगा। फिर वहाँ हरा Send बटन दबाएँ।</string>
+    <string name="msg_explain_sms">मैसेज ऐप खुलेगा और यह मैसेज लिखा होगा। फिर वहाँ Send दबाएँ।</string>
+    <string name="msg_cancel">मत भेजो</string>
+    <string name="msg_not_opened">ऐप नहीं खुला। दूसरा बटन दबाएँ।</string>
 </resources>
