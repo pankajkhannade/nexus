@@ -169,7 +169,11 @@ private fun FeedbackCard(model: NexusViewModel, round: Int) {
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
             if (granted(LocalContext.current, Manifest.permission.RECORD_AUDIO)) {
-                BigButton("🎤  " + stringResource(R.string.speak_answer), { model.speakFeedback { easier = it } }, kind = ButtonKind.Secondary)
+                if (model.feedbackListening) {
+                    BigButton("✓  " + stringResource(R.string.listening_done), { model.doneFeedbackSpeaking() }, kind = ButtonKind.Secondary)
+                } else {
+                    BigButton("🎤  " + stringResource(R.string.speak_answer), { model.speakFeedback { easier = it } }, kind = ButtonKind.Secondary)
+                }
             }
             BigButton(stringResource(R.string.save), { model.easierFeedback(round, easier) }, enabled = easier.isNotBlank())
             BigButton(stringResource(R.string.skip), { model.finishFeedback(round) }, kind = ButtonKind.Quiet)

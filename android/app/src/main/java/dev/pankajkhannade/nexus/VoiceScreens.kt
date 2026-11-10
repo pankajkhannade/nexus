@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -30,20 +31,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-/** S6 Listening. Says plainly whether speech stays on the phone or goes to the speech service. */
+/**
+ * S6 Listening. A big "Listening…", the words so far in large type as they come, a big Done and a Stop.
+ * Pauses don't end it: Nexus keeps listening until Done, a whole command, a quiet spell or 60 seconds.
+ * Says plainly whether speech stays on the phone or goes to the speech service.
+ */
 @Composable
 fun ListeningScreen(model: NexusViewModel) {
     Centered {
         Text("🎤", fontSize = 72.sp)
         BigCentredText(stringResource(R.string.listening))
+        LiveWords(model.heard)
         Text(
             stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.voice_on_device else R.string.voice_online),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (model.heard.isNotBlank()) {
-            Text("“${model.heard}”", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-        }
+        BigButton("✓  " + stringResource(R.string.listening_done), { model.doneListening() }, kind = ButtonKind.Call)
         BigButton(stringResource(R.string.stop), { model.cancelListening() }, kind = ButtonKind.Secondary)
+    }
+}
+
+/** The words heard so far, large, read out by TalkBack as they change. A hint until the first word. */
+@Composable
+fun LiveWords(words: String) {
+    OutlinedPanel(Modifier.testTag("listening_words")) {
+        Text(
+            if (words.isBlank()) stringResource(R.string.listening_hint) else "“$words”",
+            style = MaterialTheme.typography.headlineMedium,
+            color = if (words.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
     }
 }
 

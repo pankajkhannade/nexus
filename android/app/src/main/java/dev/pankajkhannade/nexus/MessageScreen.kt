@@ -95,7 +95,13 @@ fun MessageScreen(model: NexusViewModel) {
             }
         }
 
-        if (model.dictating) Text(stringResource(R.string.listening), style = MaterialTheme.typography.titleLarge)
+        if (model.dictating) {
+            Text("🎤  " + stringResource(R.string.listening), style = MaterialTheme.typography.headlineSmall)
+            LiveWords(model.dictationLive)
+            BigButton("✓  " + stringResource(R.string.listening_done), { model.doneDictating() }, kind = ButtonKind.Call)
+            BigButton(stringResource(R.string.stop), { model.stopDictating() }, kind = ButtonKind.Secondary)
+            return@ScreenColumn
+        }
         if (canSpeak && !editing) {
             BigButton("🎤  " + stringResource(R.string.speak_again), { model.dictateAgain() }, kind = ButtonKind.Secondary, enabled = !model.dictating)
         }

@@ -49,7 +49,10 @@ sealed interface Screen {
 class NexusViewModel(app: Application) : AndroidViewModel(app) {
     private val store = NexusStore(app)
     val speaker = Speaker(app)
-    val listener = Listener(app)
+    private var speech: SpeechEngine = AndroidSpeechEngine(app)
+    private var voice = ContinuousListener(speech)
+    /** Words to actions. A seam so a smarter parser can replace the rules later. */
+    var parser: IntentParser = RuleIntentParser
 
     var saved by mutableStateOf(Saved())
         private set
@@ -121,8 +124,17 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Tests: a fake recogniser and clock drive [ContinuousListener] without a microphone. */
+    @androidx.annotation.VisibleForTesting
+    internal fun useSpeechEngine(engine: SpeechEngine, clock: () -> Long = System::currentTimeMillis) {
+        voice.cancel()
+        speech = engine
+        voice = ContinuousListener(engine, clock)
+        refreshVoiceMode()
+    }
+
     override fun onCleared() {
-        listener.stop()
+        voice.cancel()
         speaker.shutdown()
     }
 
@@ -161,11 +173,21 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun skipFeedback(round: Int) = updateFeedback(feedback.skip(round))
     fun finishFeedback(round: Int) = updateFeedback(feedback.finish(round))
 
-    /** Q2 "Speak answer": recognised words only, kept on the phone. */
+    /** True while the feedback "Speak answer" is listening (its button turns into Done). */
+    var feedbackListening by mutableStateOf(false)
+        private set
+
+    /** Q2 "Speak answer": recognised words only, kept on the phone. Keeps listening through pauses until Done. */
     fun speakFeedback(onText: (String) -> Unit) {
-        if (voiceMode == VoiceMode.UNAVAILABLE || !listener.available()) return
-        listener.start(language, voiceMode, onPartial = onText) { said -> listener.stop(); said?.let(onText) }
+        if (!canListen()) return
+        feedbackListening = true
+        voice.start(language, voiceMode, longForm = true, onText = onText) { said ->
+            feedbackListening = false
+            said?.let(onText)
+        }
     }
+
+    fun doneFeedbackSpeaking() = voice.done()
 
     // ---- Setup ----
 
@@ -340,52 +362,57 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- Voice ----
 
-    fun refreshVoiceMode() = listener.checkMode(language) { voiceMode = it }
+    fun refreshVoiceMode() = speech.checkMode(language) { voiceMode = it }
 
+    private fun canListen(): Boolean = voiceMode != VoiceMode.UNAVAILABLE && speech.available()
+
+    /**
+     * The Speak button. Keeps listening through pauses (the recogniser's own cut-offs restart quietly) and
+     * stops by itself once the words are a whole call, ride or need, or after a quiet spell, or on Done.
+     */
     fun startListening() {
         heard = ""
         screen = Screen.Listening
-        if (voiceMode == VoiceMode.UNAVAILABLE || !listener.available()) {
+        if (!canListen()) {
             Log.i("NexusVoice", "no recognizer on this phone")
             understood(null)
             return
         }
-        listener.start(language, voiceMode, onPartial = { heard = it }) { said -> understood(said) }
+        voice.start(
+            language, voiceMode, longForm = false,
+            isComplete = { readings -> readings.any { isCompleteCommand(parser, it, saved) } },
+            isDictation = { parser.parse(it, saved) is Command.Message },
+            biasing = biasingNames(),
+            onText = { heard = it },
+        ) { said -> understood(said, alternatives = voice.finalAlternatives) }
+    }
+
+    /** Done on the listening screen: act on everything heard so far. */
+    fun doneListening() {
+        if (voice.active) voice.done() else understood(heard)
     }
 
     fun cancelListening() {
-        listener.stop()
+        voice.cancel()
         screen = Screen.Home
     }
 
-    /** Handles what was heard (or typed in Family settings for testing). */
-    fun understood(said: String?, typed: Boolean = false) {
-        listener.stop()
-        val text = said.orEmpty().trim()
+    /** Names the recogniser should expect: saved people and their aliases. */
+    private fun biasingNames(): List<String> =
+        saved.people.flatMap { listOf(it.name, it.alias) }.filter { it.isNotBlank() }.distinct()
+
+    /**
+     * Handles what was heard (or typed in Family settings for testing). [alternatives] are the recogniser's
+     * other readings, best first: the first one that means something wins ("पंकच" vs "पंकज").
+     */
+    fun understood(said: String?, typed: Boolean = false, alternatives: List<String> = emptyList()) {
+        voice.cancel()
+        val readings = (listOfNotNull(said?.trim()) + alternatives.map { it.trim() }).filter { it.isNotEmpty() }.distinct()
+        val (text, command) = readings.asSequence().map { it to parser.parse(it, saved) }.firstOrNull { it.second != Command.Unknown }
+            ?: (said.orEmpty().trim() to Command.Unknown)
         heard = text
-        val reading = readMessage(text, saved)
-        val person = reading.person
         if (text.isNotEmpty() && !typed) record(Event.VOICE)
-        readDictation(text, saved)?.let { dictation ->
-            voiceFails = 0
-            tryingInSetup = false
-            openDraft(dictation)
-            return
-        }
-        if (wantsRideHome(reading) && saved.home.isSet) {
-            voiceFails = 0
-            tryingInSetup = false
-            screen = Screen.Ride
-            return
-        }
-        val need = if (person == null && (reading.ask == null || reading.askedName?.let(::readNeed) != null)) readNeed(text) else null
-        if (need != null && (need != Need.RIDE || saved.home.isSet)) {
-            voiceFails = 0
-            tryingInSetup = false
-            openNeed(need)
-            return
-        }
-        if (person == null) {
+        if (command == Command.Unknown) {
             voiceFails += 1
             if (!typed) record(Event.VOICE_FAIL)
             speak(R.string.not_understood)
@@ -394,13 +421,18 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         }
         voiceFails = 0
         tryingInSetup = false
-        if (reading.ask == Ask.MESSAGE) {
-            screen = Screen.Home
-            openWhatsAppFor(person)
-            return
+        when (command) {
+            is Command.Message -> openDraft(command.dictation)
+            Command.RideHome -> screen = Screen.Ride
+            is Command.OpenNeed -> openNeed(command.need)
+            is Command.WhatsApp -> {
+                screen = Screen.Home
+                openWhatsAppFor(command.person)
+            }
+            // An exact name or alias goes straight to Calling, which still has a 3-second Cancel.
+            is Command.Call -> screen = if (command.exact) Screen.Calling(command.person) else Screen.Confirm(command.person)
+            Command.Unknown -> Unit
         }
-        // An exact name or alias goes straight to Calling, which still has a 3-second Cancel.
-        screen = if (reading.exact) Screen.Calling(person) else Screen.Confirm(person)
     }
 
     fun speak(res: Int, vararg args: Any) {
@@ -436,16 +468,34 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         draftVersion += 1
     }
 
-    /** "Speak again" on the message screen: the new words replace the message (or the whole command is re-read). */
+    /** Live words while "Speak again" listens, shown big on the message screen. */
+    var dictationLive by mutableStateOf("")
+        private set
+
+    /**
+     * "Speak again" on the message screen: listens through pauses until Done (or a quiet spell, or 60 s),
+     * then the new words replace the message (or the whole command is re-read).
+     */
     fun dictateAgain() {
-        if (voiceMode == VoiceMode.UNAVAILABLE || !listener.available()) return
+        if (!canListen()) return
         speaker.stop()
         dictating = true
-        listener.start(language, voiceMode, onPartial = {}) { said ->
-            listener.stop()
+        dictationLive = ""
+        voice.start(language, voiceMode, longForm = true, onText = { dictationLive = it }) { said ->
             dictating = false
             said?.let(::redictate)
         }
+    }
+
+    fun doneDictating() {
+        if (dictating) voice.done()
+    }
+
+    /** Stop while dictating: keep the message as it was. */
+    fun stopDictating() {
+        voice.cancel()
+        dictating = false
+        dictationLive = ""
     }
 
     fun redictate(said: String) {
@@ -500,7 +550,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cancelDraft() {
         speaker.stop()
-        listener.stop()
+        voice.cancel()
         dictating = false
         draft = null
         screen = Screen.Home
