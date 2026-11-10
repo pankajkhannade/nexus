@@ -34,6 +34,9 @@ fun NexusApp(model: NexusViewModel) {
         WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
     }
     var micGate by remember { mutableStateOf(false) }
+    val contactsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        model.contactsAnswered(ok)
+    }
     val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         micGate = false
         model.markMicAsked()
@@ -75,6 +78,11 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.Confirm -> ConfirmScreen(model, screen.person)
                     screen is Screen.NotUnderstood -> NotUnderstoodScreen(model, onSpeak)
                     screen is Screen.Calling -> CallingScreen(model, screen.person)
+                    screen is Screen.ContactsPermission -> ContactsPermissionScreen(model, screen) {
+                        contactsLauncher.launch(Manifest.permission.READ_CONTACTS)
+                    }
+                    screen is Screen.ChooseContact -> ChooseContactScreen(model, screen)
+                    screen is Screen.ContactNotFound -> ContactNotFoundScreen(model, screen.name, onSpeak)
                     screen is Screen.Message -> MessageScreen(model)
                     model.tryingInSetup -> TryItScreen(model, onSpeak)
                     screen is Screen.Safety -> SafetyScreen(model)

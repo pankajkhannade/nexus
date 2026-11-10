@@ -223,4 +223,17 @@
     <string name="emergency_dial_note">Opens the dial pad with %1$s. Press the green button to call.</string>
     <string name="listening_done">Done</string>
     <string name="listening_hint">Speak now. Take your time, then tap Done.</string>
+    <string name="contacts_title">Your phone book</string>
+    <string name="contacts_why">To call or message “%1$s”, Nexus needs to look in your phone book.</string>
+    <string name="contacts_stays">Your contacts stay on this phone. Nexus never uploads or saves them.</string>
+    <string name="which_one">Which one?</string>
+    <string name="number_ending">Number ending %1$s</string>
+    <string name="none_of_these">None of these</string>
+    <string name="contact_not_found">I couldn’t find “%1$s” in your phone book.</string>
+    <string name="open_dial_pad">Open the dial pad</string>
+    <string name="msg_find_in_contacts">📒  Look in the phone book</string>
+    <string name="setup_contacts_title">Call anyone by name</string>
+    <string name="setup_contacts_body">Let Nexus look in this phone’s phone book, so “Sunil la phone lav” works for anyone saved here. Contacts stay on this phone.</string>
+    <string name="setup_contacts_allow">Allow phone book</string>
+    <string name="setup_contacts_on">✓ Phone book is on</string>
 </resources>

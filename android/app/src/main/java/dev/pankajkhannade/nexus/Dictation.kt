@@ -122,6 +122,7 @@ private val CASE_SUFFIXES = listOf("ला", "ना", "ले", "को", "न�
 private val NOT_A_NAME = setOf(
     "me", "him", "her", "them", "us", "you", "it", "i", "that", "and", "saying", "someone", "everyone", "nexus",
     "ok", "okay", "hey", "please", "ki", "की", "कि", "आणि", "and", "aur", "और", "tu", "तू", "tum", "तुम",
+    "tyala", "tila", "tula", "mala", "tyana", "tyanna", "त्याला", "तिला", "तुला", "मला", "त्यांना", "usko", "unko", "isko", "mujhe", "उसको", "उनको", "मुझे",
 ) + CASE_WORDS
 
 /** Strips verbs, "and", "tell (him) that" and the like from the start of the body. Applied until nothing changes. */
@@ -278,7 +279,8 @@ fun readDictation(said: String, saved: Saved): Dictation? {
     val people = saved.people
     val before = recipientBefore(toks, trigger, people)
     val recipient = before ?: recipientAfter(toks, triggerEnd, people)
-    if (weak && recipient?.person == null) return null
+    // "सुनीलला सांग की ...": an unsaved name with a case ending is looked up in the phone book later.
+    if (weak && recipient?.person == null && recipient?.asked == null) return null
     if (weak && before == null && toks[trigger].low != "tell") return null
 
     val bodyFrom = when {

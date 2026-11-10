@@ -14,6 +14,8 @@ sealed interface Command {
     data class Call(val person: Person, val exact: Boolean) : Command
     /** "whatsapp Pankaj" with nothing to say: opens the chat. */
     data class WhatsApp(val person: Person) : Command
+    /** "सुनीलला फोन लाव" with no saved Sunil: look in the phone book. */
+    data class FindContact(val name: String, val ask: Ask) : Command
     /** "दूध मागव", "doctor", "ambulance": a Near home tile. */
     data class OpenNeed(val need: Need) : Command
     data object Unknown : Command
@@ -34,7 +36,10 @@ object RuleIntentParser : IntentParser {
         if (wantsRideHome(reading) && saved.home.isSet) return Command.RideHome
         val need = if (person == null && (reading.ask == null || reading.askedName?.let(::readNeed) != null)) readNeed(text) else null
         if (need != null && (need != Need.RIDE || saved.home.isSet)) return Command.OpenNeed(need)
-        if (person == null) return Command.Unknown
+        if (person == null) {
+            val asked = reading.askedName
+            return if (asked != null && reading.ask != null) Command.FindContact(asked, reading.ask) else Command.Unknown
+        }
         return if (reading.ask == Ask.MESSAGE) Command.WhatsApp(person) else Command.Call(person, reading.exact)
     }
 }

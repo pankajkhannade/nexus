@@ -222,4 +222,17 @@
     <string name="emergency_dial_note">डायल पॅडवर %1$s येईल. फोन लावायला हिरवं बटण दाबा.</string>
     <string name="listening_done">झालं</string>
     <string name="listening_hint">आता बोला. सावकाश बोला, मग “झालं” दाबा.</string>
+    <string name="contacts_title">तुमची फोन बुक</string>
+    <string name="contacts_why">“%1$s” ला फोन किंवा मेसेज करण्यासाठी Nexus ला तुमची फोन बुक पाहावी लागेल.</string>
+    <string name="contacts_stays">तुमचे संपर्क याच फोनवर राहतात. Nexus ते कुठेही पाठवत नाही आणि साठवत नाही.</string>
+    <string name="which_one">यांपैकी कोण?</string>
+    <string name="number_ending">नंबरच्या शेवटी %1$s</string>
+    <string name="none_of_these">यांपैकी कोणी नाही</string>
+    <string name="contact_not_found">फोन बुकमध्ये “%1$s” सापडले नाही.</string>
+    <string name="open_dial_pad">डायल पॅड उघडा</string>
+    <string name="msg_find_in_contacts">📒  फोन बुकमध्ये पाहा</string>
+    <string name="setup_contacts_title">कोणालाही नावाने फोन करा</string>
+    <string name="setup_contacts_body">Nexus ला या फोनची फोन बुक पाहू द्या, म्हणजे “सुनीलला फोन लाव” इथे सेव्ह असलेल्या कोणासाठीही चालेल. संपर्क याच फोनवर राहतात.</string>
+    <string name="setup_contacts_allow">फोन बुकला परवानगी द्या</string>
+    <string name="setup_contacts_on">✓ फोन बुक सुरू आहे</string>
 </resources>

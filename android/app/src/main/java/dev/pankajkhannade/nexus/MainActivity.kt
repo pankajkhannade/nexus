@@ -44,6 +44,12 @@ sealed interface Screen {
     data class Install(val need: Need, val app: ServiceApp) : Screen
     /** S15: 108, family, nearest hospital. */
     data object Emergency : Screen
+    /** Phone book: why Nexus wants to look in the contacts, before Android asks. */
+    data class ContactsPermission(val name: String, val ask: Ask) : Screen
+    /** Phone book: two Rahuls, or one unsure match. Up to 3 big choices. */
+    data class ChooseContact(val name: String, val ask: Ask, val options: List<Person>) : Screen
+    /** Phone book: nobody by that name. Offers the dial pad. */
+    data class ContactNotFound(val name: String) : Screen
 }
 
 class NexusViewModel(app: Application) : AndroidViewModel(app) {
@@ -51,6 +57,14 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     val speaker = Speaker(app)
     private var speech: SpeechEngine = AndroidSpeechEngine(app)
     private var voice = ContinuousListener(speech)
+    /** The phone's contacts. A seam so JVM tests can use fixtures. Never stored: see [phoneBook]. */
+    @androidx.annotation.VisibleForTesting
+    internal var contacts: ContactsSource = AndroidContactsSource(app)
+    /** Where slow lookups (contacts, Geocoder) run. Tests make it immediate. */
+    @androidx.annotation.VisibleForTesting
+    internal var io: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    private var contactIndex: List<PhoneContact>? = null
+    private var contactIndexAt = 0L
     /** Words to actions. A seam so a smarter parser can replace the rules later. */
     var parser: IntentParser = RuleIntentParser
 
@@ -121,6 +135,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             if (saved.setupDone) record(Event.OPEN)
             if (saved.home.isSet && !saved.home.hasCoordinates) locate(saved.home.address)
             refreshVoiceMode()
+            // Warm the in-memory phone-book index so names can bias the recogniser.
+            if (contacts.hasPermission()) runCatching { phoneBook() }
         }
     }
 
@@ -399,7 +415,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Names the recogniser should expect: saved people and their aliases. */
     private fun biasingNames(): List<String> =
-        saved.people.flatMap { listOf(it.name, it.alias) }.filter { it.isNotBlank() }.distinct()
+        (saved.people.flatMap { listOf(it.name, it.alias) } + contactIndex.orEmpty().sortedByDescending { it.starred }.map { it.name })
+            .filter { it.isNotBlank() }.distinct().take(200)
 
     /**
      * Handles what was heard (or typed in Family settings for testing). [alternatives] are the recogniser's
@@ -431,9 +448,97 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             }
             // An exact name or alias goes straight to Calling, which still has a 3-second Cancel.
             is Command.Call -> screen = if (command.exact) Screen.Calling(command.person) else Screen.Confirm(command.person)
+            is Command.FindContact -> lookUpContact(command.name, command.ask)
             Command.Unknown -> Unit
         }
     }
+
+    // ---- Phone book ----
+
+    /**
+     * The phone's contacts, read on [io] and kept in memory only (refreshed after 5 minutes). Empty without
+     * READ_CONTACTS. Nothing is written to disk or sent anywhere.
+     */
+    suspend fun phoneBook(): List<PhoneContact> {
+        if (!contacts.hasPermission()) return emptyList()
+        val now = System.currentTimeMillis()
+        contactIndex?.takeIf { now - contactIndexAt < 5 * 60_000 }?.let { return it }
+        val fresh = withContext(io) { contacts.load() }
+        contactIndex = fresh
+        contactIndexAt = now
+        return fresh
+    }
+
+    /** "सुनीलला फोन लाव" for someone not saved in Nexus: ask for the phone book first if needed. */
+    fun lookUpContact(name: String, ask: Ask) {
+        if (!contacts.hasPermission()) {
+            screen = Screen.ContactsPermission(name, ask)
+            return
+        }
+        viewModelScope.launch {
+            when (val found = findContact(name, phoneBook(), dial)) {
+                is ContactLookup.Clear -> {
+                    val person = found.match.person
+                    if (ask == Ask.MESSAGE) {
+                        screen = Screen.Home
+                        openWhatsAppFor(person)
+                    } else {
+                        // Only an exact name skips the question; the countdown still has Stop.
+                        screen = if (found.exact) Screen.Calling(person) else Screen.Confirm(person)
+                    }
+                }
+                is ContactLookup.Choose -> {
+                    screen = Screen.ChooseContact(name, ask, found.options.map { it.person })
+                    speak(R.string.which_one)
+                }
+                ContactLookup.NotFound -> {
+                    screen = Screen.ContactNotFound(name)
+                    speak(R.string.contact_not_found, name)
+                }
+            }
+        }
+    }
+
+    /** The answer to the phone-book permission card (or Android's dialog after it). */
+    fun contactsAnswered(granted: Boolean) {
+        val pending = screen as? Screen.ContactsPermission ?: return
+        if (granted && contacts.hasPermission()) {
+            contactIndex = null
+            lookUpContact(pending.name, pending.ask)
+        } else {
+            screen = Screen.ContactNotFound(pending.name)
+            speak(R.string.contact_not_found, pending.name)
+        }
+    }
+
+    fun chooseContact(person: Person, ask: Ask) {
+        if (ask == Ask.MESSAGE) {
+            screen = Screen.Home
+            openWhatsAppFor(person)
+        } else {
+            startCall(person)
+        }
+    }
+
+    /** Phone-book matches for a dictated message's "who?" (empty when none or no permission). */
+    var draftChoices by mutableStateOf<List<Person>>(emptyList())
+        private set
+
+    /** Finds a dictated message's unsaved recipient ("Sunil la sang ki ...") in the phone book. */
+    fun resolveDraftRecipient() {
+        val d = draft ?: return
+        val asked = d.askedName ?: return
+        if (d.person != null || !contacts.hasPermission()) return
+        viewModelScope.launch {
+            when (val found = findContact(asked, phoneBook(), dial)) {
+                is ContactLookup.Clear -> if (draft === d) setDraftPerson(found.match.person)
+                is ContactLookup.Choose -> draftChoices = found.options.map { it.person }
+                ContactLookup.NotFound -> draftChoices = emptyList()
+            }
+        }
+    }
+
+    fun hasContactsPermission(): Boolean = contacts.hasPermission()
 
     fun speak(res: Int, vararg args: Any) {
         val text = getApplication<Application>().inLanguage(language).getString(res, *args)
@@ -455,8 +560,10 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openDraft(dictation: Dictation) {
         draft = dictation
+        draftChoices = emptyList()
         draftVersion += 1
         screen = Screen.Message
+        resolveDraftRecipient()
     }
 
     fun setDraftText(text: String) {
@@ -464,6 +571,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setDraftPerson(person: Person) {
+        draftChoices = emptyList()
         draft = draft?.copy(person = person, askedName = null)
         draftVersion += 1
     }
@@ -513,6 +621,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             current.copy(text = polishMessage(said), rawBody = said)
         }
         draftVersion += 1
+        resolveDraftRecipient()
     }
 
     /** Reads the draft back in the parent's language, or asks who / what. */
