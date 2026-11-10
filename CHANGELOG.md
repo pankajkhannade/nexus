@@ -4,6 +4,10 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Voice architecture research (2026-11-10) — docs/voice-research
+**Added**
+- `docs/voice-architecture.md`: an evidence-based decision doc for voice. It finds the root causes of the mid-message cut-off: a single-shot SpeechRecognizer session, an ignored silence extra, and partial text discarded on error. It compares STT options (Google SpeechRecognizer, ML Kit GenAI, Sarvam Saaras v3, Chirp 3, Gemini audio, Whisper, IndicConformer, sherpa-onnx, Vosk, Bhashini) and picks rules first with an opt-in, text-only cloud LLM fallback (≈₹15–26 per 1,000 fallback calls). It also covers phone-book matching, Places-based destinations, elderly end-of-turn timings, phased remote help, and the Voice-60 test set and metrics.
+
 ### Near home (S15) (2026-11-10) — feature/near-home
 **Added**
 - Parent home has one "📍 Near home / घराजवळ / घर के पास" button. It opens up to 6 big need tiles in the parent's language (not an app grid): Milk & groceries (दूध-किराणा), Medicines (औषधे), Doctor (डॉक्टर), Rickshaw / cab (the existing Ride home flow), Home help & repairs (घरकाम / दुरुस्ती) and Emergency (आणीबाणी). The header shows "Services for 411045" when the home PIN is known.

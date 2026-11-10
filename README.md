@@ -53,6 +53,7 @@ UI checks run on the JVM first (Robolectric + Roborazzi). The emulator is only a
 | [docs/decisions.md](docs/decisions.md) | Decisions log with reasons |
 | [docs/plan.md](docs/plan.md) | Living plan: status, milestones, exit and kill rules |
 | [docs/testing.md](docs/testing.md) | Fast-testing playbook: JVM first, emulator last |
+| [docs/voice-architecture.md](docs/voice-architecture.md) | Voice research and decision: STT options, rules + opt-in LLM fallback, phone-book matching, destinations, elderly voice UX, remote help, test plan |
 | [CHANGELOG.md](CHANGELOG.md) | What changed, by milestone |
 | [PRIVACY.md](PRIVACY.md) | What is stored, what leaves the phone, and only when |
 
