@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { COUNTRIES } from "@/lib/nexus/countries";
 import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 import { useNexus } from "@/lib/nexus/store";
+import { PlaceField } from "./place-field";
 
 const EMPTY = { name: "", phone: "" };
 
@@ -87,26 +88,23 @@ export function Setup() {
 
         {step === 1 ? (
           <section className="flex flex-col gap-3" aria-label="Home and office">
-            <label htmlFor="home" className="text-sm font-medium">
-              Home
-            </label>
-            <input
+            <PlaceField
               id="home"
+              label="Home"
               value={home}
-              onChange={(event) => setHome(event.target.value)}
-              placeholder="Street, area, city"
-              className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
+              onChange={setHome}
+              countryCode={chosen?.code ?? ""}
+              placeholder="Search a place"
             />
-            <label htmlFor="office" className="text-sm font-medium">
-              Office
-            </label>
-            <input
+            <PlaceField
               id="office"
+              label="Office"
               value={office}
-              onChange={(event) => setOffice(event.target.value)}
-              placeholder="Street, area, city"
-              className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
+              onChange={setOffice}
+              countryCode={chosen?.code ?? ""}
+              placeholder="Search a place"
             />
+            <p className="text-sm text-muted">Start typing a building, street, or area. Pick a match, or keep your own wording.</p>
             {note ? <p className="text-sm text-muted">{note}</p> : null}
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setStep(0)} className="h-11 rounded-lg border border-line text-sm">

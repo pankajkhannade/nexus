@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useNexus } from "@/lib/nexus/store";
+import { COUNTRIES } from "@/lib/nexus/countries";
 import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
+import { PlaceField } from "./place-field";
 
 export function Book() {
   const people = useNexus((s) => s.people);
@@ -11,6 +13,7 @@ export function Book() {
   const removePerson = useNexus((s) => s.removePerson);
   const savePlace = useNexus((s) => s.savePlace);
   const removePlace = useNexus((s) => s.removePlace);
+  const country = useNexus((s) => s.profile.country);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -141,12 +144,13 @@ export function Book() {
           aria-label="Place name"
           className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
         />
-        <input
+        <PlaceField
+          id="saved-place"
+          label="Address"
           value={address}
-          onChange={(event) => setAddress(event.target.value)}
-          placeholder="Street address"
-          aria-label="Place address"
-          className="h-11 rounded-lg border border-line bg-elevated px-3 text-base"
+          onChange={setAddress}
+          countryCode={COUNTRIES.find((item) => item.name === country)?.code ?? ""}
+          placeholder="Search a place"
         />
         <button
           type="button"
