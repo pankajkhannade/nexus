@@ -86,10 +86,10 @@ class PrivacyUiTest {
         var back = false
         compose.setParent { PrivacyScreen(model) { back = true } }
 
-        listOf("What is saved", "Your voice", "Messages you check", "Nothing is shared by itself", "Internet use").forEach {
+        listOf("What is saved", "Your voice", "Messages you check", "Nothing is shared without your yes", "Internet use").forEach {
             compose.onNodeWithText(it, substring = true).performScrollTo().assertIsDisplayed()
         }
-        compose.onNodeWithText("Not uploaded, not in Android backup", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Not in Android backup", substring = true).performScrollTo().assertIsDisplayed()
         compose.onAllNodesWithText("is safe", substring = true).assertCountEquals(0)
         compose.onNodeWithText("Back").performScrollTo().performClick()
         assertTrue(back)

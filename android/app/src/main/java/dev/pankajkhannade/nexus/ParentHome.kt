@@ -62,11 +62,11 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
                 }
                 model.feedback.due(saved.installDay, model.today)?.let { round -> FeedbackCard(model, round) }
                 saved.people.forEach { person ->
-                    PersonRow(person, hasWhatsApp, onCall = { model.startCall(person) }, onWhatsApp = { model.openWhatsAppFor(person) })
+                    PersonRow(person, hasWhatsApp, onCall = { model.tile(CommandType.CALL); model.startCall(person) }, onWhatsApp = { model.tile(CommandType.WHATSAPP); model.openWhatsAppFor(person) })
                 }
-                BigButton("🛡  " + stringResource(R.string.check_message), { model.clearCheck(); model.screen = Screen.Safety }, kind = ButtonKind.Secondary)
+                BigButton("🛡  " + stringResource(R.string.check_message), { model.tile(CommandType.SAFETY); model.clearCheck(); model.screen = Screen.Safety }, kind = ButtonKind.Secondary)
                 if (saved.home.isSet) {
-                    BigButton("🚕  " + stringResource(R.string.go_home), { model.screen = Screen.Ride }, kind = ButtonKind.Secondary)
+                    BigButton("🚕  " + stringResource(R.string.go_home), { model.tile(CommandType.RIDE_HOME); model.screen = Screen.Ride }, kind = ButtonKind.Secondary)
                 }
                 BigButton("📍  " + stringResource(R.string.near_home), { model.screen = Screen.NearHome }, kind = ButtonKind.Secondary)
                 if (model.notice.isNotEmpty()) Text(model.notice, style = MaterialTheme.typography.bodyLarge)
@@ -206,8 +206,13 @@ fun RideScreen(model: NexusViewModel) {
         model.rememberCab(app)
         model.record(Event.RIDE)
         when (openRide(context, app, trip)) {
-            RideResult.OPENED_AND_COPIED -> android.widget.Toast.makeText(context, R.string.address_copied, android.widget.Toast.LENGTH_LONG).show()
-            RideResult.NOT_INSTALLED_OPENED_MAPS, RideResult.NOTHING_TO_OPEN, RideResult.OPENED -> Unit
+            RideResult.OPENED_AND_COPIED -> {
+                model.actionOpened(AppCategory.CAB)
+                android.widget.Toast.makeText(context, R.string.address_copied, android.widget.Toast.LENGTH_LONG).show()
+            }
+            RideResult.OPENED -> model.actionOpened(AppCategory.CAB)
+            RideResult.NOT_INSTALLED_OPENED_MAPS -> model.actionOpened(AppCategory.MAPS)
+            RideResult.NOTHING_TO_OPEN -> Unit
         }
         model.leaveRide()
     }
@@ -236,7 +241,7 @@ fun RideScreen(model: NexusViewModel) {
                 })
             }
             if (target != null) {
-                BigButton("🗺  " + stringResource(R.string.ride_maps_directions), { model.record(Event.RIDE); openMaps(context, trip); model.leaveRide() }, kind = ButtonKind.Secondary)
+                BigButton("🗺  " + stringResource(R.string.ride_maps_directions), { model.record(Event.RIDE); if (openMaps(context, trip)) model.actionOpened(AppCategory.MAPS); model.leaveRide() }, kind = ButtonKind.Secondary)
             }
         } else if (hasPlace) {
             BigButton(stringResource(R.string.ride_open_app, apps.first().label), { open(apps.first()) })
@@ -265,7 +270,7 @@ fun RideScreen(model: NexusViewModel) {
         if (target != null && home.isSet) {
             BigButton(stringResource(R.string.go_home), { model.rideHome() }, kind = ButtonKind.Quiet)
         }
-        BigButton(stringResource(R.string.back), { model.leaveRide() }, kind = ButtonKind.Quiet)
+        BigButton(stringResource(R.string.back), { model.cancelled(if (model.rideTo == null) CommandType.RIDE_HOME else CommandType.RIDE_TO); model.leaveRide() }, kind = ButtonKind.Quiet)
     }
 }
 
@@ -298,6 +303,6 @@ fun DestinationScreen(model: NexusViewModel) {
         if (hits != null && hits.isNotEmpty()) {
             BigButton(stringResource(R.string.dest_use_words, model.destQuery), { model.useSpokenDestination() }, kind = ButtonKind.Quiet)
         }
-        BigButton(stringResource(R.string.back), { model.leaveRide() }, kind = ButtonKind.Quiet)
+        BigButton(stringResource(R.string.back), { model.cancelled(if (model.rideTo == null) CommandType.RIDE_HOME else CommandType.RIDE_TO); model.leaveRide() }, kind = ButtonKind.Quiet)
     }
 }

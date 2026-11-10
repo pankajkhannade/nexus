@@ -1,11 +1,32 @@
 # Nexus privacy
 
-Nexus is a family co-pilot for a parent's Android phone. It has no account, no server and no analytics. The in-app Privacy screen (Family settings → Privacy) says the same thing in English, Hindi and Marathi.
+Nexus is a family co-pilot for a parent's Android phone. It has no account and no ads. Usage is counted on the phone; counts leave the phone only if the family turns on daily counts (off unless they say yes). The in-app Privacy screen (Family settings → Privacy) says the same thing in English, Hindi and Marathi.
 
 ## What is saved, and where
 - The people you add (name, number, relation, spoken alias), the home address and its coordinates, the optional office address, the home pincode, the language, the child's picked apps for Near home, the last cab app used, and simple usage counts are stored **only on this phone**.
 - That data is excluded from Android backup and device-to-device transfer.
 - Usage counts are numbers per day. They cover app opens, calls, voice commands (and ones that were not understood), messages checked, asked family, rides, WhatsApp opens, dictated messages handed to WhatsApp or SMS, and Near home tile opens (groceries, medicines, doctor, ride, home help, emergency), plus the day-3 and day-7 feedback answers. They never include names, phone numbers, message text, app names or places.
+
+## Usage counts (How Nexus is doing)
+Nexus keeps a usage log **on this phone** so the family (and, if they choose, the Nexus team) can see whether it works. Every entry is a type, a time, numbers and fixed choices. Nothing else can be stored, because the log has no text field.
+
+**Collected on the phone** (kept 90 days, at most 50,000 entries, excluded from Android backup):
+- App opens and days used; crashes (a count only, never the error text).
+- Setup: started, each step reached, finished, how long it took; whether the mic, phone book and call permissions were allowed.
+- Voice: when Speak was pressed and why listening ended (Done, a whole command heard, quiet, nothing said, the 60 s limit, an error, cut off, Stop); how many **characters** were heard (not the characters themselves); how long until something happened; the app language (mr / hi / en); the kind of command (call, message, ride, Near home, video call…); whether it was understood; recogniser error codes; "which one?" shown; Stop / No / Back.
+- Actions: the **kind** of app Nexus opened (dialer, WhatsApp, SMS, cab, maps, grocery, pharmacy, doctor, home service, Play Store, emergency) and how long until Nexus was back on screen.
+- Near home tile taps and Play Store install hand-offs, by kind.
+- Whether each action started from voice or a button.
+
+**Never collected:** voice recordings, the words said, message text, contact names, phone numbers, addresses, places or destinations, app package names, the Android ID, the advertising ID, location.
+
+**Not measured, on purpose:** whether a call connected (that needs the phone-state or call-log permission) and which app is on screen (that needs usage access). Nexus doesn't ask for either.
+
+**Share test summary** builds a counts-only JSON summary (with the tester tag the child sets: family, friend or stranger) and opens the Android share sheet. Nothing goes until the family picks an app and sends it.
+
+**Daily counts upload (opt-in, off by default).** Turned on only from the consent page in How Nexus is doing. When on, once a day (on any network, retrying later if offline) Nexus sends the **aggregate counts for finished days** (whole numbers under fixed names such as `voice_attempts` or `opened_cab`), the app version, the app language, the tester tag and a **random install ID** created on the phone when the family said yes. They go to the Nexus team's own server (a Cloudflare Worker with a D1 database at `nexus-metrics.safe2eat-api.workers.dev`). The server stores no IP address, no device details and no time of day, rejects anything that isn't a known count, and deletes rows after 180 days. Only the Nexus team can read them.
+
+**How to stop or delete:** turn off "Send daily counts" (it stops at once), or tap **Delete all usage data** in Family settings > How Nexus is doing. That deletes the log, the daily counters and the feedback answers on the phone, turns the upload off and throws away the install ID (a later opt-in gets a new one). To delete counts already uploaded, ask the Nexus team with the date you turned it on; we delete them by hand during the test.
 
 ## Voice
 - When the parent presses Speak, Android's speech recogniser turns the voice into words. On phones that support on-device recognition for the chosen language, this stays on the phone. Otherwise Google's speech service may use the internet. The Privacy screen shows which one applies on this phone.
@@ -35,10 +56,11 @@ Nexus is a family co-pilot for a parent's Android phone. It has no account, no s
 - Screenshots are read on the phone with ML Kit text recognition (Latin and Devanagari models bundled in the app). The rule checks run on the phone.
 - The last screenshot is held in the app's private cache so it can be shared with family, and is deleted the next time Nexus starts.
 
-## Nothing is shared by itself
+## Nothing is shared without your yes
 - A call, WhatsApp or SMS message, cab booking, Maps search, Play Store page or usage summary leaves the phone only when the parent (or family) presses Call, Send or Share in the other app. Nexus pre-fills; a person always sends.
 - Emergency opens the dial pad with 108 ready. It never places that call by itself.
-- "Export my usage" shows the exact text first, then opens the Android share sheet.
+- "Export my usage" shows the exact text first, then opens the Android share sheet. "Share test summary" works the same way.
+- The one exception is the opt-in daily counts above, and only after the family says yes on the consent page.
 
 ## Rides to a place
 - When the parent says or types a place ("स्वारगेटला जायचं"), the phone's own location service (Android Geocoder) looks it up near the home coordinates, which may use the internet. Nexus doesn't keep the results after the ride screen closes.
@@ -48,6 +70,7 @@ Nexus is a family co-pilot for a parent's Android phone. It has no account, no s
 - **Address suggestions** while typing a home address send the typed text to a map search service (ArcGIS geocoding suggest) to list matches.
 - **Placing home on the map:** the saved address is turned into coordinates by the phone's own location service (Android Geocoder), which may use the internet. The coordinates are stored only on the phone and are used to prefill Uber's drop-off and to centre Near home Maps searches.
 - **Speech**, as above, when on-device recognition isn't available.
+- **Daily counts**, only if turned on (see Usage counts).
 
 ## Other apps
 - Opening Uber, Ola, Rapido, Namma Yatri, Maps, the dialer, WhatsApp, SMS, a grocery, medicine, doctor or home-service app, or the Play Store, hands the address, number, search or package name to that app. Fares, calls, orders and messages are confirmed there.
@@ -58,4 +81,5 @@ Nexus is a family co-pilot for a parent's Android phone. It has no account, no s
 - Microphone: only while Speak is pressed.
 - Phone calls (`CALL_PHONE`): to place a call after the visible 3-second Cancel. Without it, the dialer opens instead. Emergency (108) always uses the dial pad, not this permission.
 - Contacts (`READ_CONTACTS`): only if allowed, to call or message anyone in the phone book by name. Read on the phone, kept in memory, never uploaded or saved.
-- Internet: for the address, place and speech services above.
+- Internet: for the address, place and speech services above, and the opt-in daily counts.
+- No phone-state, call-log, usage-access or advertising-ID access.

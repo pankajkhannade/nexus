@@ -179,6 +179,20 @@ same way when a test needs it.
 **Gotcha:** Android string resources collapse runs of spaces. `"📍  Somewhere else"` in XML renders as
 `"📍 Somewhere else"`, so assert the single-space form (or add the emoji in code, as `"🎤  " + stringResource(...)` does).
 
+## Analytics tests (added 2026-11-11)
+
+| File | Layer | What it proves |
+| --- | --- | --- |
+| `MetricsTest.kt` | L0, pure JVM | Every metric in `docs/metrics.md` on hand-built logs: first-try, retry window, cancels, wrong actions, language and command splits, days per week, D1/D7/D30, activation, setup drop-off, voice vs tile, proxies, crash-free, daily upload counts, pending days |
+| `EventLogTest.kt` | L0 (Robolectric only for `org.json`) | Round trip, junk lines dropped, 90-day retention on disk, the 50,000 cap, delete removes the file, the crash counter stores a count and passes the crash on |
+| `PrivacySchemaTest.kt` | L0/L1 | `UsageEvent` has no text field (reflection), the stored keys are the fixed set, a real Marathi voice-message flow plus a typed ride leaves no name, number, word, pincode or place in the log, summary or upload, and uploads are whole numbers under safe keys |
+| `UploadTest.kt` | L1 | Consent off = no request at all; with consent only finished days are sent, once, under a random v4 UUID; 5xx / network / 429 retry; other 4xx drop; revoking stops; clearing makes a new ID; the Worker with no consent never touches the network; WorkManager enqueues and cancels the daily job (`work-testing`) |
+| `ui/AnalyticsUiTest.kt` | L1 | Voice start / end reason / command timing from the fake recogniser, cut-off with its error code, Stop = cancel, quick return after an action, the screen's counts-with-percent lines, tester tag into the summary, switch → consent, consent yes / no, switch off without consent, delete wipes everything but people |
+| `ui/ScreenshotTest.kt` | L2 | `metrics_{en,hi,mr}` (a tall `h3000dp` device so the whole screen is in one PNG) and `upload_consent_{en,hi,mr}` |
+| `backend/metrics-worker/test/*.test.mjs` | Node, `node --test` | The Worker's real SQL on Node's built-in SQLite (a D1 stand-in): store and read back, idempotent re-sends, token checks (the hash isn't a token), personal-data-shaped payloads rejected, size and method limits, 180-day deletion; the cohort maths (kill rule, activation, first-try by language, retention) |
+
+`seedDemoUsage` in `AnalyticsUiTest.kt` builds a tester's first 9 days pinned to `FIXED_DAY` around midday, so the screenshots are the same in IST and UTC.
+
 ## When the emulator (or a phone) is still needed
 
 Only for things Robolectric doesn't really do. Keep it to one short smoke of **at most 10 checks**,

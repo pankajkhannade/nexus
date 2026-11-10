@@ -1,0 +1,14 @@
+# Deployed to nexus-metrics.<account>.workers.dev (free tier). Never a custom domain.
+name = "nexus-metrics"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nexus-metrics"
+database_id = "8df6abb6-f6e7-4316-a8c4-e594f587624b"
+
+# READ_TOKEN_SHA256 is a secret holding the SHA-256 hex of the read token:
+#   sha256sum < /workspace/founder-ceo/nexus/secrets/metrics-token | cut -d' ' -f1 | npx wrangler secret put READ_TOKEN_SHA256
+# The token itself lives only in that chmod-600 file.

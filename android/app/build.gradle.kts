@@ -15,6 +15,9 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
+        // Opt-in daily counts upload (Upload.kt, backend/metrics-worker). Override: -PnexusMetricsUrl=https://...
+        val metricsUrl = (project.findProperty("nexusMetricsUrl") as String?) ?: "https://nexus-metrics.safe2eat-api.workers.dev/v1/daily"
+        buildConfigField("String", "METRICS_URL", "\"$metricsUrl\"")
     }
 
     buildTypes {
@@ -77,6 +80,8 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // Opt-in daily metrics upload: runs once a day with backoff, survives restarts.
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
     // Fast JVM UI tests: Compose test rule on Robolectric, plus Roborazzi screenshots.
@@ -86,6 +91,7 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("androidx.test:core-ktx:1.6.1")
     testImplementation("androidx.test.ext:junit-ktx:1.2.1")
+    testImplementation("androidx.work:work-testing:2.9.1")
     testImplementation("io.github.takahirom.roborazzi:roborazzi:1.60.0")
     testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.60.0")
     testImplementation("io.github.takahirom.roborazzi:roborazzi-junit-rule:1.60.0")

@@ -186,7 +186,7 @@ private fun FamilyStep(model: NexusViewModel) {
             }, kind = ButtonKind.Quiet)
         }
         note?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge) }
-        PhoneBookOption()
+        PhoneBookOption { model.permissionAnswered(Perm.CONTACTS, it) }
         val reason = when {
             people.isEmpty() -> R.string.need_one_person
             people.none { it.askFamily } -> R.string.need_ask_family
@@ -209,10 +209,10 @@ private fun FamilyStep(model: NexusViewModel) {
 
 /** Setup option: let the parent call anyone in the phone book by name. Contacts stay on the phone. */
 @Composable
-private fun PhoneBookOption() {
+private fun PhoneBookOption(onAnswer: (Boolean) -> Unit = {}) {
     val context = LocalContext.current
     var on by remember { mutableStateOf(granted(context, Manifest.permission.READ_CONTACTS)) }
-    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> on = ok }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> on = ok; onAnswer(ok) }
     OutlinedPanel {
         Text("📒  " + stringResource(R.string.setup_contacts_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.setup_contacts_body), style = MaterialTheme.typography.bodyLarge)
@@ -389,20 +389,20 @@ private fun PermissionsStep(model: NexusViewModel) {
     val context = LocalContext.current
     var micDone by remember { mutableStateOf(granted(context, Manifest.permission.RECORD_AUDIO)) }
     var callDone by remember { mutableStateOf(granted(context, Manifest.permission.CALL_PHONE)) }
-    val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { micDone = true; model.markMicAsked() }
-    val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { callDone = true; model.markCallAsked() }
+    val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> micDone = true; model.markMicAsked(); model.permissionAnswered(Perm.MIC, ok) }
+    val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> callDone = true; model.markCallAsked(); model.permissionAnswered(Perm.CALL, ok) }
     val parent = context.inLanguage(model.setupLanguage)
     when {
         !micDone -> PermissionCard(
             "🎤", stringResource(R.string.mic_title), stringResource(R.string.mic_why_child),
             stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.mic_on_device else R.string.mic_online),
             onAllow = { micLauncher.launch(Manifest.permission.RECORD_AUDIO) },
-            onNotNow = { micDone = true; model.markMicAsked() },
+            onNotNow = { micDone = true; model.markMicAsked(); model.permissionAnswered(Perm.MIC, false) },
         )
         !callDone -> PermissionCard(
             "📞", stringResource(R.string.call_title), stringResource(R.string.call_why), stringResource(R.string.call_stays),
             onAllow = { callLauncher.launch(Manifest.permission.CALL_PHONE) },
-            onNotNow = { callDone = true; model.markCallAsked() },
+            onNotNow = { callDone = true; model.markCallAsked(); model.permissionAnswered(Perm.CALL, false) },
         )
         else -> ScreenColumn {
             val askPerson = model.setupPeople.firstOrNull { it.askFamily }
