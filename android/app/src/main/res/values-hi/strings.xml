@@ -124,6 +124,8 @@
     <string name="ask_family">परिवार से पूछें</string>
     <string name="is_this_real">ये असली है क्या? देख कर बताओ।</string>
     <string name="whatsapp_will_open">WhatsApp में %1$s खुलेगा। भेजें आप दबाइए।</string>
+    <string name="sms_will_open">Messages में %1$s खुलेगा। भेजें आप दबाइए।</string>
+    <string name="share_pick_app">कोई ऐप चुनें, फिर %1$s, फिर भेजें दबाइए।</string>
     <string name="whatsapp_pick_chat">WhatsApp खुलेगा। %1$s को चुनें, फिर भेजें दबाइए।</string>
     <string name="no_cab_app">इस फ़ोन पर कोई कैब ऐप नहीं है।</string>
     <string name="ride_help_prefill">मेरे लिए घर की गाड़ी बुक कर दो।</string>

@@ -125,6 +125,8 @@
     <string name="ask_family">Ask family</string>
     <string name="is_this_real">Is this real? Please check.</string>
     <string name="whatsapp_will_open">WhatsApp will open with %1$s. You press Send.</string>
+    <string name="sms_will_open">Messages will open with %1$s. You press Send.</string>
+    <string name="share_pick_app">Choose an app, then %1$s, then press Send.</string>
     <string name="whatsapp_pick_chat">WhatsApp will open. Choose %1$s, then press Send.</string>
     <string name="no_cab_app">No cab app is on this phone.</string>
     <string name="ride_help_prefill">Please book me a ride home.</string>

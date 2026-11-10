@@ -85,6 +85,7 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
     val context = LocalContext.current
     val askers = model.saved.people.filter { it.askFamily }.ifEmpty { model.saved.people }
     var choosing by remember { mutableStateOf(false) }
+    val hasWhatsApp = remember { isInstalled(context, "com.whatsapp") }
     var sendingTo by remember { mutableStateOf<Person?>(null) }
     ScreenColumn {
         VerdictBanner(verdict.level)
@@ -108,7 +109,13 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
         val target = sendingTo
         when {
             target != null -> OutlinedPanel {
-                Text(stringResource(if (model.checkImage != null) R.string.whatsapp_pick_chat else R.string.whatsapp_will_open, target.name), style = MaterialTheme.typography.bodyLarge)
+                val howTo = when {
+                    model.checkImage != null && hasWhatsApp -> R.string.whatsapp_pick_chat
+                    model.checkImage != null -> R.string.share_pick_app
+                    hasWhatsApp -> R.string.whatsapp_will_open
+                    else -> R.string.sms_will_open
+                }
+                Text(stringResource(howTo, target.name), style = MaterialTheme.typography.bodyLarge)
                 BigButton(stringResource(R.string.ok), {
                     sendingTo = null
                     model.record(Event.ASK_FAMILY)

@@ -224,7 +224,7 @@ private fun openWhatsAppQuiet(context: Context, phone: String, text: String): Bo
 fun askFamilyWithImage(context: Context, file: File, text: String) {
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
     val send = Intent(Intent.ACTION_SEND)
-        .setType("image/jpeg")
+        .setType("image/*")
         .putExtra(Intent.EXTRA_STREAM, uri)
         .putExtra(Intent.EXTRA_TEXT, text)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
