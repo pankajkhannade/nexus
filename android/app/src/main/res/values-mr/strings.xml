@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DRAFT Marathi translations written by the Nexus build agent. They NEED REVIEW by a native Marathi speaker before the Play closed test (docs/design.md 3.4). -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="back">मागे</string>
+    <string name="close">बंद करा</string>
+    <string name="continue_">पुढे चला</string>
+    <string name="save">सेव्ह करा</string>
+    <string name="remove">काढा</string>
+    <string name="allow">परवानगी द्या</string>
+    <string name="not_now">आत्ता नको</string>
+    <string name="privacy">गोपनीयता</string>
+    <string name="setup_title">Nexus सेट करा</string>
+    <string name="setup_step">पायरी %1$d / %2$d. सगळं याच फोनवर राहतं.</string>
+    <string name="country_title">देश</string>
+    <string name="country_hint">लोकल नंबरला याच देशाचा कोड लागेल.</string>
+    <string name="country_item">%1$s (%2$s)</string>
+    <string name="place_home">घर</string>
+    <string name="place_office">ऑफिस</string>
+    <string name="place_office_optional">ऑफिस (गरजेचे नाही)</string>
+    <string name="place_search_hint">इमारत, रस्ता किंवा भागाचं नाव लिहायला सुरुवात करा.</string>
+    <string name="place_search_network">शोधासाठी तुम्ही लिहिलेलं मॅप सेवेकडे जातं. सेव्ह पत्ता याच फोनवर राहतो.</string>
+    <string name="place_need_home">घरचा पत्ता टाका.</string>
+    <string name="people_intro">किमान एक व्यक्ती जोडा. बाकीचे गरजेचे नाहीत.</string>
+    <string name="people_pick">फोनमधील कॉन्टॅक्टमधून निवडा</string>
+    <string name="field_name">नाव</string>
+    <string name="field_phone">फोन नंबर</string>
+    <string name="person_n">व्यक्ती %1$d</string>
+    <string name="person_n_optional">व्यक्ती %1$d (गरजेचे नाही)</string>
+    <string name="save_and_continue">सेव्ह करा आणि सुरू करा</string>
+    <string name="phone_digits_only">फक्त अंक लिहा.</string>
+    <string name="phone_india_length">भारतीय मोबाइल नंबर 10 अंकी असतो.</string>
+    <string name="phone_india_start">भारतीय मोबाइल नंबर 6, 7, 8 किंवा 9 ने सुरू होतो.</string>
+    <string name="phone_length">8 ते 15 अंक लिहा.</string>
+    <string name="person_need_name">या नंबरसाठी नाव लिहा.</string>
+    <string name="person_need_phone">फोन नंबर लिहा.</string>
+    <string name="people_need_one">किमान एक व्यक्ती जोडा.</string>
+    <string name="contact_number_unusable">त्या कॉन्टॅक्टचा नंबर चालणार नाही. नंबर स्वतः लिहा.</string>
+    <string name="home_tagline">व्यक्ती किंवा ठिकाणावर दाबा, किंवा बोलून सांगा.</string>
+    <string name="people_title">माणसं</string>
+    <string name="places_title">गाडी</string>
+    <string name="go_home">घरी जायला गाडी बुक करा</string>
+    <string name="go_office">ऑफिसला जायला गाडी बुक करा</string>
+    <string name="add_home">घरचा पत्ता जोडा</string>
+    <string name="no_people">अजून कोणी सेव्ह नाही.</string>
+    <string name="edit_people_places">माणसं आणि ठिकाणं बदला</string>
+    <string name="command_title">बोला किंवा लिहा</string>
+    <string name="command_hint">आईला फोन लाव, किंवा घरून पिक कर</string>
+    <string name="speech_unavailable">या फोनवर बोलून लिहिणं उपलब्ध नाही.</string>
+    <string name="found_call">%1$s ला फोन करा</string>
+    <string name="found_message">%1$s ला WhatsApp करा</string>
+    <string name="not_saved">%1$s नावाचं कोणी सेव्ह नाही.</string>
+    <string name="find_in_contacts">कॉन्टॅक्टमध्ये %1$s शोधा</string>
+    <string name="nothing_found">यात व्यक्ती किंवा ठिकाण सापडलं नाही. \"आईला फोन लाव\" किंवा \"घरून पिक कर\" म्हणून पाहा.</string>
+    <string name="book_ride">गाडी बुक करा</string>
+    <string name="trip_from">कुठून: %1$s</string>
+    <string name="trip_to">कुठे: %1$s</string>
+    <string name="my_location">तुम्ही आत्ता जिथे आहात</string>
+    <string name="place_not_set">%1$s अजून सेव्ह नाही. आधी जोडा.</string>
+    <string name="ride_open_app">%1$s उघडा</string>
+    <string name="ride_confirm_in_app">भाडं बघून बुकिंग तुम्ही कॅब ॲपमध्ये करा.</string>
+    <string name="ride_maps">Maps मध्ये रस्ता पाहा</string>
+    <string name="address_copied">पत्ता कॉपी झाला. \"कुठे जायचे\" मध्ये पेस्ट करा.</string>
+    <string name="ride_not_installed">%1$s या फोनवर नाही. म्हणून Maps उघडलं.</string>
+    <string name="ride_nothing">या फोनवर कॅब ॲप किंवा Maps उघडलं नाही.</string>
+    <string name="call">फोन करा</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="sms">SMS</string>
+    <string name="whatsapp_missing">या फोनवर WhatsApp नाही.</string>
+    <string name="find_title">%1$s शोधा</string>
+    <string name="contacts_explain">Nexus हे नाव फोनच्या कॉन्टॅक्टमध्ये शोधेल. यादी याच फोनवर राहते, कुठेही पाठवली जात नाही.</string>
+    <string name="no_contact_match">%1$s नावाचा कॉन्टॅक्ट सापडला नाही.</string>
+    <string name="contacts_denied">कॉन्टॅक्टची परवानगी मिळाली नाही.</string>
+    <string name="edit_title">माणसं आणि ठिकाणं</string>
+    <string name="add_contact">कॉन्टॅक्ट जोडा</string>
+    <string name="person_saved">%1$s सेव्ह झालं.</string>
+    <string name="privacy_body">Nexus तुमचा देश, ठिकाणं आणि सेव्ह केलेली माणसं फक्त याच फोनवर ठेवतो. हा डेटा कुठेही अपलोड होत नाही आणि Android बॅकअपमध्येही जात नाही.\n\nठिकाण सुचवण्यासाठी तुम्ही लिहिलेलं मॅप सेवेकडे जातं. कॅब ॲपमध्ये पत्ता भरण्यासाठी फोनची स्वतःची लोकेशन सेवा पत्त्याचे निर्देशांक काढते.\n\nकॉन्टॅक्ट तुमच्या परवानगीनंतरच वाचले जातात, आणि फक्त तुम्ही सांगितलेलं नाव शोधण्यासाठी. Nexus इतर ॲप्सची स्क्रीन वाचत नाही आणि कॅबचं भाडं पाहू शकत नाही.</string>
+    <!-- Phase 1 key strings from docs/design.md 3.4, used by screens S4-S12 (not wired yet). -->
+    <string name="speak" tools:ignore="UnusedResources">दाबा आणि बोला</string>
+    <string name="listening" tools:ignore="UnusedResources">ऐकत आहे…</string>
+    <string name="calling_x" tools:ignore="UnusedResources">%1$s ला फोन लावत आहे…</string>
+    <string name="confirm_call_x" tools:ignore="UnusedResources">%1$s ला फोन लावायचा?</string>
+    <string name="yes_call" tools:ignore="UnusedResources">हो, फोन करा</string>
+    <string name="no" tools:ignore="UnusedResources">नको</string>
+    <string name="cancel" tools:ignore="UnusedResources">रद्द करा</string>
+    <string name="stop" tools:ignore="UnusedResources">थांबा</string>
+    <string name="not_understood" tools:ignore="UnusedResources">समजलं नाही. पुन्हा बोला किंवा फोटो दाबा.</string>
+    <string name="check_message" tools:ignore="UnusedResources">मेसेज तपासा</string>
+    <string name="is_this_safe" tools:ignore="UnusedResources">हे सुरक्षित आहे का?</string>
+    <string name="verdict_danger" tools:ignore="UnusedResources">थांबा! ही फसवणूक असू शकते</string>
+    <string name="verdict_careful" tools:ignore="UnusedResources">सावध रहा</string>
+    <string name="verdict_none" tools:ignore="UnusedResources">धोक्याची खूण सापडली नाही</string>
+    <string name="reason_otp" tools:ignore="UnusedResources">तुमचा OTP किंवा PIN मागत आहे</string>
+    <string name="reason_link" tools:ignore="UnusedResources">अनोळखी वेबसाइटची लिंक आहे</string>
+    <string name="reason_blocked" tools:ignore="UnusedResources">खाते बंद होईल अशी धमकी आहे</string>
+    <string name="never_share" tools:ignore="UnusedResources">OTP किंवा PIN कोणालाही सांगू नका</string>
+    <string name="ask_x" tools:ignore="UnusedResources">%1$s ला विचारा</string>
+    <string name="ask_family" tools:ignore="UnusedResources">घरच्यांना विचारा</string>
+    <string name="ask_prefill" tools:ignore="UnusedResources">हे खरं आहे का? बघून सांग.</string>
+    <string name="wa_you_send" tools:ignore="UnusedResources">WhatsApp उघडेल. पाठवा तुम्ही दाबा.</string>
+    <string name="mic_why" tools:ignore="UnusedResources">तुमचा आवाज ऐकण्यासाठी माइक लागतो.</string>
+    <string name="mic_on_device" tools:ignore="UnusedResources">तुमचा आवाज याच फोनवर समजला जातो.</string>
+    <string name="mic_online" tools:ignore="UnusedResources">Google ची सेवा तुमचा आवाज शब्दांत बदलते.</string>
+    <string name="mic_denied" tools:ignore="UnusedResources">माइक बंद आहे. फोन करण्यासाठी फोटो दाबा.</string>
+    <string name="feedback_q1" tools:ignore="UnusedResources">या आठवड्यात Nexus ची मदत झाली का?</string>
+    <string name="fb_yes" tools:ignore="UnusedResources">हो</string>
+    <string name="fb_little" tools:ignore="UnusedResources">थोडी</string>
+    <string name="fb_no" tools:ignore="UnusedResources">नाही</string>
+    <string name="settings_hint" tools:ignore="UnusedResources">घरच्यांसाठी: सेटिंगसाठी 2 सेकंद दाबा</string>
+    <string name="privacy_local" tools:ignore="UnusedResources">तुमची माणसे फक्त याच फोनवर सेव्ह आहेत.</string>
+</resources>

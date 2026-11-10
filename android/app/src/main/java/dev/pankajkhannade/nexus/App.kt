@@ -1,10 +1,14 @@
 package dev.pankajkhannade.nexus
 
 import android.app.Activity
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -18,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
@@ -27,9 +32,10 @@ fun NexusApp(model: NexusViewModel) {
     val view = LocalView.current
     SideEffect {
         val window = (view.context as Activity).window
-        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !saved.themeDark
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
     }
-    NexusTheme(dark = saved.themeDark) {
+    // Setup is done by the child (child scale); the daily screen uses the larger parent scale.
+    NexusTheme(mode = if (saved.setupDone) UiMode.Parent else UiMode.Child) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             if (!model.loaded) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -49,15 +55,14 @@ fun NexusApp(model: NexusViewModel) {
 
 @Composable
 private fun PrivacyScreen(onBack: () -> Unit) {
-    androidx.compose.foundation.layout.Column(Modifier.padding(20.dp)) {
-        Text("Privacy", style = MaterialTheme.typography.headlineMedium)
-        Text(
-            "Nexus stores your country, home, office, and the people you save on this phone. That data is not uploaded and is excluded from Android backup.\n\nPlace suggestions send the text you type to a map search service so the address can be filled in.\n\nContacts are read only after you agree, and only to find a name you asked to call. Nexus does not read the screens of Uber, Ola, or Rapido, and it cannot see their fares.",
-            modifier = Modifier.padding(top = 12.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        androidx.compose.material3.TextButton(onClick = onBack, modifier = Modifier.padding(top = 16.dp)) {
-            Text("Back")
-        }
+    Column(
+        Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(stringResource(R.string.privacy), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.privacy_body), style = MaterialTheme.typography.bodyLarge)
+        BigButton(stringResource(R.string.back), onBack, kind = ButtonKind.Secondary)
     }
 }

@@ -1,4 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!-- English source strings. Keep every key in sync with values-hi and values-mr. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Nexus</string>
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="continue_">Continue</string>
+    <string name="save">Save</string>
+    <string name="remove">Remove</string>
+    <string name="allow">Allow</string>
+    <string name="not_now">Not now</string>
+    <string name="privacy">Privacy</string>
+    <string name="setup_title">Set up Nexus</string>
+    <string name="setup_step">Step %1$d of %2$d. Everything stays on this phone.</string>
+    <string name="country_title">Country</string>
+    <string name="country_hint">Local phone numbers use this country code.</string>
+    <string name="country_item">%1$s (%2$s)</string>
+    <string name="place_home">Home</string>
+    <string name="place_office">Office</string>
+    <string name="place_office_optional">Office (optional)</string>
+    <string name="place_search_hint">Start typing a building, street or area.</string>
+    <string name="place_search_network">Search sends what you type to a map service. The saved address stays on this phone.</string>
+    <string name="place_need_home">Add a home address.</string>
+    <string name="people_intro">Add at least one person. The others are optional.</string>
+    <string name="people_pick">Choose from phone contacts</string>
+    <string name="field_name">Name</string>
+    <string name="field_phone">Phone number</string>
+    <string name="person_n">Person %1$d</string>
+    <string name="person_n_optional">Person %1$d (optional)</string>
+    <string name="save_and_continue">Save and start</string>
+    <string name="phone_digits_only">Use digits only.</string>
+    <string name="phone_india_length">Indian mobile numbers have 10 digits.</string>
+    <string name="phone_india_start">Indian mobile numbers start with 6, 7, 8 or 9.</string>
+    <string name="phone_length">Use 8 to 15 digits.</string>
+    <string name="person_need_name">Add a name for this number.</string>
+    <string name="person_need_phone">Add a phone number.</string>
+    <string name="people_need_one">Add at least one person.</string>
+    <string name="contact_number_unusable">That contact\'s number can\'t be used. Type it instead.</string>
+    <string name="home_tagline">Tap a person or a place, or say what you need.</string>
+    <string name="people_title">People</string>
+    <string name="places_title">Rides</string>
+    <string name="go_home">Book a ride home</string>
+    <string name="go_office">Book a ride to the office</string>
+    <string name="add_home">Add a home address</string>
+    <string name="no_people">No one saved yet.</string>
+    <string name="edit_people_places">Edit people and places</string>
+    <string name="command_title">Say or type</string>
+    <string name="command_hint">Call Aai, or pick me up at home</string>
+    <string name="speech_unavailable">Speech recognition isn\'t available on this phone.</string>
+    <string name="found_call">Call %1$s</string>
+    <string name="found_message">WhatsApp %1$s</string>
+    <string name="not_saved">No saved person named %1$s.</string>
+    <string name="find_in_contacts">Find %1$s in contacts</string>
+    <string name="nothing_found">Nexus didn\'t find a person or a place in that. Try \"call Aai\" or \"pick me up at home\".</string>
+    <string name="book_ride">Book a ride</string>
+    <string name="trip_from">From: %1$s</string>
+    <string name="trip_to">To: %1$s</string>
+    <string name="my_location">where you are now</string>
+    <string name="place_not_set">%1$s isn\'t saved yet. Add it first.</string>
+    <string name="ride_open_app">Open %1$s</string>
+    <string name="ride_confirm_in_app">You check the fare and confirm in the cab app.</string>
+    <string name="ride_maps">Directions in Maps</string>
+    <string name="address_copied">Address copied. Paste it in \"Where to\".</string>
+    <string name="ride_not_installed">%1$s isn\'t on this phone. Opened Maps instead.</string>
+    <string name="ride_nothing">Couldn\'t open a cab app or Maps on this phone.</string>
+    <string name="call">Call</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="sms">SMS</string>
+    <string name="whatsapp_missing">WhatsApp isn\'t on this phone.</string>
+    <string name="find_title">Find %1$s</string>
+    <string name="contacts_explain">Nexus looks through this phone\'s contacts for that name. The list stays on the phone and is not uploaded.</string>
+    <string name="no_contact_match">No contact matched %1$s.</string>
+    <string name="contacts_denied">Contacts permission was not given.</string>
+    <string name="edit_title">People and places</string>
+    <string name="add_contact">Add a contact</string>
+    <string name="person_saved">%1$s saved.</string>
+    <string name="privacy_body">Nexus stores your country, places and the people you save only on this phone. That data is not uploaded and is excluded from Android backup.\n\nPlace suggestions send the text you type to a map search service. To fill a cab app\'s destination, the saved address is turned into coordinates by this phone\'s own location service.\n\nContacts are read only after you agree, and only to find a name you asked for. Nexus does not read other apps\' screens and cannot see cab fares.</string>
+    <!-- Phase 1 key strings from docs/design.md 3.4, used by screens S4-S12 (not wired yet). -->
+    <string name="speak" tools:ignore="UnusedResources">Press and speak</string>
+    <string name="listening" tools:ignore="UnusedResources">Listening…</string>
+    <string name="calling_x" tools:ignore="UnusedResources">Calling %1$s…</string>
+    <string name="confirm_call_x" tools:ignore="UnusedResources">Call %1$s?</string>
+    <string name="yes_call" tools:ignore="UnusedResources">Yes, call</string>
+    <string name="no" tools:ignore="UnusedResources">No</string>
+    <string name="cancel" tools:ignore="UnusedResources">Cancel</string>
+    <string name="stop" tools:ignore="UnusedResources">Stop</string>
+    <string name="not_understood" tools:ignore="UnusedResources">Didn\'t catch that. Say again or tap a photo.</string>
+    <string name="check_message" tools:ignore="UnusedResources">Check a message</string>
+    <string name="is_this_safe" tools:ignore="UnusedResources">Is this safe?</string>
+    <string name="verdict_danger" tools:ignore="UnusedResources">Stop! This could be a scam</string>
+    <string name="verdict_careful" tools:ignore="UnusedResources">Be careful</string>
+    <string name="verdict_none" tools:ignore="UnusedResources">No warning signs found</string>
+    <string name="reason_otp" tools:ignore="UnusedResources">Asks for your OTP or PIN</string>
+    <string name="reason_link" tools:ignore="UnusedResources">Has a link to an unknown site</string>
+    <string name="reason_blocked" tools:ignore="UnusedResources">Says your account will be blocked</string>
+    <string name="never_share" tools:ignore="UnusedResources">Never share OTP or PIN with anyone</string>
+    <string name="ask_x" tools:ignore="UnusedResources">Ask %1$s</string>
+    <string name="ask_family" tools:ignore="UnusedResources">Ask family</string>
+    <string name="ask_prefill" tools:ignore="UnusedResources">Is this real? Please check.</string>
+    <string name="wa_you_send" tools:ignore="UnusedResources">WhatsApp will open. You press Send.</string>
+    <string name="mic_why" tools:ignore="UnusedResources">Nexus needs the microphone to hear you.</string>
+    <string name="mic_on_device" tools:ignore="UnusedResources">Your voice is understood on this phone.</string>
+    <string name="mic_online" tools:ignore="UnusedResources">Google\'s speech service turns your voice into text.</string>
+    <string name="mic_denied" tools:ignore="UnusedResources">Mic is off. Tap a photo to call.</string>
+    <string name="feedback_q1" tools:ignore="UnusedResources">Did Nexus help this week?</string>
+    <string name="fb_yes" tools:ignore="UnusedResources">Yes</string>
+    <string name="fb_little" tools:ignore="UnusedResources">A little</string>
+    <string name="fb_no" tools:ignore="UnusedResources">No</string>
+    <string name="settings_hint" tools:ignore="UnusedResources">For family: hold 2 seconds for settings</string>
+    <string name="privacy_local" tools:ignore="UnusedResources">Your people are saved only on this phone.</string>
 </resources>

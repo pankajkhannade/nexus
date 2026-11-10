@@ -4,6 +4,22 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Phase 1 Step 0: foundations (2026-11-10) — phase1/foundations
+**Fixed**
+- Phone numbers: one normaliser (`Phone.kt`) for setup, the edit screen, the contacts picker and stored data. 10-digit Indian numbers starting with 91 no longer lose the country code (9123456789 is now +919123456789, not +9123456789). Leading 0, spaces, dashes, brackets, +91/0091 are handled. Numbers saved by older builds are repaired on load.
+- "Pick me up at home" now sets home as the pickup, not the drop-off. Pickup/drop-off parsing handles from/to, "take me home", "ghar se", "gharun", "ghar jana hai", "घरी जायचं".
+- Call parsing: "Call me at 98765 43210" offers that number instead of a person named "me". "Aai ko call karo" no longer reads "karo" as the name. Added Hinglish, Marathi and Devanagari forms ("Pankaj ko phone lagao", "Aai la phone lav", "Pankajla phone lav", "पंकज को फ़ोन लगाओ", "आईला फोन लाव"), and family words match across scripts (Aai = आई).
+- Cab handoff: Uber uses its documented `dropoff[latitude|longitude|formatted_address]` (and pickup) parameters when coordinates exist; otherwise it opens Uber and copies the address. Ola and Rapido open the app and copy the address (no undocumented link parameters). A missing cab app falls back to Google Maps. Coordinates come from the on-device Geocoder at setup and are retried on launch.
+- WhatsApp links always use the full international number.
+
+**Changed**
+- New design system (`Theme.kt`): light high-contrast colour tokens, parent and child type scales (no text under 16sp; 18sp in parent mode), `BigButton` with 48dp/64dp+ targets, outlined cards. The dark-mode toggle, the "Sample" button, the 3-card tour and the fare tagline are removed.
+- All user-facing text is in `strings.xml` with Hindi (`values-hi`) and Marathi (`values-mr`) drafts that need native review. Per-app language on Android 13+ (`locales_config.xml`); speech input follows the app language.
+- People rows show names with Call and WhatsApp buttons, not raw numbers. Office is optional. Setup accepts up to 4 people in stacked, labelled fields with inline validation.
+
+**Added**
+- JUnit tests: 46 tests for normalisation, parsing, pickup/drop-off and deep-link building.
+
 ### Added (2026-11-10) — docs/vision-design
 - `docs/vision.md`: Nexus is now the family co-pilot for parents' Android phones; four phases with exit metrics and kill rules.
 - `docs/design.md`: critical UI evaluation and the parent-mode revamp (13 screens, en/hi/mr key strings, design system).

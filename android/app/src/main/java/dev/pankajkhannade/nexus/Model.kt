@@ -1,18 +1,23 @@
 package dev.pankajkhannade.nexus
 
+/** A saved person. [phone] is always E.164 (see [normalizePhone]). */
 data class Person(val id: String, val name: String, val phone: String)
+
+/** A saved place. Coordinates come from the on-device Geocoder at setup and may be missing. */
+data class Place(val address: String = "", val lat: Double? = null, val lng: Double? = null) {
+    val isSet: Boolean get() = address.isNotBlank()
+    val hasCoordinates: Boolean get() = lat != null && lng != null
+}
 
 data class Saved(
     val setupDone: Boolean = false,
-    val tourDone: Boolean = false,
     val country: String = "",
     val dial: String = "",
     val countryCode: String = "",
-    val themeDark: Boolean = false,
     val lastCab: String = "",
     val contactsExplained: Boolean = false,
-    val home: String = "",
-    val office: String = "",
+    val home: Place = Place(),
+    val office: Place = Place(),
     val people: List<Person> = emptyList(),
 )
 
@@ -56,40 +61,32 @@ val COUNTRIES = listOf(
     Country("Vietnam", "+84", "VN"),
 )
 
-fun phoneProblem(phone: String, dial: String, strict: Boolean): String? {
-    val trimmed = phone.trim()
-    if (trimmed.isEmpty()) return null
-    if (trimmed.any { it.isLetter() } || trimmed.any { !it.isDigit() && it !in "+() .-" }) {
-        return "Use digits only."
-    }
-    val digits = trimmed.filter { it.isDigit() }
-    val india = dial == "+91" && !trimmed.startsWith("+") && !trimmed.startsWith("00")
-    if (india) {
-        val local = digits.removePrefix("0")
-        if (!strict && local.length < 10) return null
-        if (local.length != 10) return "India numbers are 10 digits."
-        if (local.first() !in '6'..'9') return "Indian mobile numbers start with 6, 7, 8, or 9."
-        return null
-    }
-    if (!strict && digits.length < 8) return null
-    if (digits.length !in 8..15) return "Use 8 to 15 digits."
-    return null
+/**
+ * Family words written in Devanagari or common Latin spellings map to one key, so a contact saved
+ * as "Aai" matches a spoken "आई" and "Mummy" matches "mumma". Names in general are not transliterated
+ * yet (Phase 1 voice work stores a spoken alias per person instead).
+ */
+private val RELATION_ALIASES: Map<String, String> = buildMap {
+    fun alias(key: String, vararg forms: String) = forms.forEach { put(it, key) }
+    alias("aai", "aai", "aayi", "aaee", "आई")
+    alias("baba", "baba", "baaba", "बाबा")
+    alias("papa", "papa", "paapa", "पापा")
+    alias("mummy", "mummy", "mumma", "mummi", "मम्मी")
+    alias("maa", "maa", "ma", "माँ", "मां", "मा")
+    alias("aaji", "aaji", "aji", "आजी")
+    alias("ajoba", "ajoba", "aajoba", "आजोबा")
+    alias("didi", "didi", "दीदी", "दीदि")
+    alias("tai", "tai", "taai", "ताई")
+    alias("dada", "dada", "दादा")
+    alias("bhaiya", "bhaiya", "bhaiyya", "bhaia", "भैया", "भय्या")
+    alias("beta", "beta", "बेटा")
 }
 
-fun international(phone: String, dial: String): String {
-    val trimmed = phone.trim()
-    val digits = trimmed.filter { it.isDigit() }
-    if (trimmed.startsWith("+")) return "+$digits"
-    if (trimmed.startsWith("00")) return "+${digits.removePrefix("00")}"
-    val code = dial.filter { it.isDigit() }
-    if (code.isEmpty() || digits.length !in 8..11) return trimmed
-    if (digits.startsWith(code)) return "+$digits"
-    return "+$code$digits"
-}
+private fun canonical(word: String): String = RELATION_ALIASES[word] ?: word
 
 fun nameMatches(candidate: String, asked: String): Boolean {
-    val wanted = asked.trim().lowercase()
-    val have = candidate.trim().lowercase()
+    val wanted = asked.trim().lowercase().split(Regex("""\s+""")).joinToString(" ") { canonical(it) }
+    val have = candidate.trim().lowercase().split(Regex("""\s+""")).joinToString(" ") { canonical(it) }
     if (wanted.length < 2 || have.isEmpty()) return false
     if (have == wanted || have.startsWith("$wanted ")) return true
     return have.substringBefore(" ") == wanted

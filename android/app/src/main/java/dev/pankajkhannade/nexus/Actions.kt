@@ -1,60 +1,116 @@
 package dev.pankajkhannade.nexus
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.location.Geocoder
 import android.net.Uri
 import android.provider.ContactsContract
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-fun openCab(context: Context, which: String, address: String): String? {
-    val encoded = Uri.encode(address)
-    val (uri, pkg) = when (which) {
-        "ola" -> "olacabs://app/launch?landing_page=bk&drop_name=$encoded" to "com.olacabs"
-        "rapido" -> "rapido://app?drop_address=$encoded" to "com.rapido.passenger"
-        else -> "https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=$encoded" to "com.ubercab"
+private const val TAG = "NexusRide"
+
+/** What happened when Nexus handed a trip to an app. The UI turns this into a message. */
+enum class RideResult { OPENED, OPENED_AND_COPIED, NOT_INSTALLED_OPENED_MAPS, NOTHING_TO_OPEN }
+
+fun isInstalled(context: Context, pkg: String): Boolean =
+    context.packageManager.getLaunchIntentForPackage(pkg) != null
+
+/**
+ * Opens [app] for [trip]. If the app is missing, opens the trip in Google Maps (app or browser).
+ * Addresses the app can't receive in a link are copied to the clipboard first.
+ */
+fun openRide(context: Context, app: CabApp, trip: Trip): RideResult {
+    val handoff = cabHandoff(app, trip)
+    if (!isInstalled(context, handoff.pkg)) {
+        Log.i(TAG, "${app.id} not installed; falling back to Maps")
+        return if (openMaps(context, trip)) RideResult.NOT_INSTALLED_OPENED_MAPS else RideResult.NOTHING_TO_OPEN
     }
+    handoff.copyText?.let { copyToClipboard(context, it) }
+    val intent = if (handoff.uri != null) {
+        Intent(Intent.ACTION_VIEW, Uri.parse(handoff.uri)).setPackage(handoff.pkg)
+    } else {
+        context.packageManager.getLaunchIntentForPackage(handoff.pkg)
+    } ?: return RideResult.NOTHING_TO_OPEN
+    Log.i(TAG, "open ${app.id} uri=${handoff.uri ?: "launcher"} copied=${handoff.copyText != null}")
     return try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        null
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        if (handoff.copyText != null) RideResult.OPENED_AND_COPIED else RideResult.OPENED
     } catch (_: ActivityNotFoundException) {
-        openPlay(context, pkg)
-        "$which is not installed. Play Store is open."
+        if (openMaps(context, trip)) RideResult.NOT_INSTALLED_OPENED_MAPS else RideResult.NOTHING_TO_OPEN
     }
 }
 
-fun openMaps(context: Context, address: String) {
-    val uri = "https://www.google.com/maps/dir/?api=1&destination=${Uri.encode(address)}"
-    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+/** Opens the trip in Google Maps, or any app that handles the https link. Returns false if nothing could. */
+fun openMaps(context: Context, trip: Trip): Boolean {
+    val link = mapsLink(trip) ?: return false
+    Log.i(TAG, "open maps uri=$link")
+    return try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    }
+}
+
+fun copyToClipboard(context: Context, text: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText("address", text))
+}
+
+/**
+ * Looks up coordinates for a typed address with the phone's own Geocoder (no Nexus server).
+ * Returns the place without coordinates when the phone has no geocoder or the lookup fails.
+ */
+@Suppress("DEPRECATION")
+fun geocode(context: Context, address: String): Place {
+    val text = address.trim()
+    if (text.isEmpty() || !Geocoder.isPresent()) return Place(text)
+    return runCatching {
+        val hit = Geocoder(context).getFromLocationName(text, 1)?.firstOrNull()
+        if (hit != null) Place(text, hit.latitude, hit.longitude) else Place(text)
+    }.getOrElse { Place(text) }
 }
 
 fun openDial(context: Context, phone: String) {
-    val uri = Uri.parse("tel:${phone.filter { it.isDigit() || it == '+' }}")
+    val uri = Uri.parse("tel:$phone")
     context.startActivity(Intent(Intent.ACTION_DIAL, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }
 
 fun openSms(context: Context, phone: String, body: String) {
-    val uri = Uri.parse("smsto:${phone.filter { it.isDigit() || it == '+' }}")
+    val uri = Uri.parse("smsto:$phone")
     val intent = Intent(Intent.ACTION_SENDTO, uri)
-        .putExtra("sms_body", body.ifBlank { "On my way." })
+        .putExtra("sms_body", body)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
 }
 
-fun openWhatsApp(context: Context, phone: String, body: String): String? {
-    val digits = phone.filter { it.isDigit() }
-    val text = URLEncoder.encode(body.ifBlank { "On my way." }, "UTF-8")
-    val uri = "https://wa.me/$digits?text=$text"
+/** wa.me link for an E.164 number, optional prefilled text. Pure, so it is unit tested. */
+fun whatsAppLink(phone: String, body: String): String {
+    val base = "https://wa.me/${phoneDigits(phone)}"
+    return if (body.isBlank()) base else "$base?text=${encodeParam(body)}"
+}
+
+/** Returns false when WhatsApp is not installed (the Play Store page is opened instead). */
+fun openWhatsApp(context: Context, phone: String, body: String): Boolean {
+    if (!isInstalled(context, "com.whatsapp")) {
+        openPlay(context, "com.whatsapp")
+        return false
+    }
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(whatsAppLink(phone, body))).setPackage("com.whatsapp")
     return try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        null
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
     } catch (_: ActivityNotFoundException) {
         openPlay(context, "com.whatsapp")
-        "WhatsApp is not installed."
+        false
     }
 }
 
@@ -70,7 +126,8 @@ private fun openPlay(context: Context, pkg: String) {
     }
 }
 
-fun lookupContacts(context: Context, asked: String): List<Person> {
+/** Contacts matching [asked]. Numbers are normalised; ones that can't be are skipped. */
+fun lookupContacts(context: Context, asked: String, dial: String): List<Person> {
     val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
     val projection = arrayOf(
         ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
@@ -83,13 +140,30 @@ fun lookupContacts(context: Context, asked: String): List<Person> {
         while (cursor.moveToNext()) {
             val name = if (nameIdx >= 0) cursor.getString(nameIdx).orEmpty() else ""
             val phone = if (phoneIdx >= 0) cursor.getString(phoneIdx).orEmpty() else ""
-            if (nameMatches(name, asked) && phone.isNotBlank()) {
-                found += Person(id = phone.filter { it.isDigit() }, name = name, phone = phone)
+            val e164 = normalizePhone(phone, dial)
+            if (nameMatches(name, asked) && e164 != null) {
+                found += Person(id = phoneDigits(e164), name = name, phone = e164)
             }
             if (found.size == 8) break
         }
     }
-    return found.distinctBy { it.phone.filter { ch -> ch.isDigit() } }
+    return found.distinctBy { it.phone }
+}
+
+/** Reads the contact the user picked in the system picker (no permission needed). Null if the number is unusable. */
+fun readPickedPhone(context: Context, uri: Uri): Pair<String, String>? {
+    val projection = arrayOf(
+        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+        ContactsContract.CommonDataKinds.Phone.NUMBER,
+    )
+    context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+        if (!cursor.moveToFirst()) return null
+        val name = cursor.getString(0).orEmpty()
+        val phone = cursor.getString(1).orEmpty()
+        if (name.isBlank() || phone.isBlank()) return null
+        return name to phone
+    }
+    return null
 }
 
 fun suggestPlaces(query: String, countryCode: String): List<String> {
