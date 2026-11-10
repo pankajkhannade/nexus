@@ -21,7 +21,7 @@ export function Book() {
   useEffect(() => setReady(true), []);
   if (!ready) {
     return (
-      <section className="flex flex-col gap-4" aria-label="People and places">
+      <section className="flex flex-col gap-4" aria-label="People and places" data-setup="book">
         <h2 className="text-base font-medium">People</h2>
         <h2 className="text-base font-medium">Places</h2>
       </section>

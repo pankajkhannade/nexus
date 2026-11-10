@@ -1,3 +1,5 @@
+import { international } from "./countries";
+
 export interface Capture {
   id: string;
   at: string;
@@ -397,6 +399,7 @@ export function plan(
     people?: Person[];
     places?: SavedPlace[];
     model?: { place?: string; phone?: string; email?: string };
+    dial?: string;
   },
 ): Plan {
   const reading = readText(text);
@@ -415,13 +418,14 @@ export function plan(
   const person = personInText(text, people, captures);
   const modelPhone = extra?.model?.phone ? extractPhone(extra.model.phone) : null;
   const modelEmail = extra?.model?.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(extra.model.email) ? extra.model.email : "";
-  const phones = reading.phones.length
+  const phones = (reading.phones.length
     ? reading.phones
     : person?.phone
       ? [person.phone]
       : modelPhone
         ? [modelPhone]
-        : [];
+        : []
+  ).map((phone) => international(phone, extra?.dial ?? ""));
   const emails = reading.emails.length ? reading.emails : person?.email ? [person.email] : modelEmail ? [modelEmail] : [];
   const remembered = reading.phones.length === 0 && person?.phone ? person.name : null;
   const actions: Action[] = [];

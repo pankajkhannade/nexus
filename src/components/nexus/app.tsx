@@ -5,6 +5,7 @@ import { contactsSupported, pickContacts } from "@/lib/nexus/contacts";
 import { modelAvailability, readWithModel, type ModelFill } from "@/lib/nexus/device-model";
 import { useNexus } from "@/lib/nexus/store";
 import { Book } from "./book";
+import { Setup, Tour } from "./setup";
 
 const SAMPLE =
   "Meet me at 418 Valencia St, apartment 3. Blue door. Call me at (415) 555-0138 if you get lost.";
@@ -15,6 +16,8 @@ function cx(...parts: Array<string | false | null | undefined>) {
 
 export function NexusApp() {
   const hydrate = useNexus((s) => s.hydrate);
+  const hydrated = useNexus((s) => s.hydrated);
+  const setupDone = useNexus((s) => s.profile.setupDone);
   const ingest = useNexus((s) => s.ingest);
   useEffect(() => {
     hydrate();
@@ -28,9 +31,25 @@ export function NexusApp() {
     }
   }, [hydrate, ingest]);
 
+  if (!hydrated) {
+    return (
+      <main className="min-h-dvh bg-bg text-fg">
+        <div className="mx-auto max-w-lg px-4 pt-6">
+          <p className="text-xs font-medium tracking-widest text-muted">ON THIS PHONE</p>
+          <h1 className="text-xl font-medium tracking-tight">Nexus</h1>
+        </div>
+      </main>
+    );
+  }
+  if (!setupDone) return <Setup />;
+  return <ReadyApp />;
+}
+
+function ReadyApp() {
+  const tourDone = useNexus((s) => s.profile.tourDone);
   return (
     <main className="min-h-dvh bg-bg text-fg">
-      <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 pt-6 pb-16">
+      <div className={`mx-auto flex w-full max-w-lg flex-col gap-6 px-4 pt-6 ${tourDone ? "pb-16" : "pb-56"}`}>
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-medium tracking-widest text-muted">ON THIS PHONE</p>
@@ -50,6 +69,7 @@ export function NexusApp() {
         <Book />
         <Memory />
       </div>
+      {tourDone ? null : <Tour />}
     </main>
   );
 }
@@ -110,7 +130,7 @@ function Composer() {
   }
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Capture">
+    <section className="flex flex-col gap-3" aria-label="Capture" data-setup="composer">
       <label htmlFor="capture" className="text-sm font-medium">
         Text to act on
       </label>
@@ -171,6 +191,7 @@ function Findings() {
   const setPending = useNexus((s) => s.setPending);
   const saveCurrent = useNexus((s) => s.saveCurrent);
   const savePeople = useNexus((s) => s.savePeople);
+  const profile = useNexus((s) => s.profile);
   const [placeOverride, setPlaceOverride] = useState("");
   const [modelFill, setModelFill] = useState<ModelFill | null>(null);
   const [modelState, setModelState] = useState("unavailable");
@@ -192,6 +213,7 @@ function Findings() {
     people,
     places,
     model: modelFill ?? undefined,
+    dial: profile.dial,
   };
   const automatic = plan(draft, reply, shared);
   const result = automatic.place ? automatic : plan(draft, reply, { ...shared, place: placeOverride });
@@ -225,7 +247,7 @@ function Findings() {
     : null;
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Actions">
+    <section className="flex flex-col gap-3" aria-label="Actions" data-setup="actions">
       {draft.trim() ? (
         <div className="rounded-lg border border-line bg-elevated px-4 py-3">
           <p className="text-xs text-faint">Found on device</p>
