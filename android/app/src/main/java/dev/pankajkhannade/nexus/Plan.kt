@@ -5,8 +5,11 @@ enum class Ask { CALL, MESSAGE }
 
 enum class PlaceKind { HOME, OFFICE, ADDRESS }
 
-/** One end of a ride. [place] may be unset when the user named Home/Office before saving it. */
-data class Stop(val kind: PlaceKind, val place: Place)
+/**
+ * One end of a ride. [place] may be unset when the user named Home/Office before saving it.
+ * [label] is a short name for the cab app ("Swargate"), sent to Uber as the drop-off nickname.
+ */
+data class Stop(val kind: PlaceKind, val place: Place, val label: String = "")
 
 /** A ride request. "Pick me up at home" has a pickup and no drop-off; "go home" has a drop-off. */
 data class Trip(val pickup: Stop? = null, val dropoff: Stop? = null)

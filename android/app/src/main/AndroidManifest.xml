@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Places a call to a saved person after a visible 3-second Stop. Falls back to the dial pad if denied. -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- "Sunil la phone lav" for anyone in the phone book. Asked at first need; read on the phone, kept in memory only, never uploaded. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />

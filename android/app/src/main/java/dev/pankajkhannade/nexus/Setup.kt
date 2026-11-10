@@ -186,6 +186,7 @@ private fun FamilyStep(model: NexusViewModel) {
             }, kind = ButtonKind.Quiet)
         }
         note?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge) }
+        PhoneBookOption()
         val reason = when {
             people.isEmpty() -> R.string.need_one_person
             people.none { it.askFamily } -> R.string.need_ask_family
@@ -203,6 +204,23 @@ private fun FamilyStep(model: NexusViewModel) {
             onSave = { d -> model.putSetupPerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias).also { if (it) editing = null } },
             duplicateOf = { phone -> model.setupPeople.firstOrNull { it.phone == phone && it.id != draft.original?.id }?.name },
         )
+    }
+}
+
+/** Setup option: let the parent call anyone in the phone book by name. Contacts stay on the phone. */
+@Composable
+private fun PhoneBookOption() {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(granted(context, Manifest.permission.READ_CONTACTS)) }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> on = ok }
+    OutlinedPanel {
+        Text("📒  " + stringResource(R.string.setup_contacts_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.setup_contacts_body), style = MaterialTheme.typography.bodyLarge)
+        if (on) {
+            Text(stringResource(R.string.setup_contacts_on), style = MaterialTheme.typography.titleMedium, color = NexusColors.Call)
+        } else {
+            BigButton(stringResource(R.string.setup_contacts_allow), { ask.launch(Manifest.permission.READ_CONTACTS) }, kind = ButtonKind.Secondary)
+        }
     }
 }
 

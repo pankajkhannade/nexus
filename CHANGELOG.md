@@ -4,6 +4,29 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Real-phone feedback 1 (2026-11-10) — fix/real-phone-feedback-1
+Pankaj tested the APK on his phone and reported three gaps. All three are fixed here.
+
+**Fixed: the recorder cut off mid-message.**
+- Root cause: `Listener` ran one SpeechRecognizer session per command. The recogniser ends a session at the first natural pause (often 1–2 s). The 8 s silence extra we set is documented as "may have no effect" and Google's service ignores it. On top of that, `onError` (usually ERROR_NO_MATCH or ERROR_SPEECH_TIMEOUT, even after words had shown) called `onDone(null)`, which threw away the partial words, and "Speak again" ignored partial results entirely.
+- `Speech.kt`: a `SpeechEngine` interface (`AndroidSpeechEngine` creates a fresh recogniser for each session, with a watchdog for recognisers that go silent) and a `ContinuousListener`. It restarts after early cut-offs, joins every piece of text, never drops partial words, and recreates the recogniser on ERROR_RECOGNIZER_BUSY or ERROR_CLIENT. It stops on Done, on a whole command, after 3.5 s of quiet (command) or 4 s (dictation), and at 60 s. It never stops on quiet right after a joiner (आणि, की, and, ki, सांग…).
+- Requests 5 hypotheses (`EXTRA_MAX_RESULTS`), and the parser runs over all of them. Also sets `EXTRA_LANGUAGE_PREFERENCE` (mr-IN, hi-IN or en-IN), `EXTRA_BIASING_STRINGS` with saved and phone-book names on Android 13+, and silence hints of 4 s / 3.5 s / 2 s.
+- Listening screen: a big "Listening…" with the live words in large type, a big green "✓ Done / झालं / हो गया" and Stop. "Speak again" on the message screen and the feedback "Speak answer" work the same way.
+- `Commands.kt`: an `IntentParser` seam (`RuleIntentParser`), so a smarter parser can replace the rules later.
+
+**Added: call or message anyone in the phone book.**
+- `READ_CONTACTS` is asked at first need, with a full-screen explanation in the parent's language, then Android's dialog. There is also an "Allow phone book" option in setup. The call-log permission is not requested.
+- `Contacts.kt`: `ContactsSource` (`AndroidContactsSource` reads name, numbers, starred and times contacted), with the index held in memory only. Matching uses Devanagari and Latin sound keys, sets aside honorifics and family titles (ji, जी, saheb, kaka, tai, dada…; a matching title is a small bonus), and scores with Jaro-Winkler plus prefix and token alignment. Saved Nexus people always come first. Landlines are kept for calls.
+- One clear exact match goes straight to the 3-second countdown. A clear but inexact match asks "Call X?". Close matches (two Rahuls), or one unsure match, show **"Which one? / यांपैकी कोण? / इनमें से कौन?"** with up to 3 big choices and the last 4 digits of each number. No match shows "I couldn't find X in your phone book" with Open the dial pad. Unsure matches are never auto-dialled.
+- Dictated messages find unsaved recipients in the phone book too ("सुनीलला सांग की…"). If there are several, the message screen lists them.
+
+**Added: rides to anywhere, by voice or by typing.**
+- `Destination.kt`: `readDestination` understands "स्वारगेटला जायचं आहे", "मला दीनानाथ हॉस्पिटलला जायचं", "mujhe station jana hai", "Phoenix mall jaana hai rickshaw", "take me to Pune airport", "cab book kar Kothrud la" and more. "ghar jana hai" still goes home, and "office" uses the saved office. Calls, messages and Near home phrases are never read as rides.
+- `PlaceFinder` (`AndroidPlaceFinder`: the Android Geocoder within about 50 km of home first, then up to about 100 km; Devanagari is retried in Latin). "Where to? / कुठे जायचं?" shows up to 3 places, each with a big "इथे जायचं / Go here", and reads the first back ("दीनानाथ मंगेशकर हॉस्पिटल, एरंडवणे. इथे जायचं?"). If nothing is found, the spoken words go to the cab app as the search text.
+- Ride screen: "Go to X", with pickup from where the parent is now. Uber gets the drop-off coordinates plus `dropoff[nickname]`. Ola, Rapido and Namma Yatri get the address copied. Google Maps directions appear when no cab app is installed. A typed "📍 Somewhere else" works on every Ride screen, and the Ride tile works without a home address.
+
+**Tests:** 308 JVM tests (up from 237): `ContinuousListenerTest` (16, with a fake recogniser and a fake clock), `ListeningUiTest` (4), `ContactsTest` (22), `ContactsUiTest` (10, fake contacts provider), `DestinationTest` (8, with 20 phrases and 14 guard phrases), `RideToUiTest` (8, fake Geocoder) and 3 new Roborazzi screenshot tests (listening in en, which contact in mr, destination confirm in mr), and the Ride home goldens were re-recorded for the new "Somewhere else" button.
+
 ### Voice architecture research (2026-11-10) — docs/voice-research
 **Added**
 - `docs/voice-architecture.md`: an evidence-based decision doc for voice. It finds the root causes of the mid-message cut-off: a single-shot SpeechRecognizer session, an ignored silence extra, and partial text discarded on error. It compares STT options (Google SpeechRecognizer, ML Kit GenAI, Sarvam Saaras v3, Chirp 3, Gemini audio, Whisper, IndicConformer, sherpa-onnx, Vosk, Bhashini) and picks rules first with an opt-in, text-only cloud LLM fallback (≈₹15–26 per 1,000 fallback calls). It also covers phone-book matching, Places-based destinations, elderly end-of-turn timings, phased remote help, and the Voice-60 test set and metrics.

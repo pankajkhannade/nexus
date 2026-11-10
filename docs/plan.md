@@ -4,10 +4,10 @@
 
 ## Status (2026-11-10)
 
-**Done.** Phase 1 screens S1–S13, the fast JVM test suite (Robolectric + Roborazzi), S14 voice-dictated WhatsApp and SMS messages (PR #6), and S15 Near home (PR #7). 237 JVM tests pass (about 20 s warm). Main has all of this. A debug APK is ready to sideload. There is no Play Store release yet.
+**Done.** Phase 1 screens S1–S13, the fast JVM test suite (Robolectric + Roborazzi), S14 voice-dictated WhatsApp and SMS messages (PR #6), S15 Near home (PR #7), and the fixes from Pankaj's first real-phone feedback (fix/real-phone-feedback-1): continuous listening (no mid-message cut-off), calling and messaging anyone in the phone book, and rides to any place by voice or typing. 308 JVM tests pass (about 20 s warm). Main has all of this. A debug APK is ready to sideload. There is no Play Store release yet.
 
 **Next.**
-1. Pankaj's real-phone test (cabs, home geocoding, WhatsApp keeping Marathi text, Marathi voice, a real scam screenshot, Near home Installed tags and Play Store links).
+1. Pankaj's second real-phone test: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot).
 2. Native Hindi and Marathi review of the app's strings.
 3. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
 4. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
@@ -20,7 +20,7 @@ Nexus is the family co-pilot for your parents' Android phone: they speak in thei
 - Repo: github.com/pankajkhannade/nexus, native app in android/, package dev.pankajkhannade.nexus
 - Parent mode, child-assisted setup, calls, dictated WhatsApp/SMS, ride home (Uber, Ola, Rapido, Namma Yatri), Near home tiles, "Is this safe?", "Ask family", family settings with usage export, day-3 / day-7 feedback, Privacy screen
 - Debug APK for sideload only. No Play release.
-- 237 JVM tests (logic + Robolectric Compose UI + Roborazzi). See `docs/testing.md`.
+- 308 JVM tests (logic + Robolectric Compose UI + Roborazzi). See `docs/testing.md`.
 - Play needs: signed AAB, upload key Pankaj keeps, Play Console account (paid, needs Pankaj's yes), privacy policy at a public URL, Data safety form
 
 ## Riskiest assumptions
@@ -37,7 +37,7 @@ Magic moment candidate: the parent says a sentence in Marathi and a call or a pr
 
 ## Milestones
 1. ~~Phase 1 S1–S13, fast tests, S14, S15~~ **done (2026-11-10)**
-2. Pankaj's real-phone test and native hi/mr review, then fix what breaks
+2. Pankaj's real-phone test and native hi/mr review, then fix what breaks. ~~Round 1 (voice cut-off, phone book, rides anywhere)~~ **fixed 2026-11-10**; round 2 pending
 3. Release prep: signed AAB, upload key, privacy policy URL, Data safety form
 4. Play closed test: 12 testers (6 parent-child pairs) for 14 days (Console fee needs Pankaj's yes)
 5. Exit metric, then Phase 2 (paid family plan with the child's app) or a rethink

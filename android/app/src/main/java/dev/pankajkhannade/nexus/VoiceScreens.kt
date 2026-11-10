@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -30,20 +32,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-/** S6 Listening. Says plainly whether speech stays on the phone or goes to the speech service. */
+/**
+ * S6 Listening. A big "Listening…", the words so far in large type as they come, a big Done and a Stop.
+ * Pauses don't end it: Nexus keeps listening until Done, a whole command, a quiet spell or 60 seconds.
+ * Says plainly whether speech stays on the phone or goes to the speech service.
+ */
 @Composable
 fun ListeningScreen(model: NexusViewModel) {
     Centered {
         Text("🎤", fontSize = 72.sp)
         BigCentredText(stringResource(R.string.listening))
+        LiveWords(model.heard)
         Text(
             stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.voice_on_device else R.string.voice_online),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (model.heard.isNotBlank()) {
-            Text("“${model.heard}”", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-        }
+        BigButton("✓  " + stringResource(R.string.listening_done), { model.doneListening() }, kind = ButtonKind.Call)
         BigButton(stringResource(R.string.stop), { model.cancelListening() }, kind = ButtonKind.Secondary)
+    }
+}
+
+/** The words heard so far, large, read out by TalkBack as they change. A hint until the first word. */
+@Composable
+fun LiveWords(words: String) {
+    OutlinedPanel(Modifier.testTag("listening_words")) {
+        Text(
+            if (words.isBlank()) stringResource(R.string.listening_hint) else "“$words”",
+            style = MaterialTheme.typography.headlineMedium,
+            color = if (words.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
     }
 }
 
@@ -112,4 +130,59 @@ fun CallingScreen(model: NexusViewModel, person: Person) {
         }
         BigButton(stringResource(R.string.stop), { model.speaker.stop(); model.screen = Screen.Home }, kind = ButtonKind.Secondary)
     }
+}
+
+/** Phone book "Which one?": up to 3 big choices with the number's last digits, so two Rahuls differ. */
+@Composable
+fun ChooseContactScreen(model: NexusViewModel, choose: Screen.ChooseContact) {
+    ScreenColumn {
+        BigCentredText(stringResource(R.string.which_one))
+        Text(stringResource(R.string.heard_x, choose.name), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        choose.options.forEach { person -> ContactChoice(person) { model.chooseContact(person, choose.ask) } }
+        BigButton(stringResource(R.string.none_of_these), { model.screen = Screen.ContactNotFound(choose.name) }, kind = ButtonKind.Secondary)
+        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
+    }
+}
+
+/** One big tappable contact: initial, name, "Number ending 3210". */
+@Composable
+fun ContactChoice(person: Person, onClick: () -> Unit) {
+    val ending = stringResource(R.string.number_ending, numberEnding(person.phone))
+    OutlinedPanel(
+        Modifier
+            .heightIn(min = 96.dp)
+            .clickable(onClickLabel = person.name, onClick = onClick)
+            .semantics(mergeDescendants = true) { },
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Avatar(person.name, 64.dp)
+            Column {
+                Text(person.name, style = MaterialTheme.typography.headlineSmall)
+                Text(ending, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/** Phone book: nobody by that name. Never a dead end: the dial pad, speak again, or back. */
+@Composable
+fun ContactNotFoundScreen(model: NexusViewModel, name: String, onSpeak: () -> Unit) {
+    val context = LocalContext.current
+    Centered {
+        Text("📒", fontSize = 56.sp)
+        BigCentredText(stringResource(R.string.contact_not_found, name))
+        BigButton("📞  " + stringResource(R.string.open_dial_pad), { openDial(context, ""); model.screen = Screen.Home }, kind = ButtonKind.Call)
+        BigButton("🎤  " + stringResource(R.string.speak_again), onSpeak, kind = ButtonKind.Secondary)
+        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
+    }
+}
+
+/** Phone book permission, asked at first need in the parent's language, before Android's own dialog. */
+@Composable
+fun ContactsPermissionScreen(model: NexusViewModel, ask: Screen.ContactsPermission, onAllow: () -> Unit) {
+    LaunchedEffect(ask) { model.speak(R.string.contacts_why, ask.name) }
+    PermissionCard(
+        "📒", stringResource(R.string.contacts_title), stringResource(R.string.contacts_why, ask.name),
+        stringResource(R.string.contacts_stays), onAllow = onAllow, onNotNow = { model.contactsAnswered(false) },
+    )
 }

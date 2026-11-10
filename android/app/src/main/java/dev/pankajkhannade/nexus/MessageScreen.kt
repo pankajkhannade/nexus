@@ -1,6 +1,8 @@
 package dev.pankajkhannade.nexus
 
 import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,13 +45,20 @@ fun MessageScreen(model: NexusViewModel) {
     LaunchedEffect(model.draftVersion) { model.speakDraft() }
     val canSpeak = granted(context, Manifest.permission.RECORD_AUDIO) && model.voiceMode != VoiceMode.UNAVAILABLE
     val person = draft.person
+    val contactsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) model.resolveDraftRecipient()
+    }
 
     ScreenColumn {
         if (person == null) {
             BigCentredText(stringResource(R.string.msg_who))
             draft.askedName?.let {
                 Text(stringResource(R.string.msg_who_unknown, it), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!model.hasContactsPermission()) {
+                    BigButton(stringResource(R.string.msg_find_in_contacts), { contactsLauncher.launch(Manifest.permission.READ_CONTACTS) }, kind = ButtonKind.Secondary)
+                }
             }
+            model.draftChoices.forEach { p -> ContactChoice(p) { model.setDraftPerson(p) } }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = 2) {
                 model.saved.people.forEach { p ->
                     Column(
@@ -95,7 +104,13 @@ fun MessageScreen(model: NexusViewModel) {
             }
         }
 
-        if (model.dictating) Text(stringResource(R.string.listening), style = MaterialTheme.typography.titleLarge)
+        if (model.dictating) {
+            Text("🎤  " + stringResource(R.string.listening), style = MaterialTheme.typography.headlineSmall)
+            LiveWords(model.dictationLive)
+            BigButton("✓  " + stringResource(R.string.listening_done), { model.doneDictating() }, kind = ButtonKind.Call)
+            BigButton(stringResource(R.string.stop), { model.stopDictating() }, kind = ButtonKind.Secondary)
+            return@ScreenColumn
+        }
         if (canSpeak && !editing) {
             BigButton("🎤  " + stringResource(R.string.speak_again), { model.dictateAgain() }, kind = ButtonKind.Secondary, enabled = !model.dictating)
         }

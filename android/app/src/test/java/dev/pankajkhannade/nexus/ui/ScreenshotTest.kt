@@ -178,4 +178,43 @@ class ScreenshotTest {
         compose.waitForIdle()
         com.github.takahirom.roborazzi.captureScreenRoboImage("src/test/roborazzi/near_setup_dropdown_en.png")
     }
+
+    // ---- Real-phone feedback 1: listening, phone book, destinations ----
+    @Test fun listeningLiveWords_en() {
+        val fake = dev.pankajkhannade.nexus.FakeSpeechEngine()
+        val model = newModel(people = 1)
+        model.useSpeechEngine(fake) { fake.clock }
+        model.startListening()
+        fake.partial("WhatsApp Pankaj and tell him")
+        fake.error(android.speech.SpeechRecognizer.ERROR_NO_MATCH)
+        fake.partial("when will you come home")
+        compose.setParent { dev.pankajkhannade.nexus.ListeningScreen(model) }
+        shot("listening_live_en")
+    }
+
+    @Config(qualifiers = "+mr")
+    @Test fun whichContact_mr() {
+        val model = newModel(people = 1)
+        model.contacts = dev.pankajkhannade.nexus.FakeContacts()
+        model.io = kotlinx.coroutines.Dispatchers.Unconfined
+        model.understood("राहुलला फोन लाव", typed = true)
+        val choose = model.screen as dev.pankajkhannade.nexus.Screen.ChooseContact
+        compose.setParent { dev.pankajkhannade.nexus.ChooseContactScreen(model, choose) }
+        shot("which_contact_mr")
+    }
+
+    @Config(qualifiers = "+mr")
+    @Test fun destinationConfirm_mr() {
+        val model = newModel(people = 1, home = "Baner, Pune")
+        model.placeFinder = dev.pankajkhannade.nexus.PlaceFinder { _, _, _ ->
+            listOf(
+                dev.pankajkhannade.nexus.Place("दीनानाथ मंगेशकर हॉस्पिटल, एरंडवणे", 18.5089, 73.8323),
+                dev.pankajkhannade.nexus.Place("दीनानाथ मंगेशकर हॉस्पिटल ओपीडी, कर्वे रोड", 18.5080, 73.8310),
+            )
+        }
+        model.io = kotlinx.coroutines.Dispatchers.Unconfined
+        model.understood("मला दीनानाथ हॉस्पिटलला जायचं", typed = true)
+        compose.setParent { dev.pankajkhannade.nexus.DestinationScreen(model) }
+        shot("destination_confirm_mr")
+    }
 }

@@ -10,6 +10,13 @@ Nexus is a family co-pilot for a parent's Android phone. It has no account, no s
 ## Voice
 - When the parent presses Speak, Android's speech recogniser turns the voice into words. On phones that support on-device recognition for the chosen language, this stays on the phone. Otherwise Google's speech service may use the internet. The Privacy screen shows which one applies on this phone.
 - Nexus keeps the recognised words only long enough to act on them. It never saves a recording.
+- On Android 13 and later, the names of your saved people and phone-book contacts are passed to the phone's speech recogniser as hints ("expect these names"). They go only to that recogniser, the same one that hears your voice.
+
+## Phone book (contacts)
+- When the parent says a name that isn't saved in Nexus ("सुनीलला फोन लाव"), Nexus asks to look in the phone book. It explains why in the parent's language before Android's own permission dialog. The child can also allow it during setup. Saying "Not now" just means only saved people can be called by name.
+- With permission, Nexus reads contact names and numbers (plus "starred", to break ties) **on the phone**, keeps that list **in memory only** while the app is open, and matches the spoken name against it on the phone.
+- Contacts are **never uploaded, never sent to any server or AI service, and never saved** to Nexus's storage or backups. Closing the app drops the list.
+- Nexus does not ask for the call-log permission.
 
 ## Dictated WhatsApp and SMS messages
 - The parent can say who to message, which app to use, and what to say. Nexus tidies the wording with on-device rules (it does not send the text to a server or an AI service).
@@ -33,6 +40,10 @@ Nexus is a family co-pilot for a parent's Android phone. It has no account, no s
 - Emergency opens the dial pad with 108 ready. It never places that call by itself.
 - "Export my usage" shows the exact text first, then opens the Android share sheet.
 
+## Rides to a place
+- When the parent says or types a place ("स्वारगेटला जायचं"), the phone's own location service (Android Geocoder) looks it up near the home coordinates, which may use the internet. Nexus doesn't keep the results after the ride screen closes.
+- The chosen place is handed to the cab app (Uber gets the coordinates and a short name; Ola, Rapido and Namma Yatri get the address on the clipboard) or to Google Maps. The parent confirms the ride there.
+
 ## Internet use
 - **Address suggestions** while typing a home address send the typed text to a map search service (ArcGIS geocoding suggest) to list matches.
 - **Placing home on the map:** the saved address is turned into coordinates by the phone's own location service (Android Geocoder), which may use the internet. The coordinates are stored only on the phone and are used to prefill Uber's drop-off and to centre Near home Maps searches.
@@ -41,9 +52,10 @@ Nexus is a family co-pilot for a parent's Android phone. It has no account, no s
 ## Other apps
 - Opening Uber, Ola, Rapido, Namma Yatri, Maps, the dialer, WhatsApp, SMS, a grocery, medicine, doctor or home-service app, or the Play Store, hands the address, number, search or package name to that app. Fares, calls, orders and messages are confirmed there.
 - Nexus does not read the screens of other apps and cannot see cab fares or place orders in Blinkit, Zepto, Instamart or similar apps.
-- Contacts: people are chosen with the system contact picker, so Nexus reads only the contact you pick and does not need the Contacts permission.
+- Contacts: in setup, people are chosen with the system contact picker, which needs no permission. Calling or messaging anyone else by name uses the phone book permission above.
 
 ## Permissions
 - Microphone: only while Speak is pressed.
 - Phone calls (`CALL_PHONE`): to place a call after the visible 3-second Cancel. Without it, the dialer opens instead. Emergency (108) always uses the dial pad, not this permission.
-- Internet: for the address and speech services above.
+- Contacts (`READ_CONTACTS`): only if allowed, to call or message anyone in the phone book by name. Read on the phone, kept in memory, never uploaded or saved.
+- Internet: for the address, place and speech services above.

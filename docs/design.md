@@ -564,6 +564,26 @@ Pankaj: parents don't know which apps exist for groceries, rides, medicines, nea
 - **Voice:** need words in mr/hi/en/Hinglish route to the tile after call, message and ride-home parsing (see `readNeed`).
 - Screenshots: `screens/phase1-parent/32-near-home-mr.png`, `33-near-home-en.png`, `34-near-emergency-mr.png`, `35-near-setup-dropdown-en.png`.
 
+### Real-phone feedback 1 (added 2026-11-10)
+
+**S6 Listening, revised.** Pankaj: "the voice message is midway and the recorder disconnects."
+- Layout top to bottom: 🎤, a big "Listening… / ऐकतोय… / सुन रहा हूँ…", then a bordered panel with the words so far in headlineMedium (a hint until the first word: "Speak now. Take your time, then tap Done."), the on-device or online line, a green Call-style "✓ Done / झालं / हो गया", and Stop (Secondary).
+- Behaviour: pauses never end it. Nexus restarts the recogniser under the hood and keeps all the words. It ends by itself once the words are a whole call, ride or need, after 3.5 s of quiet (4 s for a message), or at 60 s. It never ends right after "आणि / की / and". Done acts on everything heard. Stop drops it.
+- The same pattern is used for "Speak again" on the message screen (live words, Done, Stop, in place of the message panel) and the feedback "Speak answer" (the button becomes Done).
+- Screenshot: `screens/phase1-parent/36-listening-live-en.png`.
+
+**Which one? (phone book).** Pankaj: "show me the contact whose name I am saying to call, not just the one I saved."
+- The first time a name isn't one of the saved people, a full-screen card explains in the parent's language: "📒 Your phone book. To call or message “Sunil”, Nexus needs to look in your phone book. Your contacts stay on this phone." Then Allow or Not now. Setup step 2 has an "Allow phone book" panel too.
+- One clear exact match goes straight to the 3-second countdown. A clear but inexact match ("Patil") goes to "Call Sunil Patil?". Close matches show **"यांपैकी कोण? / इनमें से कौन? / Which one?"** with "Heard: “राहुल”" and up to 3 large cards (initial, name, "नंबरच्या शेवटी 4441"), then "None of these" and Back.
+- No match: "📒 I couldn't find “Suresh” in your phone book.", a green "📞 Open the dial pad", Speak again and Back.
+- Screenshot: `screens/phase1-parent/37-which-contact-mr.png`.
+
+**Where to? (rides anywhere).** Pankaj: "if I want to book a ride somewhere outside my home… via the voice call itself."
+- Saying a place opens "📍 कुठे जायचं? / Where to?" with "Heard: “दीनानाथ हॉस्पिटल”", then up to 3 place cards. Each shows the place name and area in headlineSmall and a big "इथे जायचं / Go here" (the first green). The first place is read back: "दीनानाथ मंगेशकर हॉस्पिटल, एरंडवणे. इथे जायचं?". A Quiet "Search “…” in the cab app" passes the words on as said. With no map result, that becomes the primary button.
+- The Ride screen title becomes "🚕 Go to <place>", with a panel showing "Going to" plus "Pickup: where you are now". It has the same one big cab button and "Other app". With no cab app installed, it offers "Ask <child>" (prefilled "Please book me a ride to …") and "🗺 Directions in Google Maps".
+- Every Ride screen has a Secondary "📍 Somewhere else" that opens a place field with Find. Without a home address, the field shows straight away.
+- Screenshot: `screens/phase1-parent/38-destination-confirm-mr.png`.
+
 ## 5. Open risks and decisions for Pankaj
 - **Marathi voice may not work on-device** on most Rs 10-25k phones. The fallback is online Google recognition, disclosed in the copy. If Marathi accuracy is poor in testing, Marathi UI and TTS stay, with Hindi or English voice, and tapping faces remains the main path.
 - **`ACTION_CALL` instead of the dialer.** I'm proposing it (one fewer tap, a 3s Cancel). Pankaj can veto it.
