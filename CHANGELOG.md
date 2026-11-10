@@ -4,6 +4,20 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Phase 1 milestone B: parent mode S8-S13 (2026-11-10) — phase1/parent-mode
+**Fixed**
+- S12 feedback card: answering Q1 closed the round, so Q2 ("What would make it easier?") never showed. A round now closes when Q2 is saved or skipped, or after two skips of Q1; closed rounds are stored.
+- Typed commands in Family settings no longer count as voice commands in the usage counts.
+- A screenshot from an earlier "Is this safe?" check is deleted when Nexus starts.
+
+**Added**
+- S8/S9: 16 more scam tests from real Indian patterns (Hinglish "OTP batao", Hindi lottery, Marathi KYC and new-number money asks, courier/customs digital arrest, TeamViewer, OLX QR "receive" scams, lookalike bank domains) plus normal family, bank-debit and Ola-OTP messages that must stay quiet; a check that the mildest verdict never says "safe" in en/hi/mr; Ask-family quoting.
+- S10 Ride home: last-used cab app as the one big button, "Other app" for the rest, a note when the address will be copied, and "Ask <family>" by WhatsApp/SMS when no cab app is installed. Saying "ghar jana hai" / "घरी जायचं आहे" / "take me home" opens it.
+- S11 Family settings: Undo for a changed home address (people already had Undo), "Test the mic", rides and WhatsApp opens in the usage counts.
+- S12: "Speak answer" for Q2 when the mic is allowed.
+- S13 Privacy: five cards (what is saved, voice, messages you check, nothing is shared by itself, internet use) in en/hi/mr; the voice card says what this phone actually does. `PRIVACY.md` rewritten for parent mode.
+- Tests: 13 Robolectric Compose UI tests for S10-S13 and 8 Roborazzi screenshots (S10-S13, en and mr). 155 JVM tests in total. Each UI test now starts from empty usage and feedback so screenshots don't depend on test order.
+
 ### Testing: fast JVM UI tests (2026-11-10) — testing/fast-ui-tests
 **Added**
 - Robolectric 4.16 + Compose UI test rule: 16 UI tests for parent home (4 people, call, WhatsApp, ride), the person sheet validation, the 3-second call countdown (Stop, dialer fallback, direct call with permission, spoken in the parent's language) and the "Is this safe?" verdict and Ask-family hand-off. Intents are captured on the JVM; nothing launches.
