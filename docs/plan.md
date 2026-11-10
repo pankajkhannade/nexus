@@ -9,7 +9,7 @@
 **Analytics (2026-11-11, feat/analytics).** On-device event log, the metrics maths, How Nexus is doing (en/hi/mr), Share test summary with a tester tag, Delete all usage data, and the opt-in daily upload to our own Worker (live at nexus-metrics.safe2eat-api.workers.dev, free tier). `node scripts/metrics-report.mjs` prints the cohort table. 356 JVM tests + 11 Worker tests. Definitions and targets: `docs/metrics.md`.
 
 **Next.**
-1. Pankaj's second real-phone test: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot).
+1. Pankaj's second real-phone test, using the new leave-behind practice (call, message, ride home) with a parent: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot).
 2. Native Hindi and Marathi review of the app's strings.
 3. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
 4. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.

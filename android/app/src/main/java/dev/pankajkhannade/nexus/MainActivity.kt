@@ -228,6 +228,11 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     /** True while the setup "Try it" step is running, so success finishes setup. */
     var tryingInSetup by mutableStateOf(false)
 
+    /** Index into [practiceTasks], or -1 when the leave-behind check is not on screen. Size means the result card. */
+    var practiceIndex by mutableStateOf(-1)
+    var practiceResults by mutableStateOf<List<Boolean>>(emptyList())
+    var practiceHint by mutableStateOf(PRACTICE_NONE)
+
     // ---- Dictated messages ----
     var draft by mutableStateOf<Dictation?>(null)
         private set
@@ -258,6 +263,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             if (!saved.setupDone) startSetupClock()
             if (uploadOn) { analyticsPrefs.language = language; MetricsUpload.schedule(app) }
             if (saved.setupDone) record(Event.OPEN)
+            if (saved.setupDone && !saved.practiceDone) startPractice()
             if (saved.home.isSet && !saved.home.hasCoordinates) locate(saved.home.address)
             refreshVoiceMode()
             // Warm the in-memory phone-book index so names can bias the recogniser.
@@ -376,6 +382,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                 pincode = cleanPincode(setupPincode) ?: pincodeIn(setupHome).orEmpty(),
                 services = setupServices - Need.RIDE.key,
                 lastCab = CabApp.entries.firstOrNull { it.pkg == setupServices[Need.RIDE.key] }?.id ?: saved.lastCab,
+                practiceDone = false,
             ),
         )
         locate(setupHome)
@@ -384,6 +391,40 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             track(EventType.SETUP_DONE, lang = Lang.of(setupLanguage), ms = if (setupStartedAt > 0) nowMs - setupStartedAt else null)
         }
         applyLanguage(setupLanguage)
+    }
+
+    /** The child stays for a call, a message, and (if home is set) the ride home. Nothing is opened during it. */
+    fun startPractice() {
+        val tasks = practiceTasks(saved)
+        practiceResults = List(tasks.size) { false }
+        practiceHint = PRACTICE_NONE
+        practiceIndex = 0
+        screen = Screen.Home
+    }
+
+    fun nextPractice() {
+        practiceHint = PRACTICE_NONE
+        val last = practiceTasks(saved).lastIndex
+        practiceIndex = if (practiceIndex >= last) practiceTasks(saved).size else practiceIndex + 1
+    }
+
+    fun skipPracticeTask() {
+        practiceHint = PRACTICE_NONE
+        nextPractice()
+    }
+
+    fun retryPractice() {
+        practiceResults = List(practiceTasks(saved).size) { false }
+        practiceHint = PRACTICE_NONE
+        practiceIndex = 0
+        screen = Screen.Home
+    }
+
+    fun finishPractice() {
+        practiceIndex = -1
+        practiceHint = PRACTICE_NONE
+        if (!saved.practiceDone) update(saved.copy(practiceDone = true))
+        screen = Screen.Home
     }
 
     fun applyLanguage(lang: String) {
@@ -594,6 +635,30 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             ok = command != Command.Unknown, ms = if (typed || voiceStartedAt == 0L) null else nowMs - voiceStartedAt,
         )
         if (text.isNotEmpty() && !typed) record(Event.VOICE)
+        val practiceTask = practiceTasks(saved).getOrNull(practiceIndex)
+        if (practiceTask != null) {
+            when {
+                command == Command.Unknown -> {
+                    voiceFails += 1
+                    if (!typed) record(Event.VOICE_FAIL)
+                    practiceHint = PRACTICE_MISSED
+                    speak(R.string.practice_missed)
+                }
+                practicePasses(practiceTask, command) -> {
+                    voiceFails = 0
+                    practiceResults = practiceResults.toMutableList().also { if (practiceIndex in it.indices) it[practiceIndex] = true }
+                    practiceHint = PRACTICE_YES
+                    speak(R.string.practice_yes)
+                }
+                else -> {
+                    voiceFails = 0
+                    practiceHint = PRACTICE_WRONG
+                    speak(R.string.practice_wrong)
+                }
+            }
+            screen = Screen.Home
+            return
+        }
         if (command == Command.Unknown) {
             voiceFails += 1
             if (!typed) record(Event.VOICE_FAIL)

@@ -64,6 +64,7 @@ private fun encode(saved: Saved): String {
         .put("people", people)
         .put("pincode", saved.pincode)
         .put("services", JSONObject(saved.services as Map<*, *>))
+        .put("practiceDone", saved.practiceDone)
         .toString()
 }
 
@@ -99,6 +100,7 @@ private fun decode(raw: String): Saved {
         people = people,
         pincode = json.optString("pincode"),
         services = json.optJSONObject("services")?.let { s -> s.keys().asSequence().associateWith { s.optString(it) } }.orEmpty(),
+        practiceDone = if (json.has("practiceDone")) json.optBoolean("practiceDone") else true,
     )
 }
 

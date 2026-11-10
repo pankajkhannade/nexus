@@ -391,7 +391,6 @@ private fun PermissionsStep(model: NexusViewModel) {
     var callDone by remember { mutableStateOf(granted(context, Manifest.permission.CALL_PHONE)) }
     val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> micDone = true; model.markMicAsked(); model.permissionAnswered(Perm.MIC, ok) }
     val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> callDone = true; model.markCallAsked(); model.permissionAnswered(Perm.CALL, ok) }
-    val parent = context.inLanguage(model.setupLanguage)
     when {
         !micDone -> PermissionCard(
             "🎤", stringResource(R.string.mic_title), stringResource(R.string.mic_why_child),
@@ -405,18 +404,14 @@ private fun PermissionsStep(model: NexusViewModel) {
             onNotNow = { callDone = true; model.markCallAsked(); model.permissionAnswered(Perm.CALL, false) },
         )
         else -> ScreenColumn {
-            val askPerson = model.setupPeople.firstOrNull { it.askFamily }
             Text(stringResource(R.string.handover_title), style = MaterialTheme.typography.headlineMedium)
-            Text(
-                stringResource(R.string.handover_body, parent.getString(R.string.try_phrase, askPerson?.alias?.ifBlank { askPerson.name } ?: "")),
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            Text(stringResource(R.string.handover_body), style = MaterialTheme.typography.bodyLarge)
             if (!granted(context, Manifest.permission.RECORD_AUDIO)) {
                 Text(stringResource(R.string.mic_off_setup), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             BigButton(stringResource(R.string.handover_button), {
-                model.tryingInSetup = granted(context, Manifest.permission.RECORD_AUDIO)
                 model.finishSetup(guessCountry(context))
+                model.startPractice()
             })
         }
     }
