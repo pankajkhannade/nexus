@@ -25,9 +25,12 @@ Requirements: JDK 17+, Android SDK (platform 35, build-tools 35). The Gradle wra
 cd android
 echo "sdk.dir=$ANDROID_HOME" > local.properties   # if not already present
 ./gradlew assembleDebug          # APK: app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest      # JVM unit tests
+./gradlew testDebugUnitTest      # all JVM tests: logic + Robolectric Compose UI tests (~13 s warm)
+./gradlew verifyRoborazziDebug   # screenshot tests against app/src/test/roborazzi/ goldens
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
+
+UI checks run on the JVM first (Robolectric + Roborazzi); the emulator is only a short pre-release smoke. See [docs/testing.md](docs/testing.md).
 
 Package: `dev.pankajkhannade.nexus`. See [android/README.md](android/README.md) for sideload notes.
 

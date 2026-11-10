@@ -4,6 +4,15 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Testing: fast JVM UI tests (2026-11-10) — testing/fast-ui-tests
+**Added**
+- Robolectric 4.16 + Compose UI test rule: 16 UI tests for parent home (4 people, call, WhatsApp, ride), the person sheet validation, the 3-second call countdown (Stop, dialer fallback, direct call with permission, spoken in the parent's language) and the "Is this safe?" verdict and Ask-family hand-off. Intents are captured on the JVM; nothing launches.
+- Roborazzi 1.60.0 screenshot tests (parent home in English and Marathi, danger verdict in Marathi) with goldens in `android/app/src/test/roborazzi/`.
+- `docs/testing.md`: layered strategy, timings, conventions and fakes; the emulator is now only a final smoke.
+
+**Changed**
+- Gradle build cache and configuration cache on; parallel test forks; host tests on the debug variant only.
+
 ### Phase 1 Step 0: foundations (2026-11-10) — phase1/foundations
 **Fixed**
 - Phone numbers: one normaliser (`Phone.kt`) for setup, the edit screen, the contacts picker and stored data. 10-digit Indian numbers starting with 91 no longer lose the country code (9123456789 is now +919123456789, not +9123456789). Leading 0, spaces, dashes, brackets, +91/0091 are handled. Numbers saved by older builds are repaired on load.
