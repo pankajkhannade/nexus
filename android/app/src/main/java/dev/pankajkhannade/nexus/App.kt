@@ -58,6 +58,7 @@ fun NexusApp(model: NexusViewModel) {
                     screen == Screen.Listening -> model.cancelListening()
                     screen == Screen.Privacy -> model.screen = Screen.Settings
                     screen == Screen.Message -> model.cancelDraft()
+                    screen is Screen.NeedHelp || screen is Screen.Install || screen == Screen.Emergency -> model.screen = Screen.NearHome
                     else -> { model.clearCheck(); model.tryingInSetup = false; model.screen = Screen.Home }
                 }
             }
@@ -78,6 +79,10 @@ fun NexusApp(model: NexusViewModel) {
                     model.tryingInSetup -> TryItScreen(model, onSpeak)
                     screen is Screen.Safety -> SafetyScreen(model)
                     screen is Screen.Ride -> RideScreen(model)
+                    screen is Screen.NearHome -> NearHomeScreen(model)
+                    screen is Screen.NeedHelp -> NeedHelpScreen(model, screen.need)
+                    screen is Screen.Install -> InstallScreen(model, screen.need, screen.app)
+                    screen is Screen.Emergency -> EmergencyScreen(model)
                     screen is Screen.Settings -> SettingsScreen(model)
                     screen is Screen.Privacy -> PrivacyScreen(model) { model.screen = Screen.Settings }
                     else -> ParentHome(model, onSpeak, onSettings = { model.screen = Screen.Settings })

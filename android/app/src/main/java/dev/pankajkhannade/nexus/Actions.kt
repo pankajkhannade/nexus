@@ -74,14 +74,18 @@ fun copyToClipboard(context: Context, text: String) {
  * Looks up coordinates for a typed address with the phone's own Geocoder (no Nexus server).
  * Returns the place without coordinates when the phone has no geocoder or the lookup fails.
  */
+fun geocode(context: Context, address: String): Place = geocodeHome(context, address).first
+
+/** [geocode] plus the postal code the Geocoder found (the home PIN for S15), or null. */
 @Suppress("DEPRECATION")
-fun geocode(context: Context, address: String): Place {
+fun geocodeHome(context: Context, address: String): Pair<Place, String?> {
     val text = address.trim()
-    if (text.isEmpty() || !Geocoder.isPresent()) return Place(text)
+    if (text.isEmpty() || !Geocoder.isPresent()) return Place(text) to null
     return runCatching {
         val hit = Geocoder(context).getFromLocationName(text, 1)?.firstOrNull()
-        if (hit != null) Place(text, hit.latitude, hit.longitude) else Place(text)
-    }.getOrElse { Place(text) }
+        if (hit != null && hit.hasLatitude() && hit.hasLongitude()) Place(text, hit.latitude, hit.longitude) to hit.postalCode
+        else Place(text) to hit?.postalCode
+    }.getOrElse { Place(text) to null }
 }
 
 /**
@@ -138,7 +142,8 @@ fun openWhatsApp(context: Context, phone: String, body: String): Boolean {
     }
 }
 
-private fun openPlay(context: Context, pkg: String) {
+/** Opens the app's Play Store page: the Play app (market://), else the web page. */
+fun openPlay(context: Context, pkg: String) {
     val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
         context.startActivity(market)

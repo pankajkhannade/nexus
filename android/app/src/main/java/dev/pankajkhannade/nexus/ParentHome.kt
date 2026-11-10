@@ -45,7 +45,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** S5: the parent's daily screen. Up to 4 people, Check a message, Go home, and a sticky Speak bar. */
+/** S5: the parent's daily screen. Up to 4 people, Check a message, Go home, Near home (S15), and a sticky Speak bar. */
 @Composable
 fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Unit) {
     val context = LocalContext.current
@@ -67,6 +67,7 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
                 if (saved.home.isSet) {
                     BigButton("🚕  " + stringResource(R.string.go_home), { model.screen = Screen.Ride }, kind = ButtonKind.Secondary)
                 }
+                BigButton("📍  " + stringResource(R.string.near_home), { model.screen = Screen.NearHome }, kind = ButtonKind.Secondary)
                 if (model.notice.isNotEmpty()) Text(model.notice, style = MaterialTheme.typography.bodyLarge)
                 HoldToOpen(onSettings)
             }

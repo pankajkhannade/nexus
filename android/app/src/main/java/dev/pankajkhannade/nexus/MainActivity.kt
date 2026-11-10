@@ -36,6 +36,14 @@ sealed interface Screen {
     data object Privacy : Screen
     /** A dictated message waiting for the parent's OK ([NexusViewModel.draft]). */
     data object Message : Screen
+    /** S15 Near home: up to 6 need tiles. */
+    data object NearHome : Screen
+    /** S15: an app for the need plus the nearby maps search (Medicines, Doctor). */
+    data class NeedHelp(val need: Need) : Screen
+    /** S15: the picked app is no longer on the phone. */
+    data class Install(val need: Need, val app: ServiceApp) : Screen
+    /** S15: 108, family, nearest hospital. */
+    data object Emergency : Screen
 }
 
 class NexusViewModel(app: Application) : AndroidViewModel(app) {
@@ -63,6 +71,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     var setupLanguage by mutableStateOf("mr")
     var setupPeople by mutableStateOf<List<Person>>(emptyList())
     var setupHome by mutableStateOf("")
+    /** S15 setup step: need key -> picked package ("" = none), and the home PIN. */
+    var setupServices by mutableStateOf<Map<String, String>>(emptyMap())
+    var setupPincode by mutableStateOf("")
 
     // ---- Voice ----
     var voiceMode by mutableStateOf(VoiceMode.ONLINE)
@@ -126,7 +137,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     internal fun resetLocalDataForTest() {
         usage = Usage()
         feedback = Feedback()
-        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN"))
+        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap()))
         viewModelScope.launch { store.writeUsage(Usage()); store.writeFeedback(Feedback()) }
     }
 
@@ -184,6 +195,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                 countryCode = country.code,
                 home = Place(setupHome.trim()),
                 people = setupPeople,
+                pincode = cleanPincode(setupPincode) ?: pincodeIn(setupHome).orEmpty(),
+                services = setupServices - Need.RIDE.key,
+                lastCab = CabApp.entries.firstOrNull { it.pkg == setupServices[Need.RIDE.key] }?.id ?: saved.lastCab,
             ),
         )
         locate(setupHome)
@@ -234,7 +248,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val before = saved.home
         val trimmed = address.trim()
         if (trimmed == before.address) return {}
-        update(saved.copy(home = Place(trimmed)))
+        update(saved.copy(home = Place(trimmed), pincode = pincodeIn(trimmed).orEmpty()))
         locate(trimmed)
         return { update(saved.copy(home = before)) }
     }
@@ -246,11 +260,78 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val text = address.trim()
         if (text.isEmpty()) return
         viewModelScope.launch {
-            val place = withContext(Dispatchers.IO) { geocode(getApplication(), text) }
-            Log.i("NexusPlace", "HOME geocoded=${place.hasCoordinates} geocoderPresent=${android.location.Geocoder.isPresent()}")
-            if (!place.hasCoordinates || saved.home.address != text) return@launch
-            update(saved.copy(home = place))
+            val (place, postal) = withContext(Dispatchers.IO) { geocodeHome(getApplication(), text) }
+            Log.i("NexusPlace", "HOME geocoded=${place.hasCoordinates} pin=${postal != null} geocoderPresent=${android.location.Geocoder.isPresent()}")
+            if (saved.home.address != text) return@launch
+            val pin = saved.pincode.ifBlank { homePincode(text, postal) }
+            if (!place.hasCoordinates && pin == saved.pincode) return@launch
+            update(saved.copy(home = if (place.hasCoordinates) place else saved.home, pincode = pin))
         }
+    }
+
+    /** The home PIN from the setup address: typed in it, else the phone's Geocoder. Empty when neither has one. */
+    suspend fun findPincode(address: String): String {
+        pincodeIn(address)?.let { return it }
+        val (_, postal) = withContext(Dispatchers.IO) { geocodeHome(getApplication(), address) }
+        return homePincode(address, postal)
+    }
+
+    // ---- S15 Near home ----
+
+    /** Family settings: the app for [need] ("" = none). Ride is the cab app the Ride screen opens first. */
+    fun pickService(need: Need, pkg: String) {
+        if (need == Need.RIDE) {
+            CabApp.entries.firstOrNull { it.pkg == pkg }?.let { update(saved.copy(lastCab = it.id)) }
+            return
+        }
+        update(saved.copy(services = saved.services + (need.key to pkg)))
+    }
+
+    /** The saved app for [need], or "" when none. */
+    fun pickedPackage(need: Need): String =
+        if (need == Need.RIDE) CabApp.from(saved.lastCab)?.pkg.orEmpty() else saved.services[need.key].orEmpty()
+
+    fun setPincode(raw: String): Boolean {
+        val pin = cleanPincode(raw) ?: return false
+        update(saved.copy(pincode = pin))
+        return true
+    }
+
+    /**
+     * A Near home tile or a spoken need. Groceries / home services open the picked app (or its Install
+     * screen); Medicines and Doctor offer the app and maps; Ride and Emergency open their screens.
+     */
+    fun openNeed(need: Need) {
+        record(need.event)
+        val app = getApplication<Application>()
+        val picked = serviceApp(need, pickedPackage(need))
+        when (need) {
+            Need.RIDE -> screen = if (saved.home.isSet) Screen.Ride else Screen.NearHome
+            Need.EMERGENCY -> screen = Screen.Emergency
+            Need.MEDICINE, Need.DOCTOR -> {
+                if (picked != null) {
+                    screen = Screen.NeedHelp(need)
+                } else {
+                    screen = Screen.NearHome
+                    openNearby(app, mapsQuery(need), saved.home, saved.pincode)
+                }
+            }
+            Need.GROCERY, Need.HOME_SERVICE -> when {
+                picked == null -> screen = Screen.NearHome
+                launchApp(app, picked.pkg) -> screen = Screen.Home
+                else -> screen = Screen.Install(need, picked)
+            }
+        }
+    }
+
+    /** "Order on Tata 1mg" inside Medicines / Doctor: the app, or its Install screen when it was removed. */
+    fun openNeedApp(need: Need, picked: ServiceApp) {
+        screen = if (launchApp(getApplication(), picked.pkg)) Screen.Home else Screen.Install(need, picked)
+    }
+
+    fun openNeedMaps(need: Need) {
+        openNearby(getApplication(), mapsQuery(need), saved.home, saved.pincode)
+        screen = Screen.Home
     }
 
     // ---- Voice ----
@@ -291,6 +372,13 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             voiceFails = 0
             tryingInSetup = false
             screen = Screen.Ride
+            return
+        }
+        val need = if (person == null && (reading.ask == null || reading.askedName?.let(::readNeed) != null)) readNeed(text) else null
+        if (need != null && (need != Need.RIDE || saved.home.isSet)) {
+            voiceFails = 0
+            tryingInSetup = false
+            openNeed(need)
             return
         }
         if (person == null) {

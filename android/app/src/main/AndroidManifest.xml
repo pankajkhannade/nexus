@@ -13,8 +13,27 @@
 
     <queries>
         <package android:name="com.ubercab" />
-        <package android:name="com.olacabs" />
+        <package android:name="com.olacabs.customer" />
         <package android:name="com.rapido.passenger" />
+        <package android:name="in.juspay.nammayatri" />
+        <!-- S15 Near home catalog (NearHome.kt SERVICE_CATALOG): "Installed" tags and launch intents. -->
+        <package android:name="com.grofers.customerapp" />
+        <package android:name="com.zeptoconsumerapp" />
+        <package android:name="in.swiggy.android.instamart" />
+        <package android:name="in.swiggy.android" />
+        <package android:name="com.bigbasket.mobileapp" />
+        <package android:name="com.jpl.jiomart" />
+        <package android:name="com.flipkart.android" />
+        <package android:name="in.amazon.mShop.android.shopping" />
+        <package android:name="com.aranoah.healthkart.plus" />
+        <package android:name="com.phonegap.rxpal" />
+        <package android:name="com.apollo.patientapp" />
+        <package android:name="com.NetmedsMarketplace.Netmeds" />
+        <package android:name="com.intellihealth.truemeds" />
+        <package android:name="com.practo.fabric" />
+        <package android:name="com.urbanclap.urbanclap" />
+        <package android:name="com.snabbit.customer" />
+        <package android:name="com.company.pronto" />
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
         <intent>
@@ -32,6 +51,14 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="market" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
         </intent>
         <intent>
             <action android:name="android.intent.action.SEND" />
