@@ -51,6 +51,11 @@ data class Saved(
     val pincode: String = "",
     /** S15: the app the child picked per need key ([Need.key] -> package, "" = none). Ride uses [lastCab]. */
     val services: Map<String, String> = emptyMap(),
+    /**
+     * The leave-behind voice check has been finished or skipped.
+     * Missing on older saves means the child already left, so decode treats that as done.
+     */
+    val practiceDone: Boolean = true,
 )
 
 data class Country(val name: String, val dial: String, val code: String)

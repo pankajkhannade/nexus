@@ -79,6 +79,7 @@ fun NexusApp(model: NexusViewModel) {
                         onNotNow = { micGate = false },
                     )
                     screen is Screen.Listening -> ListeningScreen(model)
+                    model.practiceIndex >= 0 -> PracticeScreen(model, onSpeak)
                     screen is Screen.Confirm -> ConfirmScreen(model, screen.person)
                     screen is Screen.NotUnderstood -> NotUnderstoodScreen(model, onSpeak)
                     screen is Screen.Calling -> CallingScreen(model, screen.person)

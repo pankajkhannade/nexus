@@ -25,7 +25,11 @@ From the UX critique Pankaj asked for (`docs/ux-critique-2026-11-11.md`): the fi
 
 **Docs:** `docs/design.md` gets section 3.8, the 19 design principles as the standard, with their status after this sprint. The critique is in `docs/ux-critique-2026-11-11.md`.
 
-**Tests:** 356 → 401 JVM tests. New: `FacesAndPlacesTest` (colour contrast, same-initial faces differ, India-only URL and parsing with the recorded "Shivaji Park, Dadar" US result, the India box), `ui/UxSprint1UiTest` (19 acceptance checks on a 360x640dp device, including 1.3x and 1.5x text, mr and hi), and `ui/UxSprint1ScreenshotTest` (18 Roborazzi goldens in `roborazzi/ux1/`, including a re-take of screenshot 21). Existing tests were updated only where the behaviour changed on purpose (Ola link, feedback card position, pinned Ask, WhatsApp tile).
+**Tests:** 359 → 404 JVM tests (after the leave-behind practice merge). New: `FacesAndPlacesTest` (colour contrast, same-initial faces differ, India-only URL and parsing with the recorded "Shivaji Park, Dadar" US result, the India box), `ui/UxSprint1UiTest` (19 acceptance checks on a 360x640dp device, including 1.3x and 1.5x text, mr and hi), and `ui/UxSprint1ScreenshotTest` (18 Roborazzi goldens in `roborazzi/ux1/`, including a re-take of screenshot 21). Existing tests were updated only where the behaviour changed on purpose (Ola link, feedback card position, pinned Ask, WhatsApp tile).
+
+### Leave-behind practice (2026-11-11)
+The child no longer hands the phone over after one sentence. After setup, the parent is asked, in their language, to say a call, a short message, and (if home is saved) "take me home". Each check passes only when the parser hears that action. Nothing is called, sent, or booked during the check. The result says how many worked and tells the child to stay if the call failed. Family settings can run it again. Phones already set up are not sent back through it.
+
 
 ### Privacy-first analytics (2026-11-11) — feat/analytics
 Pankaj asked how we'll measure success and then "let's build it end to end". Definitions and caveats: `docs/metrics.md`.

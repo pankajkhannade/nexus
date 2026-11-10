@@ -35,7 +35,7 @@ Requirements: JDK 17+, Android SDK (platform 35, build-tools 35). The Gradle wra
 cd android
 echo "sdk.dir=$ANDROID_HOME" > local.properties   # if not already present
 ./gradlew assembleDebug          # APK: app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest      # 401 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
+./gradlew testDebugUnitTest      # 404 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
 ./gradlew verifyRoborazziDebug   # screenshot tests against app/src/test/roborazzi/ goldens
 ```
 
