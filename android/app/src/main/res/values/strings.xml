@@ -231,9 +231,24 @@
     <string name="none_of_these">None of these</string>
     <string name="contact_not_found">I couldn’t find “%1$s” in your phone book.</string>
     <string name="open_dial_pad">Open the dial pad</string>
-    <string name="msg_find_in_contacts">📒  Look in the phone book</string>
+    <string name="msg_find_in_contacts">📒 Look in the phone book</string>
     <string name="setup_contacts_title">Call anyone by name</string>
     <string name="setup_contacts_body">Let Nexus look in this phone’s phone book, so “Sunil la phone lav” works for anyone saved here. Contacts stay on this phone.</string>
     <string name="setup_contacts_allow">Allow phone book</string>
     <string name="setup_contacts_on">✓ Phone book is on</string>
+    <string name="dest_title">Where to?</string>
+    <string name="dest_searching">Looking for “%1$s”…</string>
+    <string name="dest_confirm_tts">%1$s. Go here?</string>
+    <string name="dest_go_here">Go here</string>
+    <string name="dest_not_found">I couldn’t find “%1$s” on the map. The cab app can search for it.</string>
+    <string name="dest_use_words">Search “%1$s” in the cab app</string>
+    <string name="go_to_x">Go to %1$s</string>
+    <string name="place_destination">Going to</string>
+    <string name="pickup_here">Pickup: where you are now.</string>
+    <string name="somewhere_else">📍 Somewhere else</string>
+    <string name="somewhere_label">Place name or address</string>
+    <string name="find_place">Find</string>
+    <string name="ride_maps_directions">Directions in Google Maps</string>
+    <string name="ride_will_copy_dest">The address will be copied. Paste it in “Where to”.</string>
+    <string name="ride_help_prefill_dest">Please book me a ride to %1$s.</string>
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -182,16 +183,25 @@ private fun FeedbackCard(model: NexusViewModel, round: Int) {
 }
 
 /**
- * S10: book a ride home with an installed cab app. One primary button for the last-used app, then
- * "Other app" with the remaining installed ones. No Maps button in parent mode. The parent always
- * checks the fare and confirms inside the cab app.
+ * S10: book a ride home, or to a place the parent said or typed. One primary button for the last-used
+ * cab app, then "Other app" with the remaining installed ones, and "Somewhere else" to type a place.
+ * Pickup is where the parent is now (the cab app's GPS). The parent always checks the fare and confirms
+ * inside the cab app. No Maps button unless no cab app is installed (then Maps directions for a place).
  */
 @Composable
 fun RideScreen(model: NexusViewModel) {
     val context = LocalContext.current
     val installed = remember { CabApp.entries.filter { isInstalled(context, it.pkg) } }
     val apps = rideOrder(installed, model.saved.lastCab)
-    val trip = Trip(dropoff = Stop(PlaceKind.HOME, model.saved.home))
+    val target = model.rideTo
+    val home = model.saved.home
+    var typing by remember(target) { mutableStateOf(target == null && !home.isSet) }
+    var typed by remember { mutableStateOf("") }
+    val trip = when {
+        target != null -> Trip(dropoff = Stop(PlaceKind.ADDRESS, target, label = target.address.substringBefore(',').trim()))
+        else -> Trip(dropoff = Stop(PlaceKind.HOME, home))
+    }
+    val hasPlace = target != null || home.isSet
     val open: (CabApp) -> Unit = { app ->
         model.rememberCab(app)
         model.record(Event.RIDE)
@@ -199,15 +209,21 @@ fun RideScreen(model: NexusViewModel) {
             RideResult.OPENED_AND_COPIED -> android.widget.Toast.makeText(context, R.string.address_copied, android.widget.Toast.LENGTH_LONG).show()
             RideResult.NOT_INSTALLED_OPENED_MAPS, RideResult.NOTHING_TO_OPEN, RideResult.OPENED -> Unit
         }
-        model.screen = Screen.Home
+        model.leaveRide()
     }
     ScreenColumn {
-        Text("🚕  " + stringResource(R.string.go_home), style = MaterialTheme.typography.headlineMedium)
-        OutlinedPanel {
-            Text(stringResource(R.string.place_home), style = MaterialTheme.typography.titleMedium)
-            Text(model.saved.home.address, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            "🚕  " + if (target != null) stringResource(R.string.go_to_x, target.address.substringBefore(',').trim()) else stringResource(R.string.go_home),
+            style = MaterialTheme.typography.headlineMedium,
+        )
+        if (hasPlace) {
+            OutlinedPanel {
+                Text(stringResource(if (target != null) R.string.place_destination else R.string.place_home), style = MaterialTheme.typography.titleMedium)
+                Text((target ?: home).address, style = MaterialTheme.typography.bodyLarge)
+                if (target != null) Text(stringResource(R.string.pickup_here), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
-        if (apps.isEmpty()) {
+        if (hasPlace && apps.isEmpty()) {
             OutlinedPanel(color = NexusColors.WarningContainer) {
                 Text(stringResource(R.string.no_cab_app), style = MaterialTheme.typography.bodyLarge)
                 Text(stringResource(R.string.no_cab_app_ask), style = MaterialTheme.typography.bodyLarge)
@@ -215,13 +231,17 @@ fun RideScreen(model: NexusViewModel) {
             model.saved.people.firstOrNull { it.askFamily }?.let { person ->
                 BigButton("💬  " + stringResource(R.string.ask_x, person.name), {
                     model.record(Event.ASK_FAMILY)
-                    askFamilyByText(context, person.phone, context.getString(R.string.ride_help_prefill))
+                    val text = if (target != null) context.getString(R.string.ride_help_prefill_dest, target.address) else context.getString(R.string.ride_help_prefill)
+                    askFamilyByText(context, person.phone, text)
                 })
             }
-        } else {
+            if (target != null) {
+                BigButton("🗺  " + stringResource(R.string.ride_maps_directions), { model.record(Event.RIDE); openMaps(context, trip); model.leaveRide() }, kind = ButtonKind.Secondary)
+            }
+        } else if (hasPlace) {
             BigButton(stringResource(R.string.ride_open_app, apps.first().label), { open(apps.first()) })
             if (cabHandoff(apps.first(), trip).copyText != null) {
-                Text(stringResource(R.string.ride_will_copy), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(if (target != null) R.string.ride_will_copy_dest else R.string.ride_will_copy), style = MaterialTheme.typography.bodyLarge)
             }
             Text(stringResource(R.string.ride_confirm_in_app), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (apps.size > 1) {
@@ -229,6 +249,55 @@ fun RideScreen(model: NexusViewModel) {
                 apps.drop(1).forEach { app -> BigButton(app.label, { open(app) }, kind = ButtonKind.Secondary) }
             }
         }
-        BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
+        if (typing) {
+            OutlinedTextField(
+                value = typed,
+                onValueChange = { typed = it },
+                label = { Text(stringResource(R.string.somewhere_label)) },
+                textStyle = MaterialTheme.typography.headlineSmall,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            BigButton(stringResource(R.string.find_place), { model.findDestination(typed) }, enabled = typed.isNotBlank())
+        } else {
+            BigButton(stringResource(R.string.somewhere_else), { typing = true }, kind = ButtonKind.Secondary)
+        }
+        if (target != null && home.isSet) {
+            BigButton(stringResource(R.string.go_home), { model.rideHome() }, kind = ButtonKind.Quiet)
+        }
+        BigButton(stringResource(R.string.back), { model.leaveRide() }, kind = ButtonKind.Quiet)
+    }
+}
+
+/**
+ * Where to? Up to 3 places for what the parent said, each with a big "Go here", read back aloud
+ * ("दीनानाथ मंगेशकर हॉस्पिटल, एरंडवणे — इथे जायचं?"). When the map finds nothing, the words go to the cab app.
+ */
+@Composable
+fun DestinationScreen(model: NexusViewModel) {
+    val hits = model.destHits
+    ScreenColumn {
+        Text("📍  " + stringResource(R.string.dest_title), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.heard_x, model.destQuery), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        when {
+            hits == null -> {
+                CircularProgressIndicator()
+                Text(stringResource(R.string.dest_searching, model.destQuery), style = MaterialTheme.typography.titleLarge)
+            }
+            hits.isEmpty() -> {
+                Text(stringResource(R.string.dest_not_found, model.destQuery), style = MaterialTheme.typography.titleLarge)
+                BigButton(stringResource(R.string.dest_use_words, model.destQuery), { model.useSpokenDestination() })
+            }
+            else -> hits.forEachIndexed { i, place ->
+                OutlinedPanel {
+                    Text(place.address, style = MaterialTheme.typography.headlineSmall)
+                    BigButton(stringResource(R.string.dest_go_here), { model.chooseDestination(place) }, kind = if (i == 0) ButtonKind.Call else ButtonKind.Secondary)
+                }
+            }
+        }
+        if (hits != null && hits.isNotEmpty()) {
+            BigButton(stringResource(R.string.dest_use_words, model.destQuery), { model.useSpokenDestination() }, kind = ButtonKind.Quiet)
+        }
+        BigButton(stringResource(R.string.back), { model.leaveRide() }, kind = ButtonKind.Quiet)
     }
 }

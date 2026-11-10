@@ -230,9 +230,24 @@
     <string name="none_of_these">यांपैकी कोणी नाही</string>
     <string name="contact_not_found">फोन बुकमध्ये “%1$s” सापडले नाही.</string>
     <string name="open_dial_pad">डायल पॅड उघडा</string>
-    <string name="msg_find_in_contacts">📒  फोन बुकमध्ये पाहा</string>
+    <string name="msg_find_in_contacts">📒 फोन बुकमध्ये पाहा</string>
     <string name="setup_contacts_title">कोणालाही नावाने फोन करा</string>
     <string name="setup_contacts_body">Nexus ला या फोनची फोन बुक पाहू द्या, म्हणजे “सुनीलला फोन लाव” इथे सेव्ह असलेल्या कोणासाठीही चालेल. संपर्क याच फोनवर राहतात.</string>
     <string name="setup_contacts_allow">फोन बुकला परवानगी द्या</string>
     <string name="setup_contacts_on">✓ फोन बुक सुरू आहे</string>
+    <string name="dest_title">कुठे जायचं?</string>
+    <string name="dest_searching">“%1$s” शोधत आहे…</string>
+    <string name="dest_confirm_tts">%1$s. इथे जायचं?</string>
+    <string name="dest_go_here">इथे जायचं</string>
+    <string name="dest_not_found">नकाशावर “%1$s” सापडलं नाही. कॅब ॲपमध्ये शोधता येईल.</string>
+    <string name="dest_use_words">कॅब ॲपमध्ये “%1$s” शोधा</string>
+    <string name="go_to_x">%1$s ला जायचं</string>
+    <string name="place_destination">जायचं ठिकाण</string>
+    <string name="pickup_here">पिकअप: तुम्ही आत्ता जिथे आहात तिथून.</string>
+    <string name="somewhere_else">📍 दुसरीकडे कुठे</string>
+    <string name="somewhere_label">ठिकाणाचं नाव किंवा पत्ता</string>
+    <string name="find_place">शोधा</string>
+    <string name="ride_maps_directions">Google Maps मध्ये रस्ता</string>
+    <string name="ride_will_copy_dest">पत्ता कॉपी होईल. “कुठे जायचे” मध्ये पेस्ट करा.</string>
+    <string name="ride_help_prefill_dest">माझ्यासाठी %1$s ला जायची गाडी बुक कर.</string>
 </resources>

@@ -10,6 +10,8 @@ sealed interface Command {
     data class Message(val dictation: Dictation) : Command
     /** "ghar jana hai", "घरी जायचं आहे", "take me home". */
     data object RideHome : Command
+    /** "स्वारगेटला जायचं आहे", "take me to Pune airport": [query] as said; [place] when it is a saved place (office). */
+    data class RideTo(val query: String, val place: Place? = null) : Command
     /** "बेटे को फ़ोन लगाओ": a saved person. [exact] = the saved name or alias as said (skip the confirm). */
     data class Call(val person: Person, val exact: Boolean) : Command
     /** "whatsapp Pankaj" with nothing to say: opens the chat. */
@@ -34,6 +36,13 @@ object RuleIntentParser : IntentParser {
         val reading = readMessage(text, saved)
         val person = reading.person
         if (wantsRideHome(reading) && saved.home.isSet) return Command.RideHome
+        if (person == null) {
+            if (reading.trip?.dropoff?.kind == PlaceKind.OFFICE && reading.trip.pickup == null && saved.office.isSet) {
+                return Command.RideTo(saved.office.address, saved.office)
+            }
+            // "hospital la jaycha" alone is the Doctor tile (nearby search); a named place is a ride.
+            readDestination(text)?.takeIf { place -> place.contains(' ') || readNeed(place) == null }?.let { return Command.RideTo(it) }
+        }
         val need = if (person == null && (reading.ask == null || reading.askedName?.let(::readNeed) != null)) readNeed(text) else null
         if (need != null && (need != Need.RIDE || saved.home.isSet)) return Command.OpenNeed(need)
         if (person == null) {

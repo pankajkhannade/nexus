@@ -56,6 +56,7 @@ fun cabHandoff(app: CabApp, trip: Trip): Handoff {
         params += "dropoff[latitude]=${coord(dropoff.lat!!)}"
         params += "dropoff[longitude]=${coord(dropoff.lng!!)}"
         params += "dropoff[formatted_address]=${encodeParam(dropoff.address)}"
+        trip.dropoff?.label?.takeIf { it.isNotBlank() }?.let { params += "dropoff[nickname]=${encodeParam(it)}" }
     } else if (dropoff != null) {
         copy = dropoff.address
     }

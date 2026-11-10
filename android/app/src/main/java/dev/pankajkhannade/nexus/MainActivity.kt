@@ -44,6 +44,8 @@ sealed interface Screen {
     data class Install(val need: Need, val app: ServiceApp) : Screen
     /** S15: 108, family, nearest hospital. */
     data object Emergency : Screen
+    /** A spoken or typed destination: up to 3 places to confirm ([NexusViewModel.destHits]). */
+    data object Destination : Screen
     /** Phone book: why Nexus wants to look in the contacts, before Android asks. */
     data class ContactsPermission(val name: String, val ask: Ask) : Screen
     /** Phone book: two Rahuls, or one unsure match. Up to 3 big choices. */
@@ -65,6 +67,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     internal var io: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
     private var contactIndex: List<PhoneContact>? = null
     private var contactIndexAt = 0L
+    /** Place words to real places (Android Geocoder). A seam so JVM tests can fake it. */
+    @androidx.annotation.VisibleForTesting
+    internal var placeFinder: PlaceFinder = AndroidPlaceFinder(app)
     /** Words to actions. A seam so a smarter parser can replace the rules later. */
     var parser: IntentParser = RuleIntentParser
 
@@ -348,7 +353,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val app = getApplication<Application>()
         val picked = serviceApp(need, pickedPackage(need))
         when (need) {
-            Need.RIDE -> screen = if (saved.home.isSet) Screen.Ride else Screen.NearHome
+            Need.RIDE -> rideHome()
             Need.EMERGENCY -> screen = Screen.Emergency
             Need.MEDICINE, Need.DOCTOR -> {
                 if (picked != null) {
@@ -440,7 +445,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         tryingInSetup = false
         when (command) {
             is Command.Message -> openDraft(command.dictation)
-            Command.RideHome -> screen = Screen.Ride
+            Command.RideHome -> rideHome()
+            is Command.RideTo -> if (command.place != null) chooseDestination(command.place) else findDestination(command.query)
             is Command.OpenNeed -> openNeed(command.need)
             is Command.WhatsApp -> {
                 screen = Screen.Home
@@ -451,6 +457,54 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             is Command.FindContact -> lookUpContact(command.name, command.ask)
             Command.Unknown -> Unit
         }
+    }
+
+    // ---- Rides ----
+
+    /** Where the Ride screen goes: null = home. */
+    var rideTo by mutableStateOf<Place?>(null)
+        private set
+    var destQuery by mutableStateOf("")
+        private set
+    /** Places found for [destQuery]; null while still looking. */
+    var destHits by mutableStateOf<List<Place>?>(null)
+        private set
+
+    /** The Ride screen for home (with "Somewhere else" on it). */
+    fun rideHome() {
+        rideTo = null
+        screen = Screen.Ride
+    }
+
+    /** Looks up [query] near home and shows up to 3 places to confirm, read back in the parent's language. */
+    fun findDestination(query: String) {
+        val q = query.trim()
+        if (q.isEmpty()) return
+        destQuery = q
+        destHits = null
+        screen = Screen.Destination
+        viewModelScope.launch {
+            val hits = runCatching { withContext(io) { placeFinder.find(q, saved.home, language) } }.getOrDefault(emptyList())
+            if (destQuery != q || screen != Screen.Destination) return@launch
+            destHits = hits
+            val first = hits.firstOrNull()
+            if (first != null) speak(R.string.dest_confirm_tts, first.address) else speak(R.string.dest_not_found, q)
+        }
+    }
+
+    /** "इथे जायचं": the Ride screen for this place. */
+    fun chooseDestination(place: Place) {
+        speaker.stop()
+        rideTo = place
+        screen = Screen.Ride
+    }
+
+    /** Nothing found on the map: hand the words to the cab app to search. */
+    fun useSpokenDestination() = chooseDestination(Place(destQuery))
+
+    fun leaveRide() {
+        rideTo = null
+        screen = Screen.Home
     }
 
     // ---- Phone book ----
