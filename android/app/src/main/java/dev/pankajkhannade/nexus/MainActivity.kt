@@ -34,6 +34,10 @@ sealed interface Screen {
     data object Ride : Screen
     data object Settings : Screen
     data object Privacy : Screen
+    /** How Nexus is doing: usage metrics, tester tag, export, delete (child scale, inside Family settings). */
+    data object Metrics : Screen
+    /** The opt-in upload's consent page. Nothing is sent until the child says yes here. */
+    data object UploadConsent : Screen
     /** A dictated message waiting for the parent's OK ([NexusViewModel.draft]). */
     data object Message : Screen
     /** S15 Near home: up to 6 need tiles. */
@@ -92,8 +96,121 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     var dayOffset by mutableStateOf(0L)
     val today: Long get() = LocalDate.now().toEpochDay() + dayOffset
 
+    // ---- Usage analytics (Analytics.kt, Metrics.kt, docs/metrics.md). Counts and timings only. ----
+    /** The on-device event log. A seam so tests can use a temp folder. */
+    @androidx.annotation.VisibleForTesting
+    internal var events: EventLog = EventLog.get(app)
+    val analyticsPrefs = AnalyticsPrefs(app)
+    /** Bumped on every logged event, so the How Nexus is doing screen recomputes. */
+    var metricsVersion by mutableStateOf(0)
+        private set
+    var uploadOn by mutableStateOf(analyticsPrefs.uploadOn)
+        private set
+    var testerSource by mutableStateOf(analyticsPrefs.testerSource)
+        private set
+    /** Wall clock in ms, shifted by [dayOffset] like [today]. */
+    val nowMs: Long get() = System.currentTimeMillis() + dayOffset * 86_400_000L
+    private var voiceStartedAt = 0L
+    /** How the current request started (voice or a tile), for the action it opens. */
+    private var currentSource: Source = Source.TILE
+    private var awayCategory: AppCategory? = null
+    private var awayAt = 0L
+    private var setupStartedAt = 0L
+
+    fun track(event: UsageEvent) {
+        runCatching { events.append(event) }
+        metricsVersion += 1
+    }
+
+    private fun track(
+        type: EventType, lang: Lang? = null, command: CommandType? = null, source: Source? = null, end: EndReason? = null,
+        perm: Perm? = null, category: AppCategory? = null, ok: Boolean? = null, ms: Long? = null, chars: Int? = null,
+        code: Int? = null, step: Int? = null,
+    ) = track(UsageEvent(nowMs, type, lang, command, source, end, perm, category, ok, ms, chars, code, step))
+
+    fun metrics(): MetricsReport = computeMetrics(events.all(), nowMs)
+
+    /** A parent tile (Call, WhatsApp, Go home, Near home, Is this safe?). */
+    fun tile(command: CommandType) {
+        currentSource = Source.TILE
+        track(EventType.COMMAND, lang = Lang.of(language), command = command, source = Source.TILE, ok = true)
+    }
+
+    /** Nexus handed the parent to another app. The return time (see [cameBack]) tells a wrong action from a real one. */
+    fun actionOpened(category: AppCategory) {
+        track(EventType.ACTION_OPENED, category = category, source = currentSource)
+        awayCategory = category
+        awayAt = nowMs
+    }
+
+    /** Stop / No / Back / Cancel before an action. */
+    fun cancelled(command: CommandType) = track(EventType.CANCEL, command = command, source = currentSource)
+
+    fun nearTile(need: Need) {
+        tile(CommandType.NEAR_HOME)
+        track(EventType.NEAR_TILE, category = AppCategory.of(need))
+    }
+
+    fun playRedirect(category: AppCategory) {
+        track(EventType.PLAY_REDIRECT, category = category)
+        actionOpened(AppCategory.PLAY_STORE)
+    }
+
+    fun permissionAnswered(perm: Perm, granted: Boolean) = track(EventType.PERMISSION, perm = perm, ok = granted)
+
+    /** The activity is visible again (onStart): after an action, or a plain return to the app. */
+    fun cameBack() {
+        val cat = awayCategory
+        if (cat != null) {
+            track(EventType.ACTION_RETURN, category = cat, ms = (nowMs - awayAt).coerceAtLeast(0))
+            awayCategory = null
+        } else if (startedOnce) {
+            track(EventType.FOREGROUND)
+        }
+        startedOnce = true
+    }
+    private var startedOnce = false
+
+    fun setUploadConsent(on: Boolean) {
+        analyticsPrefs.setUpload(on)
+        analyticsPrefs.language = language
+        uploadOn = on
+        if (on) MetricsUpload.schedule(getApplication()) else MetricsUpload.cancel(getApplication())
+    }
+
+    fun chooseTesterSource(source: TesterSource) {
+        analyticsPrefs.setTesterSource(source)
+        testerSource = source
+    }
+
+    /** Counts-only summary for the share sheet (a tester's child WhatsApps it to Pankaj). */
+    fun summary(): String = summaryJson(metrics(), testerSource, BuildConfig.VERSION_NAME, saved.language).toString(2)
+
+    /** Delete all usage data: the event log, the daily counters, feedback answers, the upload choice and install ID. */
+    fun deleteUsageData() {
+        events.clear()
+        analyticsPrefs.clear()
+        MetricsUpload.cancel(getApplication())
+        uploadOn = false
+        testerSource = TesterSource.UNSET
+        usage = Usage()
+        feedback = Feedback()
+        viewModelScope.launch { store.writeUsage(Usage()); store.writeFeedback(Feedback()) }
+        metricsVersion += 1
+    }
+
     // ---- Setup draft (kept here so it survives the language switch and rotation) ----
-    var setupStep by mutableStateOf(0)
+    private var furthestSetupStep = 0
+    private var setupStepState by mutableStateOf(0)
+    var setupStep: Int
+        get() = setupStepState
+        set(value) {
+            setupStepState = value
+            if (value > furthestSetupStep) {
+                furthestSetupStep = value
+                track(EventType.SETUP_STEP, step = value)
+            }
+        }
     var setupLanguage by mutableStateOf("mr")
     var setupPeople by mutableStateOf<List<Person>>(emptyList())
     var setupHome by mutableStateOf("")
@@ -137,6 +254,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             usage = store.readUsage()
             feedback = store.readFeedback()
             loaded = true
+            track(EventType.APP_OPEN)
+            if (!saved.setupDone) startSetupClock()
+            if (uploadOn) { analyticsPrefs.language = language; MetricsUpload.schedule(app) }
             if (saved.setupDone) record(Event.OPEN)
             if (saved.home.isSet && !saved.home.hasCoordinates) locate(saved.home.address)
             refreshVoiceMode()
@@ -172,6 +292,11 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     /** Tests only: Robolectric shares one DataStore per JVM, so each test starts from empty counts, India, the default language and no one-time hints. */
     @androidx.annotation.VisibleForTesting
     internal fun resetLocalDataForTest() {
+        events.clear()
+        analyticsPrefs.clear()
+        uploadOn = false
+        testerSource = TesterSource.UNSET
+        awayCategory = null
         usage = Usage()
         feedback = Feedback()
         update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap()))
@@ -212,6 +337,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- Setup ----
 
+    private fun startSetupClock() {
+        val earlier = events.all().firstOrNull { it.type == EventType.SETUP_START }
+        setupStartedAt = earlier?.t ?: nowMs
+        if (earlier == null) track(EventType.SETUP_START)
+    }
+
     fun chooseLanguage(lang: String) {
         setupLanguage = lang
         refreshVoiceMode()
@@ -249,11 +380,15 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         )
         locate(setupHome)
         record(Event.OPEN)
+        if (events.all().none { it.type == EventType.SETUP_DONE }) {
+            track(EventType.SETUP_DONE, lang = Lang.of(setupLanguage), ms = if (setupStartedAt > 0) nowMs - setupStartedAt else null)
+        }
         applyLanguage(setupLanguage)
     }
 
     fun applyLanguage(lang: String) {
         if (saved.setupDone && saved.language != lang) update(saved.copy(language = lang))
+        analyticsPrefs.language = lang
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
         refreshVoiceMode()
     }
@@ -361,11 +496,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                 } else {
                     screen = Screen.NearHome
                     openNearby(app, mapsQuery(need), saved.home, saved.pincode)
+                    actionOpened(AppCategory.MAPS)
                 }
             }
             Need.GROCERY, Need.HOME_SERVICE -> when {
                 picked == null -> screen = Screen.NearHome
-                launchApp(app, picked.pkg) -> screen = Screen.Home
+                launchApp(app, picked.pkg) -> { screen = Screen.Home; actionOpened(AppCategory.of(need)) }
                 else -> screen = Screen.Install(need, picked)
             }
         }
@@ -373,11 +509,14 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     /** "Order on Tata 1mg" inside Medicines / Doctor: the app, or its Install screen when it was removed. */
     fun openNeedApp(need: Need, picked: ServiceApp) {
-        screen = if (launchApp(getApplication(), picked.pkg)) Screen.Home else Screen.Install(need, picked)
+        val opened = launchApp(getApplication(), picked.pkg)
+        if (opened) actionOpened(AppCategory.of(need))
+        screen = if (opened) Screen.Home else Screen.Install(need, picked)
     }
 
     fun openNeedMaps(need: Need) {
         openNearby(getApplication(), mapsQuery(need), saved.home, saved.pincode)
+        actionOpened(AppCategory.MAPS)
         screen = Screen.Home
     }
 
@@ -394,7 +533,11 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun startListening() {
         heard = ""
         screen = Screen.Listening
+        currentSource = Source.VOICE
+        voiceStartedAt = nowMs
+        track(EventType.VOICE_START, lang = Lang.of(language))
         if (!canListen()) {
+            track(EventType.VOICE_END, lang = Lang.of(language), end = EndReason.ERROR, ms = 0, chars = 0)
             Log.i("NexusVoice", "no recognizer on this phone")
             understood(null)
             return
@@ -405,7 +548,15 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             isDictation = { parser.parse(it, saved) is Command.Message },
             biasing = biasingNames(),
             onText = { heard = it },
-        ) { said -> understood(said, alternatives = voice.finalAlternatives) }
+        ) { said ->
+            trackVoiceEnd(voice.endReason, said)
+            understood(said, alternatives = voice.finalAlternatives)
+        }
+    }
+
+    private fun trackVoiceEnd(reason: EndReason, said: String?) {
+        voice.errorCodes.forEach { track(EventType.RECOGNIZER_ERROR, code = it) }
+        track(EventType.VOICE_END, lang = Lang.of(language), end = reason, ms = nowMs - voiceStartedAt, chars = said?.trim()?.length ?: 0)
     }
 
     /** Done on the listening screen: act on everything heard so far. */
@@ -414,7 +565,11 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun cancelListening() {
-        voice.cancel()
+        if (voice.active) {
+            voice.cancel()
+            trackVoiceEnd(EndReason.CANCELLED, heard)
+            cancelled(CommandType.UNKNOWN)
+        }
         screen = Screen.Home
     }
 
@@ -433,6 +588,11 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val (text, command) = readings.asSequence().map { it to parser.parse(it, saved) }.firstOrNull { it.second != Command.Unknown }
             ?: (said.orEmpty().trim() to Command.Unknown)
         heard = text
+        currentSource = if (typed) Source.TYPED else Source.VOICE
+        track(
+            EventType.COMMAND, lang = Lang.of(language), command = CommandType.of(command), source = currentSource,
+            ok = command != Command.Unknown, ms = if (typed || voiceStartedAt == 0L) null else nowMs - voiceStartedAt,
+        )
         if (text.isNotEmpty() && !typed) record(Event.VOICE)
         if (command == Command.Unknown) {
             voiceFails += 1
@@ -542,6 +702,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 }
                 is ContactLookup.Choose -> {
+                    track(EventType.PICKER_SHOWN, source = currentSource)
                     screen = Screen.ChooseContact(name, ask, found.options.map { it.person })
                     speak(R.string.which_one)
                 }
@@ -555,6 +716,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The answer to the phone-book permission card (or Android's dialog after it). */
     fun contactsAnswered(granted: Boolean) {
+        permissionAnswered(Perm.CONTACTS, granted)
         val pending = screen as? Screen.ContactsPermission ?: return
         if (granted && contacts.hasPermission()) {
             contactIndex = null
@@ -607,7 +769,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openWhatsAppFor(person: Person) {
         record(Event.WHATSAPP)
-        if (!openWhatsApp(getApplication(), person.phone, "")) notice = getApplication<Application>().getString(R.string.whatsapp_missing)
+        if (openWhatsApp(getApplication(), person.phone, "")) actionOpened(AppCategory.WHATSAPP)
+        else notice = getApplication<Application>().getString(R.string.whatsapp_missing)
     }
 
     // ---- Dictated messages ----
@@ -704,6 +867,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             return false
         }
         record(Event.MESSAGE)
+        actionOpened(if (via == Channel.SMS) AppCategory.SMS else AppCategory.WHATSAPP)
         if (!saved.messageExplained) update(saved.copy(messageExplained = true))
         speaker.stop()
         draft = null
@@ -712,6 +876,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun cancelDraft() {
+        if (draft != null) cancelled(CommandType.MESSAGE)
         speaker.stop()
         voice.cancel()
         dictating = false
@@ -788,8 +953,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        installCrashCounter(applicationContext)
         if (savedInstanceState == null) consume(intent)
         setContent { NexusApp(model) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        model.cameBack()
     }
 
     override fun onNewIntent(intent: Intent) {

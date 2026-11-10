@@ -19,6 +19,8 @@ Phase 1.5, added at Pankaj's request after Phase 1:
 - **S14** voice-dictated WhatsApp and SMS messages (PR #6)
 - **S15** Near home tiles, with a child-picked app dropdown (Installed / Install from Play) (PR #7)
 
+Analytics (added 2026-11-11): an on-device usage log of counts and timings only, a How Nexus is doing screen for the family, a share-able test summary, and an opt-in daily upload of aggregate counts to our own Cloudflare Worker (off by default). This is how the Phase 1 exit metric and kill rule get measured. Definitions: `metrics.md`.
+
 Still ahead: Pankaj's real-phone test, a native Hindi and Marathi review of the strings, release prep (signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form), and the 14-day Play closed test with 12 testers (6 parent-child pairs). The Play Console fee needs Pankaj's yes.
 
 Quick-commerce ordering by voice (Blinkit, Instamart, Zepto placing an order or paying) is deferred: none of those apps has a public ordering API, and Play Accessibility policy blocks driving other apps on the user's behalf. Near home opens the chosen app instead (or Maps, or the Play Store).
@@ -40,7 +42,8 @@ Features / work (checklist):
 - [x] Local usage counters (opens, calls, voice commands, safety checks, ask-family taps, rides, WhatsApp opens, dictated messages and Near home tiles per day) on the phone + an "Export my usage" share button for day-7/day-14 check-ins
 - [x] Day-3 / day-7 in-app feedback prompt (2 questions, stays local unless shared)
 - [ ] Play release: signed AAB, upload key Pankaj keeps, privacy policy page (no data collected), Data safety form, closed testing track with 12 opted-in testers for 14 days [Play Console fee needs Pankaj's yes]
-- Out of scope: accounts, servers, accessibility service, SMS/call-log permissions, call screening, payments
+- [x] Metrics: on-device event log, How Nexus is doing, Share test summary with a tester tag, Delete all usage data, opt-in daily counts to our own Worker (off by default). See metrics.md.
+- Out of scope: accounts, an app backend (beyond the opt-in counts Worker), accessibility service, SMS/call-log permissions, call screening, payments
 Exit metric: 12 testers stay opted in for 14 days (Play's production gate). In week 2, at least 4 of 6 parents use Nexus on 4+ of 7 days. At least 1 "Is this safe?" or "Ask family" per pair over the test. At least 3 of 6 children say they'd pay Rs 999/yr (deposit ask only with Pankaj's yes).
 Kill rule: fewer than 2 of 6 parents use it on 4+ days a week -> the parent wedge is dead; return to discovery.
 
@@ -53,7 +56,7 @@ Built on main after Phase 1, before the closed test, so testers get both.
 ## Phase 2: Child companion and daily habit (6-8 weeks)
 Goal: the child can help without a phone call; the parent has a reason to open Nexus every day.
 User outcome: the child adds a contact, reminder or shortcut to the parent's phone from their own phone, and sees a weekly "all fine" note. The parent gets medicine, bill and recharge reminders read aloud.
-Features: child app mode + pairing by QR; end-to-end encrypted sync of config only (contacts, reminders, shortcuts), with no content, location or usage leaving the phone unless the parent shares it; reminders with voice; "explain this screen" via screenshot share (on-device where supported, else rules + Ask family); optional Nexus as default home app for the parent; Hinglish/Marathi command coverage measured from exported logs; first paid plan test (Rs 999/yr per family, hypothesis).
+Features: child app mode + pairing by QR; end-to-end encrypted sync of config only (contacts, reminders, shortcuts), with no content or location leaving the phone, and usage only as the opt-in aggregate counts (metrics.md); reminders with voice; "explain this screen" via screenshot share (on-device where supported, else rules + Ask family); optional Nexus as default home app for the parent; Hinglish/Marathi command coverage measured with the metrics log (first-try success by language, metrics.md); first paid plan test (Rs 999/yr per family, hypothesis).
 Exit metric: 30 pairs; parent week-4 retention of 40% or more (4+ days a week); 10 families paying.
 
 ## Phase 3: Risky-moment guard (2-3 months)

@@ -98,6 +98,11 @@ class ContinuousListener(
     /** Sessions started in this dictation (1 = no restart yet). For tests and logs. */
     var sessions: Int = 0
         private set
+    /** Why the last dictation ended (analytics: counts only). */
+    var endReason: EndReason = EndReason.CANCELLED
+        private set
+    /** Recogniser error codes seen in the last dictation, quiet ones included (analytics: codes only). */
+    val errorCodes = mutableListOf<Int>()
     /** [alternatives] as they were when the last dictation finished. */
     var finalAlternatives: List<String> = emptyList()
         private set
@@ -154,6 +159,8 @@ class ContinuousListener(
         recreated = 0
         emptyRuns = 0
         sessions = 0
+        errorCodes.clear()
+        endReason = EndReason.CANCELLED
         startedAt = now()
         lastWordsAt = startedAt
         active = true
@@ -162,12 +169,13 @@ class ContinuousListener(
 
     /** The parent tapped Done: finish now with everything heard, including the running session's words. */
     fun done() {
-        if (active) finish()
+        if (active) finish(EndReason.USER_DONE)
     }
 
     /** Stop / Back: end without a result. */
     fun cancel() {
         if (!active) return
+        endReason = EndReason.CANCELLED
         active = false
         session++
         engine.reset()
@@ -208,30 +216,33 @@ class ContinuousListener(
         } else {
             emptyRuns++
         }
+        if (error != null) errorCodes += error
         val all = text
+        val failed = if (all.isNotEmpty()) EndReason.CUT_OFF else EndReason.ERROR
         val thinking = endsWithJoiner(all)
         onText(all)
         log("session=$sessions ended error=$error words=${words.isNotEmpty()} chars=${all.length}")
         val t = now()
         when {
-            error != null && error !in QUIET_ERRORS && error !in RECREATE_ERRORS -> return finish()
+            error != null && error !in QUIET_ERRORS && error !in RECREATE_ERRORS -> return finish(failed)
             error in RECREATE_ERRORS -> {
-                if (++recreated > 3) return finish()
+                if (++recreated > 3) return finish(failed)
                 engine.reset()
             }
-            all.isNotEmpty() && !thinking && isComplete(alternatives) -> return finish()
+            all.isNotEmpty() && !thinking && isComplete(alternatives) -> return finish(EndReason.COMPLETE)
         }
         val quietLimit = if (isDictation(all)) dictationIdleMs else idleMs
         when {
-            t - startedAt >= maxMs -> finish()
-            all.isNotEmpty() && words.isEmpty() && !thinking && t - lastWordsAt >= quietLimit -> finish()
-            all.isEmpty() && t - startedAt >= noSpeechMs -> finish()
-            emptyRuns >= 8 -> finish()
+            t - startedAt >= maxMs -> finish(EndReason.MAX_TIME)
+            all.isNotEmpty() && words.isEmpty() && !thinking && t - lastWordsAt >= quietLimit -> finish(EndReason.SILENCE)
+            all.isEmpty() && t - startedAt >= noSpeechMs -> finish(EndReason.NO_SPEECH)
+            emptyRuns >= 8 -> finish(if (all.isEmpty()) EndReason.NO_SPEECH else EndReason.SILENCE)
             else -> begin(restart = true)
         }
     }
 
-    private fun finish() {
+    private fun finish(reason: EndReason) {
+        endReason = reason
         val result = text.ifBlank { null }
         finalAlternatives = alternatives
         active = false

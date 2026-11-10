@@ -4,7 +4,9 @@
 
 ## Status (2026-11-10)
 
-**Done.** Phase 1 screens S1–S13, the fast JVM test suite (Robolectric + Roborazzi), S14 voice-dictated WhatsApp and SMS messages (PR #6), S15 Near home (PR #7), and the fixes from Pankaj's first real-phone feedback (fix/real-phone-feedback-1): continuous listening (no mid-message cut-off), calling and messaging anyone in the phone book, and rides to any place by voice or typing. 308 JVM tests pass (about 20 s warm). Main has all of this. A debug APK is ready to sideload. There is no Play Store release yet.
+**Done.** Phase 1 screens S1–S13, the fast JVM test suite (Robolectric + Roborazzi), S14 voice-dictated WhatsApp and SMS messages (PR #6), S15 Near home (PR #7), and the fixes from Pankaj's first real-phone feedback (fix/real-phone-feedback-1): continuous listening (no mid-message cut-off), calling and messaging anyone in the phone book, and rides to any place by voice or typing. 308 JVM tests passed at that point (356 after analytics, about 20 s warm). Main has all of this. A debug APK is ready to sideload. There is no Play Store release yet.
+
+**Analytics (2026-11-11, feat/analytics).** On-device event log, the metrics maths, How Nexus is doing (en/hi/mr), Share test summary with a tester tag, Delete all usage data, and the opt-in daily upload to our own Worker (live at nexus-metrics.safe2eat-api.workers.dev, free tier). `node scripts/metrics-report.mjs` prints the cohort table. 356 JVM tests + 11 Worker tests. Definitions and targets: `docs/metrics.md`.
 
 **Next.**
 1. Pankaj's second real-phone test: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot).
@@ -20,7 +22,8 @@ Nexus is the family co-pilot for your parents' Android phone: they speak in thei
 - Repo: github.com/pankajkhannade/nexus, native app in android/, package dev.pankajkhannade.nexus
 - Parent mode, child-assisted setup, calls, dictated WhatsApp/SMS, ride home (Uber, Ola, Rapido, Namma Yatri), Near home tiles, "Is this safe?", "Ask family", family settings with usage export, day-3 / day-7 feedback, Privacy screen
 - Debug APK for sideload only. No Play release.
-- 308 JVM tests (logic + Robolectric Compose UI + Roborazzi). See `docs/testing.md`.
+- 356 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
+- Metrics: on-device log + opt-in daily counts + share-able summary. See `docs/metrics.md`.
 - Play needs: signed AAB, upload key Pankaj keeps, Play Console account (paid, needs Pankaj's yes), privacy policy at a public URL, Data safety form
 
 ## Riskiest assumptions
@@ -43,6 +46,7 @@ Magic moment candidate: the parent says a sentence in Marathi and a call or a pr
 5. Exit metric, then Phase 2 (paid family plan with the child's app) or a rethink
 
 ## Exit and kill rule
+Measured with `docs/metrics.md`: the How Nexus is doing screen, the shared summaries, and `scripts/metrics-report.mjs` for families who opt in. Every number is read with its counts and its tester source (family / friend / stranger).
 - **Go on to Phase 2** if, in week 2 of the closed test, at least 4 of 6 parents use Nexus on 4 or more of 7 days. (Also aimed for: 12 testers stay opted in for 14 days; at least 1 "Is this safe?" or "Ask family" per pair; at least 3 of 6 children say they'd pay Rs 999/yr, asked only with Pankaj's yes.)
 - **Kill / return to discovery** if fewer than 2 of 6 parents use it on 4+ days a week.
 

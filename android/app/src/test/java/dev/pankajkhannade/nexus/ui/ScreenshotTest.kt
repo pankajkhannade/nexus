@@ -217,4 +217,37 @@ class ScreenshotTest {
         compose.setParent { dev.pankajkhannade.nexus.DestinationScreen(model) }
         shot("destination_confirm_mr")
     }
+
+    // ---- How Nexus is doing (analytics) and the upload consent ----
+    private fun metricsShot(name: String) {
+        val model = newModel(people = 1)
+        seedDemoUsage(model)
+        model.chooseTesterSource(dev.pankajkhannade.nexus.TesterSource.FAMILY)
+        compose.setContent { NexusTheme(mode = UiMode.Child) { dev.pankajkhannade.nexus.MetricsScreen(model) } }
+        shot(name)
+    }
+
+    private fun consentShot(name: String) {
+        val model = newModel(people = 1)
+        compose.setContent { NexusTheme(mode = UiMode.Child) { dev.pankajkhannade.nexus.UploadConsentScreen(model) } }
+        shot(name)
+    }
+
+    @Config(qualifiers = "+h3000dp")
+    @Test fun metrics_en() = metricsShot("metrics_en")
+
+    @Config(qualifiers = "+hi-h3000dp")
+    @Test fun metrics_hi() = metricsShot("metrics_hi")
+
+    @Config(qualifiers = "+mr-h3000dp")
+    @Test fun metrics_mr() = metricsShot("metrics_mr")
+
+    @Config(qualifiers = "+h1400dp")
+    @Test fun uploadConsent_en() = consentShot("upload_consent_en")
+
+    @Config(qualifiers = "+hi-h1400dp")
+    @Test fun uploadConsent_hi() = consentShot("upload_consent_hi")
+
+    @Config(qualifiers = "+mr-h1400dp")
+    @Test fun uploadConsent_mr() = consentShot("upload_consent_mr")
 }

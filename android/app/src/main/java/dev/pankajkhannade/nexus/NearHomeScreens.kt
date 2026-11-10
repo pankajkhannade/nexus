@@ -82,7 +82,7 @@ fun NearHomeScreen(model: NexusViewModel) {
                     Need.RIDE -> null
                     else -> app?.label ?: stringResource(R.string.near_on_maps)
                 }
-                NeedTile(Modifier.weight(1f).fillMaxRowHeight(), need, sub) { model.openNeed(need) }
+                NeedTile(Modifier.weight(1f).fillMaxRowHeight(), need, sub) { model.nearTile(need); model.openNeed(need) }
             }
         }
         BigButton(stringResource(R.string.back), { model.screen = Screen.Home }, kind = ButtonKind.Quiet)
@@ -139,7 +139,7 @@ fun InstallScreen(model: NexusViewModel, need: Need, app: ServiceApp) {
         Text(needIcon(need), fontSize = 56.sp, modifier = Modifier.clearAndSetSemantics { })
         Text(stringResource(R.string.install_title, app.label), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.install_body), style = MaterialTheme.typography.bodyLarge)
-        BigButton(stringResource(R.string.install_x, app.label), { openPlay(context, app.pkg); model.screen = Screen.Home })
+        BigButton(stringResource(R.string.install_x, app.label), { openPlay(context, app.pkg); model.playRedirect(AppCategory.of(need)); model.screen = Screen.Home })
         model.saved.people.firstOrNull { it.askFamily }?.let { person ->
             BigButton("💬  " + stringResource(R.string.ask_x, person.name), {
                 model.record(Event.ASK_FAMILY)
@@ -158,7 +158,7 @@ fun EmergencyScreen(model: NexusViewModel) {
     ScreenColumn {
         Text("🚑  " + stringResource(R.string.need_emergency), style = MaterialTheme.typography.headlineMedium)
         Surface(
-            onClick = { openDial(context, number) },
+            onClick = { openDial(context, number); model.actionOpened(AppCategory.EMERGENCY) },
             shape = CardShape,
             color = NexusColors.Danger,
             contentColor = Color.White,

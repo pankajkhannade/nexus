@@ -40,6 +40,7 @@ fun NexusApp(model: NexusViewModel) {
     val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         micGate = false
         model.markMicAsked()
+        model.permissionAnswered(Perm.MIC, ok)
         if (ok) model.startListening()
     }
     // Speak: if the mic is off, explain first (full screen), then ask. Never a bare system dialog.
@@ -47,7 +48,7 @@ fun NexusApp(model: NexusViewModel) {
         if (granted(context, Manifest.permission.RECORD_AUDIO)) model.startListening() else micGate = true
     }
     val screen = model.screen
-    val parentScreen = saved.setupDone && screen != Screen.Settings
+    val parentScreen = saved.setupDone && screen != Screen.Settings && screen != Screen.Metrics && screen != Screen.UploadConsent
     NexusTheme(mode = if (parentScreen) UiMode.Parent else UiMode.Child) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             if (!model.loaded) {
@@ -59,7 +60,8 @@ fun NexusApp(model: NexusViewModel) {
                 when {
                     micGate -> micGate = false
                     screen == Screen.Listening -> model.cancelListening()
-                    screen == Screen.Privacy -> model.screen = Screen.Settings
+                    screen == Screen.Privacy || screen == Screen.Metrics -> model.screen = Screen.Settings
+                    screen == Screen.UploadConsent -> model.screen = Screen.Metrics
                     screen == Screen.Message -> model.cancelDraft()
                     screen is Screen.NeedHelp || screen is Screen.Install || screen == Screen.Emergency -> model.screen = Screen.NearHome
                     screen == Screen.Ride || screen == Screen.Destination -> model.leaveRide()
@@ -95,6 +97,8 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.Emergency -> EmergencyScreen(model)
                     screen is Screen.Settings -> SettingsScreen(model)
                     screen is Screen.Privacy -> PrivacyScreen(model) { model.screen = Screen.Settings }
+                    screen is Screen.Metrics -> MetricsScreen(model)
+                    screen is Screen.UploadConsent -> UploadConsentScreen(model)
                     else -> ParentHome(model, onSpeak, onSettings = { model.screen = Screen.Settings })
                 }
             }

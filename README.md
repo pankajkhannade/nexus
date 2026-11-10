@@ -19,8 +19,10 @@ The native Android app lives in [`android/`](android/). Package: `dev.pankajkhan
 - **Near home:** one "घराजवळ" button with big tiles for groceries, medicines, doctor, ride, home help and emergency. The child picks an app for each need from a dropdown. Apps already on the phone get an "Installed" tag; the rest open their Play Store page. Medicines, doctor and emergency always work, through Maps search near home and a 108 dial pad (never an automatic call).
 - **Is this safe?:** share a message or screenshot into Nexus. Checks run on the phone. The wording never says "safe".
 - **Ask family:** one tap opens WhatsApp (or SMS) to the chosen child with the shared content and "Is this real?" already typed. The parent sends.
-- **Child-assisted setup:** language, family, home address, Near home apps, and a mic try-out, in a few minutes. No accounts, no server.
+- **Child-assisted setup:** language, family, home address, Near home apps, and a mic try-out, in a few minutes. No accounts.
 - **Family settings:** edit people and home (with Undo), test the mic, pick Near home apps, and **Export my usage** (a preview first; counts only, no names or numbers).
+- **How Nexus is doing (Family settings):** the numbers that decide whether Nexus works, in plain words in en/hi/mr with raw counts next to every percentage: days used of the last 7, first-try voice success by language and command, retries, cancels, wrong app, cut-offs, setup time, activation, voice vs buttons, crashes. A tester tag (family / friend / stranger), **Share test summary** (counts-only JSON for WhatsApp), and **Delete all usage data**. See [docs/metrics.md](docs/metrics.md).
+- **Opt-in daily counts (off by default):** after a consent page, yesterday's aggregate counts go once a day to our own Cloudflare Worker under a random install ID. No words, names, numbers or places, ever. Source and tests in [`backend/metrics-worker/`](backend/metrics-worker/); `node scripts/metrics-report.mjs` prints the cohort table.
 - **Day-3 / day-7 feedback:** two short questions on the home screen. Answers stay on the phone unless they are shared.
 - **Privacy:** five clear cards in en/hi/mr. See [PRIVACY.md](PRIVACY.md).
 
@@ -32,9 +34,11 @@ Requirements: JDK 17+, Android SDK (platform 35, build-tools 35). The Gradle wra
 cd android
 echo "sdk.dir=$ANDROID_HOME" > local.properties   # if not already present
 ./gradlew assembleDebug          # APK: app/build/outputs/apk/debug/app-debug.apk
-./gradlew testDebugUnitTest      # 308 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
+./gradlew testDebugUnitTest      # 356 JVM tests: logic + Robolectric Compose UI tests (~20 s warm)
 ./gradlew verifyRoborazziDebug   # screenshot tests against app/src/test/roborazzi/ goldens
 ```
+
+The metrics Worker has its own Node tests: `cd backend/metrics-worker && npm test` (11 tests, under 1 s, real SQL on Node's built-in SQLite).
 
 UI checks run on the JVM first (Robolectric + Roborazzi). The emulator is only a short pre-release smoke of 10 items or fewer. See [docs/testing.md](docs/testing.md).
 
@@ -55,13 +59,14 @@ UI checks run on the JVM first (Robolectric + Roborazzi). The emulator is only a
 | [docs/decisions.md](docs/decisions.md) | Decisions log with reasons |
 | [docs/plan.md](docs/plan.md) | Living plan: status, milestones, exit and kill rules |
 | [docs/testing.md](docs/testing.md) | Fast-testing playbook: JVM first, emulator last |
+| [docs/metrics.md](docs/metrics.md) | Success metrics: definitions, targets, data sources, caveats, the event schema, the opt-in upload, check-in and survey drafts |
 | [docs/voice-architecture.md](docs/voice-architecture.md) | Voice research and decision: STT options, rules + opt-in LLM fallback, phone-book matching, destinations, elderly voice UX, remote help, test plan |
 | [CHANGELOG.md](CHANGELOG.md) | What changed, by milestone |
 | [PRIVACY.md](PRIVACY.md) | What is stored, what leaves the phone, and only when |
 
 ## Privacy
 
-People, places, the home pincode and settings are stored only on the phone and excluded from Android backup. See [PRIVACY.md](PRIVACY.md).
+People, places, the home pincode, settings and the usage log are stored only on the phone and excluded from Android backup. The only thing that can leave the phone on its own is the opt-in daily counts, and only after the family says yes. See [PRIVACY.md](PRIVACY.md).
 
 ## Legacy web prototype
 

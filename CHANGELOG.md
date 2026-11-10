@@ -4,6 +4,23 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Privacy-first analytics (2026-11-11) — feat/analytics
+Pankaj asked how we'll measure success and then "let's build it end to end". Definitions and caveats: `docs/metrics.md`.
+
+**Added: an on-device event log.** `Analytics.kt`: `UsageEvent` has only enum, number and boolean fields (no text field exists, and `PrivacySchemaTest` fails the build if one is added). Events cover setup (start, steps, permissions, finish and duration), voice (start, end reason including cut-off, utterance length in characters, time to action, language, command type, recogniser error codes), "which one?", cancels, actions opened by app category, the time away after an action (a quick return under 5 s counts as a wrong action), Near home tiles, Play Store redirects, opens, and crashes (a count only). Stored as JSON lines in app storage with 90-day retention and a 50,000-event cap. Not in Android backup.
+
+**Added: metrics maths.** `Metrics.kt` (pure Kotlin): days used per week, first-try success split by language and command (a retry = a new try within 30 s of a failed one), retry / cancel / wrong-action / cut-off rates, activation (a voice success within 24 h of setup), time to first value, setup completion and drop-off step, voice vs tile, D1 / D7 / D30, crash-free sessions. Every number carries its raw counts (`Ratio`).
+
+**Added: "How Nexus is doing"** (Family settings, child scale, en/hi/mr). The numbers in plain words, a tester tag (family / friend / stranger), Share test summary (counts-only JSON through the share sheet), what is and isn't collected, and Delete all usage data (the log, daily counters, feedback answers, upload choice and install ID; people and places stay).
+
+**Added: opt-in daily upload, off by default.** A consent page first. A random install ID (never the Android ID or advertising ID). WorkManager once a day on any network with exponential backoff. Only finished days, each sent once, as whole numbers under fixed keys. Our own Cloudflare Worker + D1 on workers.dev (`backend/metrics-worker/`, free tier): strict validation (anything unexpected is rejected), no IP or time of day stored, 180-day retention, reads behind a bearer token whose SHA-256 is the only thing the Worker holds. `scripts/metrics-report.mjs` prints the cohort table (kill rule, activation, first-try by language, retention) split by tester source.
+
+**Skipped, on purpose:** "call connected 10 s" (needs READ_PHONE_STATE or the call log) and "other app in front for 60 s" (needs usage-access). Both are kept as time-away proxies and labelled as such.
+
+**Changed:** the Privacy screen and PRIVACY.md now describe the opt-in counts. "Nothing is shared by itself" became "Nothing is shared without your yes".
+
+**Tests:** 308 → 356 JVM tests (metrics maths, event log retention and cap, crash counter, schema and real-flow leak checks, consent-off-means-no-upload, WorkManager scheduling, delete wipes everything, the screens, and 6 screenshots in en/hi/mr), plus 11 Worker tests on Node.
+
 ### Real-phone feedback 1 (2026-11-10) — fix/real-phone-feedback-1
 Pankaj tested the APK on his phone and reported three gaps. All three are fixed here.
 

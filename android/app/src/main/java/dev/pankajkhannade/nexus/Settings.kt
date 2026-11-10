@@ -168,6 +168,8 @@ fun SettingsScreen(model: NexusViewModel) {
                 BigButton(stringResource(R.string.share), { shareText(context, export) })
             }
 
+            BigButton("📊  " + stringResource(R.string.metrics_title), { model.screen = Screen.Metrics }, kind = ButtonKind.Secondary)
+
             Text(stringResource(R.string.test_command), style = MaterialTheme.typography.titleLarge)
             OutlinedTextField(command, { command = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.test_command_hint)) }, singleLine = true)
             BigButton(stringResource(R.string.try_command), { model.understood(command, typed = true) }, enabled = command.isNotBlank(), kind = ButtonKind.Secondary)

@@ -584,6 +584,24 @@ Pankaj: parents don't know which apps exist for groceries, rides, medicines, nea
 - Every Ride screen has a Secondary "📍 Somewhere else" that opens a place field with Find. Without a home address, the field shows straight away.
 - Screenshot: `screens/phase1-parent/38-destination-confirm-mr.png`.
 
+### S16 How Nexus is doing + upload consent (added 2026-11-11, analytics)
+Pankaj: "How do you measure success metrics of the app? ... let's build it end to end." Full definitions: `metrics.md`.
+
+- **Entry:** Family settings (child scale, behind the 2-second hold) → Secondary "📊 How Nexus is doing / Nexus कसं चाललंय / Nexus कैसा चल रहा है", above the test command.
+- **Layout (child scale, one scrolling column):** title, a one-line "Counts from this phone only. No voice, no words said, no names, numbers or places." Then five bordered cards, each an emoji title and plain sentences:
+  1. 📅 How often: "Used on 6 of the last 7 days", "Days used in total: 8", "After setup, used on day 1: yes · day 7: yes · day 30: not yet".
+  2. 🎤 Voice: "Understood the first time: 7 of 9 (78%)", then one "·" line per language and per command (calls, messages, rides, Near home), not understood, tried again within 30 seconds, stopped before it happened, came straight back (wrong app), "which one?" count, cut off mid-sentence.
+  3. 🚀 First days: setup time in minutes (or "stopped at step N"), voice worked within 24 hours of setup (yes / no / not yet), first thing done N min after setup.
+  4. 👆 Voice or buttons: totals, then per command.
+  5. 📱 App health: opens and crashes, and opens without a crash as a ratio.
+- **Rule:** every percentage shows its counts ("7 of 9 (78%)"); a zero denominator says "none yet" instead of 0%. Numbers use the locale's digits (Devanagari in mr/hi).
+- **Tester tag:** "Who is testing Nexus?", a line on why, and three full-width buttons Family / Friend / Stranger (✓ and Primary when chosen). Full width because "अनोळखी" and "Stranger" wrapped in a 3-column row.
+- **Share test summary:** a Secondary button (share sheet with a counts-only JSON) and a note to send it on WhatsApp.
+- **Send daily counts:** a panel with a Switch (off by default) and a line that says what the state means. Switching on never turns it on directly: it opens the consent page. Switching off is immediate.
+- **What Nexus counts** and **Never collected** cards, then a Quiet "🗑 Delete all usage data" with a confirm dialog ("This deletes every count and the feedback answers… Your people and places stay." Delete / Keep), then Back.
+- **Consent page:** "📤 Send daily counts?", why it helps, three cards (what is sent once a day; never collected; where it goes: our own small server on Cloudflare, kept 180 days, how to stop), a Primary "Yes, send daily counts" and a Secondary "No, keep it on the phone". Back returns to How Nexus is doing.
+- Screenshots: `screens/phase1-parent/39-metrics-en.png`, `40-metrics-mr.png`, `41-metrics-hi.png`, `42-upload-consent-en.png`, `43-upload-consent-mr.png`, `44-upload-consent-hi.png`.
+
 ## 5. Open risks and decisions for Pankaj
 - **Marathi voice may not work on-device** on most Rs 10-25k phones. The fallback is online Google recognition, disclosed in the copy. If Marathi accuracy is poor in testing, Marathi UI and TTS stay, with Hindi or English voice, and tapping faces remains the main path.
 - **`ACTION_CALL` instead of the dialer.** I'm proposing it (one fewer tap, a 3s Cancel). Pankaj can veto it.

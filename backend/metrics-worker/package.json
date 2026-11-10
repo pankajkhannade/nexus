@@ -1,0 +1,10 @@
+{
+  "name": "nexus-metrics-worker",
+  "private": true,
+  "type": "module",
+  "description": "Opt-in daily aggregate counts for Nexus. Cloudflare Worker + D1, free tier.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "dev": "npx wrangler@4 dev"
+  }
+}
