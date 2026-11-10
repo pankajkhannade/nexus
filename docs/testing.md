@@ -164,7 +164,7 @@ Conventions:
 | Speech recognition | Skip the recogniser. Call the seam `model.understood("Aai la phone lav")` directly (L0 covers the phrase parsing). For listener wiring, Robolectric's `ShadowSpeechRecognizer` can trigger results. | — |
 | ML Kit OCR (screenshot → text) | Don't run it on the JVM: the models are native. Test the text path with `model.openCheck(text)`. Check OCR itself in the L3 smoke with one real screenshot. | — |
 | Clipboard ("Paste message") | Robolectric's real `ClipboardManager`: `setPrimaryClip(...)`, then tap Paste | — |
-| Geocoder | Returns nothing on Robolectric. Coordinates are covered by `CabsTest` (L0) and checked on a phone. | — |
+| Geocoder | Robolectric's `getFromLocationName` returns nothing, and `ShadowGeocoder` only fakes reverse lookups. Set the seam `model.lookupHome = { Place(it, lat, lng) to "411045" }`, then `saveHome(...)` and wait (`homeWithCoordinates()` in `NearHomeUiTest`). | `NearHomeUiTest` |
 
 Instrumented tests (when we add some): use **Espresso-Intents** (`intending(...)` / `intended(...)`)
 to stub and check the same hand-offs on a device, and UiAutomator for system dialogs like

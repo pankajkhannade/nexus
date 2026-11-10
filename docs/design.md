@@ -551,6 +551,19 @@ Exit check for the design before the closed test:
 
 Parent says who, which app and what: "पंकजला व्हॉट्सॲप कर आणि सांग की ...". The confirm screen shows "कोणाला: Pankaj" with the initial, the tidied message in headline type (tap to edit), Speak again, and one green primary button "WhatsApp वर पाठवा" (SMS secondary; SMS primary when asked for or when WhatsApp is missing), plus "नको, पाठवू नका". Nexus reads it back ("Pankaj ला हा मेसेज पाठवू? ..."). WhatsApp or the SMS app opens with the text typed in and the parent taps Send there; a one-time line says so. Screenshots: `android/app/src/test/roborazzi/message_confirm_{mr,en}.png`.
 
+### S15 Near home (added 2026-11-10, Pankaj's request)
+Pankaj: parents don't know which apps exist for groceries, rides, medicines, nearby medical stores, doctors or home services, or how to search for them. Show the relevant services for the home pincode. The child picks the apps from a dropdown of top apps; an installed app gets a tag, and a missing one links to the Play Store.
+
+- **Entry:** one Secondary button "📍 Near home / घराजवळ / घर के पास" on the parent home, below "Book a ride home".
+- **Screen:** a title, "Services for <PIN>" when known, and a 2-column grid of up to 6 need tiles (min 148dp, equal height per row, emoji + need word in titleLarge + a small line with the picked app's name, "On Google Maps" or "108"). Emergency uses DangerContainer. It's a need grid, not an app grid: the parent reads "दूध-किराणा", not "Blinkit".
+- **Visibility:** Groceries and Home help only when an app is picked; Ride only when home is saved; Medicines, Doctor and Emergency always show (they fall back to Maps / dial).
+- **Tap:** Groceries and Home help open the app's launcher intent, or the Install screen if it's missing. Medicines and Doctor with a picked app open a two-button screen ("Order on Tata 1mg" + "🗺 Nearby medical stores"); without one they go straight to Maps. Maps search uses `geo:lat,lng?q=<query>` around home. Calling a shop happens inside Maps (Nexus has no places data), and a line says so. Emergency: a 96dp red "📞 Call 108 (ambulance)" that opens the dial pad (no CALL_PHONE use), family Call buttons (the S6 countdown) and "🏥 Nearest hospital".
+- **Install screen:** "<App> is not on this phone", "Install it from the Play Store", a primary "Install <App>" button, and "Ask <child>" (WhatsApp/SMS prefill).
+- **Child setup step 4 of 5** (and Family settings → "Near home apps"): the PIN field (6 digits; from the address, then the Geocoder, else typed), then one `ExposedDropdownMenuBox` per need (Groceries, Medicines, Doctor, Ride when home is set, Home help). Each menu row shows the app and either a green "✓ Installed" tag or an "Install" text button that opens Play; the last row is "None". The field shows "Zepto · Installed". If the picked app isn't installed, an "Install <App>" button sits under the field. Tags refresh when the child comes back from Play (ON_RESUME). Ride picks set the Ride screen's first app (`lastCab`).
+- **Honesty:** Nexus can't check delivery to a pincode (no app has a public API), so the PIN only drives display and maps search, and the setup note says to open the app once to check.
+- **Voice:** need words in mr/hi/en/Hinglish route to the tile after call, message and ride-home parsing (see `readNeed`).
+- Screenshots: `screens/phase1-parent/32-near-home-mr.png`, `33-near-home-en.png`, `34-near-emergency-mr.png`, `35-near-setup-dropdown-en.png`.
+
 ## 5. Open risks and decisions for Pankaj
 - **Marathi voice may not work on-device** on most Rs 10-25k phones. The fallback is online Google recognition, disclosed in the copy. If Marathi accuracy is poor in testing, Marathi UI and TTS stay, with Hindi or English voice, and tapping faces remains the main path.
 - **`ACTION_CALL` instead of the dialer.** I'm proposing it (one fewer tap, a 3s Cancel). Pankaj can veto it.
