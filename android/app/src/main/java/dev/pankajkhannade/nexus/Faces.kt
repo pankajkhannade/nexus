@@ -89,9 +89,14 @@ fun Avatar(person: Person, family: List<Person>, size: Dp = 64.dp, fallbackIndex
         Image(photo.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = base.clip(CircleShape))
         return
     }
-    val initial = person.name.trim().firstOrNull()?.uppercase() ?: "?"
+    val initial = initialOf(shownName(person))
     Box(base.background(FACE_COLORS[slot], CircleShape), contentAlignment = Alignment.Center) {
-        Text(initial, color = Color.White, fontSize = (size.value * 0.45f).sp, fontWeight = FontWeight.SemiBold)
+        // Sized to the circle, not the text-size setting: at 2.0x a scaled letter overflowed the 48dp face.
+        val letter = with(androidx.compose.ui.platform.LocalDensity.current) { (size * 0.42f).toSp() }
+        Text(
+            initial, color = Color.White, fontSize = letter, lineHeight = letter * 1.3f,
+            fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false,
+        )
     }
 }
 
@@ -130,3 +135,24 @@ fun contactPhotoUri(context: Context, pickedRow: Uri): Uri? = runCatching {
         if (c.moveToFirst()) c.getString(0)?.let(Uri::parse) else null
     }
 }.getOrNull()
+
+
+/**
+ * The person's name in the screen's language (UX sprint 2): the Devanagari name the child typed when the
+ * app is in Marathi or Hindi, else the saved name. Latin names are never changed.
+ */
+@Composable
+fun shownName(person: Person): String =
+    person.shownIn(androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language)
+
+/** The first letter as a reader sees it: a whole Devanagari cluster ("श्री" -> "श्री"), not a lone consonant. */
+fun initialOf(name: String): String {
+    val text = name.trim()
+    if (text.isEmpty()) return "?"
+    val it = java.text.BreakIterator.getCharacterInstance()
+    it.setText(text)
+    var end = it.next()
+    // A consonant + virama joins the next letter into one cluster (क्ष, श्र): keep the cluster whole.
+    while (end in 1 until text.length && text[end - 1] == '\u094D') end = it.next()
+    return text.substring(0, end.coerceAtMost(text.length)).uppercase()
+}

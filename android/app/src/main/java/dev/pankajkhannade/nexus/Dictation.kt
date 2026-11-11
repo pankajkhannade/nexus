@@ -162,7 +162,7 @@ private fun nameForms(word: String): List<String> {
 /** 3 = name or alias as saved, 2 = same sound or family word, 1 = one slip of the recogniser. 0 = no. */
 private fun matchScore(person: Person, spoken: String): Int {
     val wanted = spoken.trim().lowercase()
-    val names = listOf(person.name, person.alias).filter { it.isNotBlank() }
+    val names = person.names
     if (names.any { it.trim().lowercase() == wanted || it.trim().lowercase().substringBefore(' ') == wanted }) return 3
     if (names.any { nameMatches(it, spoken) }) return 2
     val key = soundKey(spoken)

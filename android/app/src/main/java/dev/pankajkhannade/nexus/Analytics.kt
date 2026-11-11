@@ -31,7 +31,16 @@ enum class EventType(val key: String) {
     /** Nexus came back after an action; [UsageEvent.ms] = time away. Under 5 s counts as a wrong action. */
     ACTION_RETURN("action_return"),
     NEAR_TILE("near_tile"),
-    PLAY_REDIRECT("play_redirect");
+    PLAY_REDIRECT("play_redirect"),
+    /**
+     * UX sprint 2: the parent's answer to "did it work?" after coming back from a handoff.
+     * [UsageEvent.ok] = yes / no, [UsageEvent.category] = the app it was about. Nothing else.
+     */
+    RETURN_CHECK("return_check"),
+    /** UX sprint 2: Help opened (the home help button, or a "no" to did it work). */
+    HELP_OPENED("help_opened"),
+    /** UX sprint 2: the money-already-gone steps opened. */
+    MONEY_GONE("money_gone");
 
     companion object {
         fun from(key: String): EventType? = entries.firstOrNull { it.key == key }
@@ -101,7 +110,9 @@ enum class Perm(val key: String) {
 enum class AppCategory(val key: String) {
     DIALER("dialer"), WHATSAPP("whatsapp"), SMS("sms"), CAB("cab"), MAPS("maps"), GROCERY("grocery"),
     PHARMACY("pharmacy"), DOCTOR("doctor"), HOME_SERVICE("home_service"), PLAY_STORE("play_store"),
-    EMERGENCY("emergency"), VIDEO_CALL("video_call");
+    EMERGENCY("emergency"), VIDEO_CALL("video_call"),
+    /** UX sprint 2: a web page Nexus opened (only cybercrime.gov.in from the money-gone steps). */
+    BROWSER("browser");
 
     companion object {
         fun from(key: String): AppCategory? = entries.firstOrNull { it.key == key }

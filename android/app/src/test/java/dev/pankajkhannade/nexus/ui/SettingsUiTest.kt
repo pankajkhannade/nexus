@@ -37,7 +37,7 @@ class SettingsUiTest {
         val model = newModel(people = 2)
         show(model)
 
-        compose.onAllNodesWithText("Remove").onFirst().performClick()
+        compose.onAllNodesWithText("Remove", substring = true).onFirst().performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithText("Undo").fetchSemanticsNodes().isNotEmpty() }
         assertEquals(listOf("Priya"), model.saved.people.map { it.name })
 

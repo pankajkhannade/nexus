@@ -111,6 +111,12 @@ data class MetricsReport(
     val sessions: Int,
     val crashes: Int,
     val crashFree: Ratio,
+    /** UX sprint 2: "did it work?" answered yes, of all answers. */
+    val didItWork: Ratio = Ratio(0, 0),
+    /** Per handoff kind: yes answers of all answers. */
+    val didItWorkBy: Map<AppCategory, Ratio> = emptyMap(),
+    val helpOpened: Int = 0,
+    val moneyGoneOpened: Int = 0,
 )
 
 private val ACTIVE_TYPES = setOf(EventType.APP_OPEN, EventType.FOREGROUND, EventType.COMMAND, EventType.VOICE_START, EventType.ACTION_OPENED)
@@ -188,6 +194,7 @@ fun computeMetrics(events: List<UsageEvent>, now: Long, zone: ZoneId = ZoneId.sy
     val sessions = of(EventType.APP_OPEN).size
     val crashes = of(EventType.CRASH).size
 
+    val checks = of(EventType.RETURN_CHECK).filter { it.ok != null }
     return MetricsReport(
         today = today,
         events = sorted.size,
@@ -224,6 +231,10 @@ fun computeMetrics(events: List<UsageEvent>, now: Long, zone: ZoneId = ZoneId.sy
         sessions = sessions,
         crashes = crashes,
         crashFree = Ratio((sessions - crashes).coerceAtLeast(0), sessions),
+        didItWork = checks.let { c -> Ratio(c.count { it.ok == true }, c.size) },
+        didItWorkBy = checks.filter { it.category != null }.groupBy { it.category!! }.mapValues { (_, c) -> Ratio(c.count { it.ok == true }, c.size) },
+        helpOpened = of(EventType.HELP_OPENED).size,
+        moneyGoneOpened = of(EventType.MONEY_GONE).size,
     )
 }
 
@@ -261,6 +272,12 @@ fun dailyCounts(events: List<UsageEvent>, day: LocalDate, zone: ZoneId = ZoneId.
             EventType.NEAR_TILE -> add("near_tile")
             EventType.PLAY_REDIRECT -> add("play_redirect")
             EventType.FOREGROUND -> add("foreground")
+            EventType.RETURN_CHECK -> if (e.ok != null) {
+                add(if (e.ok) "did_it_work_yes" else "did_it_work_no")
+                e.category?.let { add("did_it_work_${if (e.ok) "yes" else "no"}_${it.key}") }
+            }
+            EventType.HELP_OPENED -> add("help_opened")
+            EventType.MONEY_GONE -> add("money_gone_opened")
         }
     }
     classifyAttempts(sorted).filter { dayOf(it.t, zone) == day }.forEach { a ->
@@ -317,6 +334,10 @@ fun summaryJson(report: MetricsReport, tester: TesterSource, appVersion: String,
         put("wrong_actions", ratio(report.wrongActions))
         put("which_one_picker", ratio(report.pickers))
         put("cut_offs", ratio(report.cutOffs))
+        put("did_it_work", ratio(report.didItWork))
+        put("did_it_work_by_app", ratios(report.didItWorkBy) { (it as AppCategory).key })
+        put("help_opened", report.helpOpened)
+        put("money_gone_opened", report.moneyGoneOpened)
         put("recognizer_errors", JSONObject().apply { report.recognizerErrors.forEach { (c, n) -> put(c.toString(), n) } })
         put("median_utterance_chars", report.medianUtteranceChars ?: JSONObject.NULL)
         put("median_ms_to_action", report.medianTimeToActionMs ?: JSONObject.NULL)

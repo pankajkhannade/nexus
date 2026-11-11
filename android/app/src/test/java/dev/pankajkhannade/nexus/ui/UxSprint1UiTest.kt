@@ -167,8 +167,11 @@ class UxSprint1UiTest {
     @Test fun moneyAlreadyGoneDialsTheCyberHelpline() {
         val model = newModel(people = 1)
         model.openCheck("Your SBI account is blocked. Share the OTP sent to your phone to unblock it now.")
-        compose.setParent { SafetyScreen(model) }
-        compose.onNodeWithText("Money already gone? Call 1930", substring = true).performScrollTo().performClick()
+        compose.setParent { if (model.screen == Screen.MoneyGone) dev.pankajkhannade.nexus.MoneyGoneScreen(model) else SafetyScreen(model) }
+        // Since UX sprint 2 this opens the full money-gone steps; 1930 is the first one.
+        compose.onNodeWithText("Money already gone?", substring = true).performScrollTo().performClick()
+        assertEquals(Screen.MoneyGone, model.screen)
+        compose.onNodeWithTag("money_1930").performScrollTo().performClick()
         val intent = nextStartedIntent()!!
         assertEquals(Intent.ACTION_DIAL, intent.action)
         assertEquals("tel:1930", intent.dataString)

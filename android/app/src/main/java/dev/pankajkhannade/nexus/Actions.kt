@@ -323,3 +323,11 @@ fun openSmsDraft(context: Context, phone: String, text: String): Boolean = try {
 } catch (_: ActivityNotFoundException) {
     false
 }
+
+/** A public web page in the phone's browser (only cybercrime.gov.in today). False when nothing can open it. */
+fun openWeb(context: Context, url: String): Boolean = try {
+    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    true
+} catch (_: ActivityNotFoundException) {
+    false
+}

@@ -10,10 +10,12 @@
 
 **UX sprint 1 (2026-11-11, feat/ux-sprint-1).** From the UX critique: faces you can tell apart, home on one 360x640dp screen, "Didn't understand" shows and says what was heard, the verdict's Ask <child> pinned, spoken handoff coaching (and Ola's drop-off link), "Save in phone contacts" in setup, India-only address search, and the shared bottom bar. 404 JVM tests. The 19 design principles are in `design.md` 3.8.
 
+**UX sprint 2 (2026-11-11, feat/ux-sprint-2).** Adjustable 3 / 5 / 8 s countdown (default 5), झालं / रद्द करा everywhere, an honest shorter setup (PIN as one question, true step counts), help always on home, "did it work?" after every hand-off (counted as yes/no by app kind), the bottom bar on the voice and message screens, the full पैसे गेले flow, 2.0x text tests, and Devanagari display names. 463 JVM tests.
+
 **Next.**
 1. Pankaj's second real-phone test, using the new leave-behind practice (call, message, ride home) with a parent: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot). Also: does Ola open with Swargate filled in; is the spoken coach line helpful or too much; are the 4 faces easy to tell apart; does "Save in phone contacts" return to Nexus.
 2. Native Hindi and Marathi review of the app's strings (including the new coaching lines).
-3. UX sprint 2 (critique section 5 and ranked fixes 7–20): adjustable countdown 3 / 5 / 8 s, झालं / रद्द करा on the message screen, one name for Ask family, honest setup steps and a handover script, permanent help on home, settings clean-up, a "did it work?" on return, 2.0x text tests, and the पैसे गेले flow (roadmap N3).
+3. ~~UX sprint 2~~ **done 2026-11-11**. In Pankaj's real-phone test, also check: is 5 s right, does the parent answer "did it work?", and does 1930 / cybercrime.gov.in open on his phone. Deferred: the bar on Practice / Try it, a spoken "मदत".
 4. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
 5. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
 6. Then the exit / kill rule below.
@@ -25,7 +27,7 @@ Nexus is the family co-pilot for your parents' Android phone: they speak in thei
 - Repo: github.com/pankajkhannade/nexus, native app in android/, package dev.pankajkhannade.nexus
 - Parent mode, child-assisted setup, calls, dictated WhatsApp/SMS, ride home (Uber, Ola, Rapido, Namma Yatri), Near home tiles, "Is this safe?", "Ask family", family settings with usage export, day-3 / day-7 feedback, Privacy screen
 - Debug APK for sideload only. No Play release.
-- 404 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
+- 463 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
 - Metrics: on-device log + opt-in daily counts + share-able summary. See `docs/metrics.md`.
 - Play needs: signed AAB, upload key Pankaj keeps, Play Console account (paid, needs Pankaj's yes), privacy policy at a public URL, Data safety form
 

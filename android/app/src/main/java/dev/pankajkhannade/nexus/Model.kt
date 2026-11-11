@@ -24,7 +24,25 @@ data class Person(
     val alias: String = "",
     /** A face photo copied into the app's private files (faces/), or "" for a coloured initial. Never uploaded. */
     val photo: String = "",
+    /**
+     * UX sprint 2: the name in Devanagari ("पंकज") when the child typed one. Shown instead of [name] when the
+     * app is in Marathi or Hindi, and matched by voice like [name]. "" = always show [name] (Latin is fine).
+     */
+    val localName: String = "",
 )
+
+/** The name to show in [lang]: the Devanagari one in mr / hi when the child entered it, else the saved name. */
+fun Person.shownIn(lang: String): String = if (lang != "en" && hasDevanagari(localName)) localName.trim() else name.trim()
+
+/** Every written form of this person's name that voice may match: saved name, Devanagari name, spoken alias. */
+val Person.names: List<String> get() = listOf(name, localName, alias).filter { it.isNotBlank() }
+
+fun hasDevanagari(text: String): Boolean = text.any { it in '\u0900'..'\u097F' }
+
+/** UX sprint 2 (WCAG 2.2.1 Timing Adjustable): the action countdown, set in Family settings. */
+val COUNTDOWN_CHOICES = listOf(3, 5, 8)
+const val DEFAULT_COUNTDOWN = 5
+fun cleanCountdown(seconds: Int): Int = if (seconds in COUNTDOWN_CHOICES) seconds else DEFAULT_COUNTDOWN
 
 /** A saved place. Coordinates come from the on-device Geocoder at setup and may be missing. */
 data class Place(val address: String = "", val lat: Double? = null, val lng: Double? = null) {
@@ -58,6 +76,8 @@ data class Saved(
      * Missing on older saves means the child already left, so decode treats that as done.
      */
     val practiceDone: Boolean = true,
+    /** Seconds before a call is placed, with Cancel on screen: 3, 5 or 8 (default 5). */
+    val countdownSeconds: Int = DEFAULT_COUNTDOWN,
 )
 
 data class Country(val name: String, val dial: String, val code: String)
