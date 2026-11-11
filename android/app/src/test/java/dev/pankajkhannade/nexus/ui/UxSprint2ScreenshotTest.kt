@@ -111,11 +111,12 @@ class UxSprint2ScreenshotTest {
     }
 
     // ---- Honest setup ----
-    private fun setup(name: String, page: SetupPage, scale: Float = 1f, home: String = "") {
+    private fun setup(name: String, page: SetupPage, scale: Float = 1f, home: String = "", pin: String = "") {
         RuntimeEnvironment.setFontScale(scale)
         val model = family(2)
         model.setupPeople = model.saved.people
         model.setupHome = home
+        model.setupPincode = pin
         model.lookupHome = { Place(it, 18.53, 73.85) to "411005" }
         model.planSetup(micGranted = false, callGranted = false)
         model.setupStep = model.setupPlan.indexOf(page)
@@ -126,7 +127,8 @@ class UxSprint2ScreenshotTest {
     }
 
     @Config(qualifiers = "+mr") @Test fun setup_language_mr() = setup("setup_step1_360_mr", SetupPage.LANGUAGE)
-    @Config(qualifiers = "+mr") @Test fun setup_home_pin_mr() = setup("setup_home_pin_360_mr", SetupPage.HOME, home = "Shivaji Nagar, Pune")
+    @Config(qualifiers = "+mr") @Test fun setup_home_pin_mr() = setup("setup_home_pin_found_360_mr", SetupPage.HOME, home = "Shivaji Nagar, Pune 411005", pin = "411005")
+    @Config(qualifiers = "+mr") @Test fun setup_home_pin_question_mr() = setup("setup_home_pin_question_360_mr", SetupPage.HOME, home = "Shivaji Nagar, Pune", pin = "411005")
     @Config(qualifiers = "+mr") @Test fun setup_mic_mr() = setup("setup_mic_step4_360_mr", SetupPage.MIC)
     @Config(qualifiers = "+mr") @Test fun setup_handover_mr() = setup("setup_all_set_360_mr", SetupPage.HANDOVER)
     @Config(qualifiers = "+mr") @Test fun setup_language_mr_fs20() = setup("setup_step1_360_mr_fs20", SetupPage.LANGUAGE, 2f)

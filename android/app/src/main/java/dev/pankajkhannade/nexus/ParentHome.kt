@@ -76,22 +76,33 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // Above 1.5x text (Android's largest steps), faces get a row each so first names don't break mid-word.
+                val bigText = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.6f
                 val date = LocalDate.ofEpochDay(model.today).format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault()))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // UX sprint 2, principle 12: help is always on home, where the greeting used to be.
-                    val helper = model.helpers().firstOrNull()
+                // UX sprint 2, principle 12: help is always on home, where the greeting used to be.
+                val helper = model.helpers().firstOrNull()
+                val header: @Composable (Modifier) -> Unit = { mod ->
                     if (helper != null) {
-                        HelpButton(stringResource(R.string.help_home, shownName(helper)), Modifier.weight(1f)) { model.openHelp() }
+                        HelpButton(stringResource(R.string.help_home, shownName(helper)), mod) { model.openHelp() }
                     } else {
-                        Text(stringResource(R.string.greeting), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.greeting), style = MaterialTheme.typography.titleLarge, modifier = mod)
                     }
+                }
+                if (bigText) {
+                    // At 2.0x text the date beside Help squeezed "Pankaj" into "Panka / j": stack them.
                     HoldToOpen(date, onSettings)
+                    header(Modifier.fillMaxWidth())
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        header(Modifier.weight(1f))
+                        HoldToOpen(date, onSettings)
+                    }
                 }
                 model.returnCheck?.let { ReturnCheckCard(model, it) }
                 if (choosingWhatsApp) {
                     Text(stringResource(R.string.whatsapp_who), style = MaterialTheme.typography.titleLarge)
                 }
-                FaceGrid(saved.people) { person ->
+                FaceGrid(saved.people, perRow = if (bigText) 1 else 2) { person ->
                     if (choosingWhatsApp) {
                         BigButton(stringResource(R.string.whatsapp), {
                             choosingWhatsApp = false
@@ -123,8 +134,8 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
 
 /** Up to 4 faces, two per row, each a card with a big face, the full first name and one action. */
 @Composable
-private fun FaceGrid(people: List<Person>, action: @Composable (Person) -> Unit) {
-    people.chunked(2).forEach { row ->
+private fun FaceGrid(people: List<Person>, perRow: Int = 2, action: @Composable (Person) -> Unit) {
+    people.chunked(perRow).forEach { row ->
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             row.forEach { person ->
                 Surface(
@@ -144,7 +155,7 @@ private fun FaceGrid(people: List<Person>, action: @Composable (Person) -> Unit)
                     }
                 }
             }
-            if (row.size == 1) Box(Modifier.weight(1f))
+            if (row.size < perRow) Box(Modifier.weight(1f))
         }
     }
 }

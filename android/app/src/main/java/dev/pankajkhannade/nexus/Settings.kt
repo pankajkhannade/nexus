@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings as AndroidSettings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -97,10 +98,11 @@ fun SettingsScreen(model: NexusViewModel) {
             // UX sprint 2 (WCAG 2.2.1): how long the call countdown waits, with Cancel on screen.
             Text(stringResource(R.string.countdown_title), style = MaterialTheme.typography.titleLarge)
             Text(stringResource(R.string.countdown_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("countdown_choice")) {
+            // One full-width button per choice: three in a row broke "३ सेकंद" over two lines.
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("countdown_choice")) {
                 COUNTDOWN_CHOICES.forEach { sec ->
                     val on = saved.countdownSeconds == sec
-                    BigButton((if (on) "✓ " else "") + stringResource(R.string.countdown_seconds, sec), { model.setCountdown(sec) }, Modifier.weight(1f),
+                    BigButton((if (on) "✓ " else "") + stringResource(R.string.countdown_seconds, sec), { model.setCountdown(sec) }, Modifier.fillMaxWidth(),
                         kind = if (on) ButtonKind.Primary else ButtonKind.Secondary)
                 }
             }

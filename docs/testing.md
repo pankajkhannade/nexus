@@ -205,6 +205,20 @@ Small-phone and large-text checks. The device is `@Config(qualifiers = "w360dp-h
 
 `model.spoken` (the last 20 lines Nexus said, in memory, test-only) is how tests check what was said aloud and in which order. A screen with a never-ending spinner must freeze the clock (`compose.mainClock.autoAdvance = false`), or Compose never goes idle and later tests in the same JVM fork time out after 60 s.
 
+## UX sprint 2 tests (added 2026-11-11)
+
+2.0x text is `RuntimeEnvironment.setFontScale(2f)` on the same 360x640dp device. `assertNoClippedText()` (`ui/LargeText.kt`) walks every text node and fails on a height overflow, an ellipsis, a line wider than its box (it measures the widest line, because `didOverflowWidth` reports false positives for Devanagari), or text past the screen's right edge. "Primary button visible" is `performScrollTo().assertIsDisplayed()` for the screen's main action.
+
+| File | Layer | What it proves |
+| --- | --- | --- |
+| `ui/UxSprint2UiTest.kt` | L1 | Countdown: 5 s default, 3 / 8 s, saved through the Store's encode / decode, odd values fall back to 5. Names: ✓ झालं / ✕ रद्द करा in mr and hi; re-dictation in the bar. Setup: pages and true counts, permissions already on are skipped, PIN found or asked once, default Near home picks. Help on home, did-it-work yes / no / not shown after the Play Store, the event has no text. The bar on 6 more screens. Money gone: step order, 1930 and bank dial pads, cybercrime.gov.in, tell the child, back returns to the verdict, and the manifest has no SEND_SMS / call log / phone state. 2.0x: home (mr), not understood (mr), the scam warning (mr, hi), every setup page (en) and setup (mr). Devanagari names on faces and calling, Latin names untouched |
+| `ui/UxSprint2ScreenshotTest.kt` | L2 | 24 goldens in `app/src/test/roborazzi/ux2/` (mr, plus hi for home, did-it-work and money gone; 2.0x for home, not understood, the scam warning and setup) |
+| `ui/PersonSheetUiTest.kt` | L1 | The person sheet's Devanagari name box (typing tests live here, without the small-phone qualifier, because a blinking cursor kept the 360x640 class from going idle) |
+
+If `recordRoborazziDebug` / `verifyRoborazziDebug` stalls with `AppNotIdleException` cascades while many goldens are missing or different (seen once during this sprint, in parallel forks), re-record with `--max-workers=1`; once the goldens match, the parallel verify runs green in about 25 s.
+
+Shared state: Robolectric reuses one DataStore per fork. `resetLocalDataForTest()` now also resets the countdown, marks the practice done and clears the return check; before that, one test's unfinished practice made later tests in the fork speak practice lines and time out.
+
 ## When the emulator (or a phone) is still needed
 
 Only for things Robolectric doesn't really do. Keep it to one short smoke of **at most 10 checks**,

@@ -44,6 +44,9 @@ error code, setup step.
 | `action_opened` | Nexus handed off to another app | category (dialer, whatsapp, sms, cab, maps, grocery, pharmacy, doctor, home_service, play_store, emergency) |
 | `action_return` | Nexus came back after an action | category, ms away |
 | `near_tile`, `play_redirect` | A Near home tile; an Install-from-Play hand-off | category |
+| `return_check` | The parent answered "did it work?" on home after a hand-off (added 2026-11-11) | category (dialer, whatsapp, sms, cab, maps), ok (yes = true) |
+| `help_opened` | Help on home opened (button, or a "No" to did-it-work) | |
+| `money_gone` | The पैसे गेले steps opened | |
 
 End reasons: `user_done` (Done tapped), `complete` (a whole command heard), `silence`, `no_speech`, `max_time` (60 s),
 `error` (failed before any words), `cut_off` (failed after words were heard), `cancelled` (Stop).
@@ -90,6 +93,11 @@ Every percentage is shown with its raw counts (`7 of 9 (78%)`), on the phone, in
 | **Crash-free sessions** | (`app_open` minus `crash`) / `app_open` | **99.5%+** |
 | **Actions opened** | Per app category; with the call and 60 s proxies above | |
 | **"Very disappointed"** | Survey below, asked of the children | **40%+** "very disappointed" |
+
+### Did it work? (added 2026-11-11, UX sprint 2)
+- **Did it work** = `return_check` yes / all `return_check` answers, overall and by app category. The parent's own word, the closest we get to "the call connected" or "the cab was booked" without risky permissions. Unanswered checks are not counted as no.
+- **Help opened** and **Money gone opened**: counts per week. A rising help count after a sprint is a signal to look, not a failure by itself.
+- Daily count keys: `did_it_work_yes`, `did_it_work_no`, `did_it_work_{yes|no}_{dialer|whatsapp|sms|cab|maps}`, `help_opened`, `money_gone_opened`. The Worker accepts them as-is (it checks the key shape, not a list). Summary JSON: `did_it_work`, `did_it_work_by_app`, `help_opened`, `money_gone_opened`.
 
 ## The upload (opt-in)
 

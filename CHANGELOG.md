@@ -4,6 +4,31 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### UX sprint 2 (2026-11-11) — feat/ux-sprint-2
+The rest of the UX critique (section 5 and ranked fixes 7–20), as an 8-item sprint.
+
+**Adjustable countdown (#1).** Family settings > "Wait before calling": 3, 5 or 8 seconds (default 5, was a fixed 3), saved on the phone and used by every call countdown: home faces, voice calls, Not understood, Help, Money gone. An unknown saved value falls back to 5. (WCAG 2.2.1: the parent can get more time.)
+
+**Clear button names (#2).** Listening, dictating and calling use one pair everywhere: **✓ झालं** (finish) and **✕ रद्द करा** (cancel); Hindi "हो गया / रद्द करें", English "Done / Cancel". The old "Stop" is gone. On the message screen, "पुन्हा बोला" sits in the bottom bar and becomes ✓ झालं while listening, with the live words right under the name. "Ask family" has one name across settings. "Money gone" now reads "पैसे गेले? आता काय करायचं".
+
+**Honest, shorter setup (#3).** Steps: Language, Family, Home, Mic, Calls, then "All set" (not numbered). Mic and Calls pages are skipped when the permission is already on, and the count says so ("Step 2 of 3" on a phone that has both). The Near home step left setup: Nexus picks the installed apps itself (editable in Family settings). The home pincode is one question on the Home step, pre-filled from the address or the Geocoder, or "PIN code: 411005" when the address already has it.
+
+**Help on home and "did it work?" (#4).** Home's header is a big "🙋 मदत: Pankaj ला विचारा" button (Call with the countdown, or a prefilled message). After a call, WhatsApp, SMS, a ride or Maps, home asks "फोन लागला का?" / "गाडी बुक झाली का?" with **हो, झालं** / **नाही**. Yes says "छान"; No opens Help. The answer is logged as `return_check` (yes/no plus the app category only); Help and Money gone opens are counted (`help_opened`, `money_gone_opened`).
+
+**The bottom bar everywhere (#5).** मागे / बोला now also on Listening, Confirm, Calling, Message, Help and Money gone (left = leave or ✕ रद्द करा, right = बोला, or ✓ झालं while listening).
+
+**पैसे गेले (#6).** From the scam verdict or Is this safe?: four numbered steps, each one tap: (1) call 1930 (dial pad), (2) call the bank (dial pad, with "the number is on the back of the card"), (3) complain at cybercrime.gov.in (browser), (4) tell <child> (call with the countdown, or a prefilled message). A "don't do this now" panel: no OTP or PIN, no app installs, no paying anyone who promises to get the money back. No new permissions: no SEND_SMS, call log or phone state (a test checks the manifest).
+
+**2.0x text (#7).** Home, Not understood, the scam warning and every setup page are tested at 2.0x on a 360x640dp phone in Marathi (and Hindi for the warning): no clipped or cut-off text and the primary button reachable. This found one real bug: the face letter grew with the text size and spilled out of the circle; it is now sized to the circle. Above 1.5x text, home gives each face its own row and puts Help under the date, so "Pankaj" no longer breaks into "Panka / j".
+
+**Devanagari names (#8).** The person sheet has an optional "name in Marathi / Hindi letters" (e.g. पंकज). In mr/hi it is shown on faces, Confirm, Calling, Message and Help, said aloud, and the face letter is the whole cluster (प, श्री). Latin names are unchanged, English shows the Latin name, and voice matches either.
+
+**Also:** Settings: "↑ Move up" has a word; "🗑 Remove <name>" sits on its own row, away from Edit; the 3 / 5 / 8 s choices are full-width buttons. The Marathi and Hindi message hints no longer say "Send बटण": "हिरवं पाठवा (➤) बटण दाबा" / "हरा भेजें (➤) बटन दबाएँ".
+
+**Deferred:** the bar on Practice, Try it and permission cards (child-led two-button screens, where a Speak button would compete with the task), and a spoken "मदत" command.
+
+**Tests:** 404 → 462 JVM tests. New `ui/UxSprint2UiTest` (29 acceptance checks), `ui/UxSprint2ScreenshotTest` (24 goldens in `roborazzi/ux2/`), `ui/LargeText.kt` (`assertNoClippedText`), and a Devanagari name check in `PersonSheetUiTest`. Updated on purpose: Calling (5 s, Cancel), Listening (Cancel), Settings (Remove label), UX sprint 1 money test (now opens the Money gone screen).
+
 ### UX sprint 1 (2026-11-11) — feat/ux-sprint-1
 From the UX critique Pankaj asked for (`docs/ux-critique-2026-11-11.md`): the five-item sprint plus the India-only address fix and the shared bottom bar.
 

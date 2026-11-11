@@ -3,7 +3,7 @@
 Nexus is a family co-pilot for a parent's Android phone. It has no account and no ads. Usage is counted on the phone; counts leave the phone only if the family turns on daily counts (off unless they say yes). The in-app Privacy screen (Family settings → Privacy) says the same thing in English, Hindi and Marathi.
 
 ## What is saved, and where
-- The people you add (name, number, relation, spoken alias), the home address and its coordinates, the optional office address, the home pincode, the language, the child's picked apps for Near home, the last cab app used, and simple usage counts are stored **only on this phone**.
+- The people you add (name, the optional name in Marathi / Hindi letters, number, relation, spoken alias), the home address and its coordinates, the optional office address, the home pincode, the language, the child's picked apps for Near home, the last cab app used, and simple usage counts are stored **only on this phone**.
 - That data is excluded from Android backup and device-to-device transfer.
 - Usage counts are numbers per day. They cover app opens, calls, voice commands (and ones that were not understood), messages checked, asked family, rides, WhatsApp opens, dictated messages handed to WhatsApp or SMS, and Near home tile opens (groceries, medicines, doctor, ride, home help, emergency), plus the day-3 and day-7 feedback answers. They never include names, phone numbers, message text, app names or places.
 
@@ -16,6 +16,8 @@ Nexus keeps a usage log **on this phone** so the family (and, if they choose, th
 - Voice: when Speak was pressed and why listening ended (Done, a whole command heard, quiet, nothing said, the 60 s limit, an error, cut off, Stop); how many **characters** were heard (not the characters themselves); how long until something happened; the app language (mr / hi / en); the kind of command (call, message, ride, Near home, video call…); whether it was understood; recogniser error codes; "which one?" shown; Stop / No / Back.
 - Actions: the **kind** of app Nexus opened (dialer, WhatsApp, SMS, cab, maps, grocery, pharmacy, doctor, home service, Play Store, emergency) and how long until Nexus was back on screen.
 - Near home tile taps and Play Store install hand-offs, by kind.
+- "Did it work?" after a hand-off: the answer (yes or no) and the **kind** of app (dialer, WhatsApp, SMS, cab, maps). Not who was called or where the ride went.
+- Help opened and "Money gone" opened (counts only). Nexus never knows whether money was lost, how much, or which bank.
 - Whether each action started from voice or a button.
 
 **Never collected:** voice recordings, the words said, message text, contact names, phone numbers, addresses, places or destinations, app package names, the Android ID, the advertising ID, location.
@@ -27,6 +29,9 @@ Nexus keeps a usage log **on this phone** so the family (and, if they choose, th
 **Daily counts upload (opt-in, off by default).** Turned on only from the consent page in How Nexus is doing. When on, once a day (on any network, retrying later if offline) Nexus sends the **aggregate counts for finished days** (whole numbers under fixed names such as `voice_attempts` or `opened_cab`), the app version, the app language, the tester tag and a **random install ID** created on the phone when the family said yes. They go to the Nexus team's own server (a Cloudflare Worker with a D1 database at `nexus-metrics.safe2eat-api.workers.dev`). The server stores no IP address, no device details and no time of day, rejects anything that isn't a known count, and deletes rows after 180 days. Only the Nexus team can read them.
 
 **How to stop or delete:** turn off "Send daily counts" (it stops at once), or tap **Delete all usage data** in Family settings > How Nexus is doing. That deletes the log, the daily counters and the feedback answers on the phone, turns the upload off and throws away the install ID (a later opt-in gets a new one). To delete counts already uploaded, ask the Nexus team with the date you turned it on; we delete them by hand during the test.
+
+## Money gone (पैसे गेले)
+The steps open the phone's dial pad (1930, the bank), the browser (cybercrime.gov.in) or WhatsApp / SMS with a message typed in for the child. Nexus doesn't send anything, doesn't read SMS, the call log or the phone's state, and asks for no new permission. The parent dials and sends.
 
 ## Voice
 - When the parent presses Speak, Android's speech recogniser turns the voice into words. On phones that support on-device recognition for the chosen language, this stays on the phone. Otherwise Google's speech service may use the internet. The Privacy screen shows which one applies on this phone.

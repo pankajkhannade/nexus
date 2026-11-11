@@ -522,28 +522,28 @@ Rules:
 
 ### 3.8 Design principles (the standard, adopted 2026-11-11)
 
-From the UX critique (`ux-critique-2026-11-11.md`). Every parent screen is reviewed against these 19. "Status" is after UX sprint 1 (feat/ux-sprint-1); "Next" is what is still owed.
+From the UX critique (`ux-critique-2026-11-11.md`). Every parent screen is reviewed against these 19. "Status" is after UX sprint 2 (feat/ux-sprint-2, 2026-11-11); "Next" is what is still owed.
 
-| # | Principle | What it means for Nexus | Status after sprint 1 | Next |
+| # | Principle | What it means for Nexus | Status after sprint 2 | Next |
 |---|---|---|---|---|
-| 1 | **Heard → said back → doing → done** | Every voice result shows and says what was heard, says what Nexus will do, says the step in the other app, and says what happened on return | Heard line on Not understood, Which one? and Where to?; spoken read-back for calls, messages and rides; spoken handoff lines; a done line on home after a handoff | "Did it work?" with Yes/No on return |
-| 2 | **Continuity across handoffs** | Nexus's care doesn't stop where its screen ends | Spoken coach before WhatsApp, SMS, dialer, cab and Near home apps; Ola drop-off link; Add to phone contacts in setup | A return check that offers help when the parent comes back fast |
-| 3 | **Same place for the same thing** | Back and Speak always sit in one bottom bar (मागे left, बोला right, 64dp+) | `ParentScaffold` on Not understood, Safety, Ride, Where to?, Which one?, Not found, Near home screens | Message, Confirm, Calling and Listening keep their own big buttons for now |
-| 4 | **Recognisable at a glance** | A photo, or one of 8 distinct colours, plus the full first name | Done (`Faces.kt`) | Optional Devanagari display name |
-| 5 | **One job per screen** | One pinned primary action | Verdict pins Ask <child>; home has one action per face | Settings and metrics screens |
-| 6 | **Never a dead end** | Back, Speak and Ask child reachable from every screen | Bottom bar adds Speak to every flow screen | A permanent मदत / call child on home |
-| 7 | **Undo window** | Irreversible steps have a visible countdown or Undo | 3-second call countdown, message confirm, settings Undo | Adjustable 3 / 5 / 8 s (WCAG 2.2.1) |
-| 8 | **Forgiving input** | Speak any answer; never show impossible choices | India-only place search | Speak the feedback answer by default |
-| 9 | **Large text, big targets, tested at 200%** | Every parent screen tested on 360x640dp at 1.0, 1.3, 1.5 (and later 2.0) | Home, Not understood and the verdict at 1.0/1.3/1.5 in Roborazzi and Compose tests | 2.0x and the remaining screens |
-| 10 | **Every icon has a word** | No icon-only control | Home tiles all labelled | Settings ↑ arrow; a lint check |
-| 11 | **Plain local language, one script** | No English mid-sentence in Marathi/Hindi | Unchanged | Native review; banned-words list ("Send बटण") |
-| 12 | **The child is the support channel** | A way to reach the child from every screen | Ask <child> pinned on the verdict | Permanent help on home |
-| 13 | **No surprise permissions** | Each permission explained first, asked at first need | Kept: no new permissions in this sprint (photo picker, ACTION_INSERT need none) | Per-permission fix in Settings |
-| 14 | **Calm errors** | Say what happened and the next tap | Not understood rewritten | Clear resolved setup errors |
-| 15 | **Safe path is the easy path** | The safest action is the biggest and always visible | Pinned Ask <child>; 1930 for "money gone" | The full पैसे गेले flow (roadmap N3) |
-| 16 | **Honest progress and time** | Step counts and waits are true | Unchanged | Honest setup steps |
-| 17 | **Design for shaky hands** | 16dp gaps, destructive actions away from common ones, ignore double taps | Unchanged | Settings Remove away from Edit |
-| 18 | **Privacy you can see** | Show when data leaves the phone | Photos stay on the phone, stated in PRIVACY.md | Show on home when uploads are on |
+| 1 | **Heard → said back → doing → done** | Every voice result shows and says what was heard, says what Nexus will do, says the step in the other app, and says what happened on return | Done: heard line, spoken read-backs and handoff lines (sprint 1), plus a spoken "did it work?" with हो / नाही on return | Speak the answer as well as tapping it |
+| 2 | **Continuity across handoffs** | Nexus's care doesn't stop where its screen ends | Done for calls, WhatsApp, SMS, rides and Maps: coach line before, did-it-work after; नाही opens Help | Near home apps get the return check |
+| 3 | **Same place for the same thing** | Back and Speak always sit in one bottom bar (मागे left, बोला right, 64dp+) | Bar now also on Listening, Confirm, Calling, Message, Help, Money gone | Practice, Try it and permission cards (child-led, deferred) |
+| 4 | **Recognisable at a glance** | A photo, or one of 8 distinct colours, plus the full first name | Done, plus an optional Devanagari display name and a whole-cluster letter | — |
+| 5 | **One job per screen** | One pinned primary action | Verdict, Help and Money gone each have one primary per step | Settings and metrics screens |
+| 6 | **Never a dead end** | Back, Speak and Ask child reachable from every screen | Help always on home; bar on every voice and message screen | A spoken "मदत" command |
+| 7 | **Undo window** | Irreversible steps have a visible countdown or Undo | Done: 3 / 5 / 8 s countdown (default 5) in Family settings | — |
+| 8 | **Forgiving input** | Speak any answer; never show impossible choices | PIN asked once and pre-filled; voice matches Latin or Devanagari names | Speak the feedback answer by default |
+| 9 | **Large text, big targets, tested at 200%** | Every parent screen tested on 360x640dp at 1.0, 1.3, 1.5 and 2.0 | 2.0x tests for home, not understood, the scam warning and setup; face letter no longer clips | The remaining screens at 2.0x |
+| 10 | **Every icon has a word** | No icon-only control | Settings "↑ Move up", "🗑 Remove <name>" | A lint check |
+| 11 | **Plain local language, one script** | No English mid-sentence in Marathi/Hindi | झालं / रद्द करा everywhere; one name for Ask family | Native review; banned-words list |
+| 12 | **The child is the support channel** | A way to reach the child from every screen | "मदत: Pankaj ला विचारा" on home; tell the child in Money gone | — |
+| 13 | **No surprise permissions** | Each permission explained first, asked at first need | No new permissions; a test fails on SEND_SMS, call log or phone state | Per-permission fix in Settings |
+| 14 | **Calm errors** | Say what happened and the next tap | Money gone opens with "Don't panic" and numbered steps | Clear resolved setup errors |
+| 15 | **Safe path is the easy path** | The safest action is the biggest and always visible | The full पैसे गेले flow: 1930, bank, cybercrime.gov.in, tell the child | — |
+| 16 | **Honest progress and time** | Step counts and waits are true | Done: true step counts, skipped permission pages, "All set" not numbered | — |
+| 17 | **Design for shaky hands** | 16dp gaps, destructive actions away from common ones, ignore double taps | Settings Remove on its own row away from Edit | Ignore double taps |
+| 18 | **Privacy you can see** | Show when data leaves the phone | Did-it-work stored as yes/no + app kind only, stated in PRIVACY.md | Show on home when uploads are on |
 | 19 | **Test with real 60+ users** | 5 moderated sessions per language before the closed test | Not yet | Recruit (drafts for Pankaj to send) |
 
 #### UX sprint 1 screens (2026-11-11)
@@ -552,6 +552,14 @@ From the UX critique (`ux-critique-2026-11-11.md`). Every parent screen is revie
 - **S8 Verdict:** banner, reasons, Never share, "Money already gone? Call 1930", "Show the message" (folded), OK close; Ask <child> pinned above the bottom bar.
 - **S10 Ride:** "The place is filled in for you" for Uber/Ola with coordinates, else the copy line plus "Nexus will say each step aloud"; bottom bar.
 - **S2 Family:** Add photo in the person sheet; "Save <name> in phone contacts" for people typed in by number.
+
+#### UX sprint 2 screens (2026-11-11)
+- **S1–S4 Setup:** Language, Family, Home (address, then the PIN as one question), Mic, Calls, "All set". "Step i of N" counts only the pages this phone needs; Near home is no longer a step.
+- **S5 Home:** the header is "🙋 मदत: <child> ला विचारा"; after a hand-off a card asks "फोन लागला का?" with हो, झालं / नाही.
+- **Help:** each helper with Call (countdown) and Message (prefilled); a link to पैसे गेले.
+- **Money gone:** "Don't panic", 4 numbered steps (1930, bank, cybercrime.gov.in, tell <child>), "Don't do this now" panel, bottom bar (मागे returns to the verdict).
+- **S6/S7 Listening, Confirm, Calling, Message:** the bottom bar with ✕ रद्द करा / ✓ झालं; the countdown follows Family settings.
+- **S11 Family settings:** "Wait before calling" 3 / 5 / 8 s; "↑ Move up"; "🗑 Remove <name>" on its own row; Devanagari name in the person sheet.
 
 
 ## 4. Phase 1 build order (screens)

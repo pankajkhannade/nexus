@@ -205,8 +205,8 @@
     <string name="msg_edit_label">मैसेज</string>
     <string name="msg_send_whatsapp">WhatsApp पर भेजें</string>
     <string name="msg_send_sms">SMS से भेजें</string>
-    <string name="msg_explain_whatsapp">WhatsApp खुलेगा और यह मैसेज लिखा होगा। फिर वहाँ हरा Send बटन दबाएँ।</string>
-    <string name="msg_explain_sms">मैसेज ऐप खुलेगा और यह मैसेज लिखा होगा। फिर वहाँ Send दबाएँ।</string>
+    <string name="msg_explain_whatsapp">WhatsApp खुलेगा और यह मैसेज लिखा होगा। फिर वहाँ हरा भेजें (➤) बटन दबाएँ।</string>
+    <string name="msg_explain_sms">मैसेज ऐप खुलेगा और यह मैसेज लिखा होगा। फिर वहाँ भेजें (➤) दबाएँ।</string>
     <string name="msg_cancel">मत भेजो</string>
     <string name="msg_not_opened">ऐप नहीं खुला। दूसरा बटन दबाएँ।</string>
     <!-- S15 Near home -->

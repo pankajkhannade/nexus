@@ -205,8 +205,8 @@
     <string name="msg_edit_label">मेसेज</string>
     <string name="msg_send_whatsapp">WhatsApp वर पाठवा</string>
     <string name="msg_send_sms">SMS ने पाठवा</string>
-    <string name="msg_explain_whatsapp">WhatsApp उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे हिरवे Send बटण दाबा.</string>
-    <string name="msg_explain_sms">मेसेज ॲप उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे Send दाबा.</string>
+    <string name="msg_explain_whatsapp">WhatsApp उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे हिरवं पाठवा (➤) बटण दाबा.</string>
+    <string name="msg_explain_sms">मेसेज ॲप उघडेल आणि हा मेसेज लिहिलेला असेल. मग तिथे पाठवा (➤) दाबा.</string>
     <string name="msg_cancel">नको, पाठवू नका</string>
     <string name="msg_not_opened">ॲप उघडले नाही. दुसरे बटण दाबा.</string>
     <!-- S15 Near home -->
