@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
@@ -55,12 +57,17 @@ fun SettingsScreen(model: NexusViewModel) {
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }
+                    // UX sprint 2 (principles 10 and 17): the arrow has a word, and Remove sits on its own row,
+                    // away from Edit, so a shaky tap on Edit can't delete someone.
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         BigButton(stringResource(R.string.edit), {
-                            editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true, photo = person.photo)
+                            editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true, photo = person.photo, localName = person.localName)
                         }, Modifier.weight(1f), kind = ButtonKind.Secondary)
-                        if (i > 0) BigButton("↑", { model.movePerson(person, up = true) }, Modifier.weight(0.5f), kind = ButtonKind.Secondary)
-                        BigButton(stringResource(R.string.remove), {
+                        if (i > 0) BigButton(stringResource(R.string.move_up), { model.movePerson(person, up = true) }, Modifier.weight(1f), kind = ButtonKind.Secondary)
+                    }
+                    androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
+                    Row {
+                        BigButton("🗑  " + stringResource(R.string.remove_x, person.name), {
                             val undo = model.removePerson(person)
                             scope.launch {
                                 val r = snackbar.showSnackbar(
@@ -70,7 +77,7 @@ fun SettingsScreen(model: NexusViewModel) {
                                 )
                                 if (r == SnackbarResult.ActionPerformed) undo()
                             }
-                        }, Modifier.weight(1f), kind = ButtonKind.Quiet)
+                        }, kind = ButtonKind.Quiet)
                     }
                 }
             }
@@ -85,6 +92,16 @@ fun SettingsScreen(model: NexusViewModel) {
                 LANGUAGES.forEach { (code, label) ->
                     BigButton((if (saved.language == code) "✓ " else "") + label, { model.applyLanguage(code) }, Modifier.weight(1f),
                         kind = if (saved.language == code) ButtonKind.Primary else ButtonKind.Secondary)
+                }
+            }
+            // UX sprint 2 (WCAG 2.2.1): how long the call countdown waits, with Cancel on screen.
+            Text(stringResource(R.string.countdown_title), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.countdown_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("countdown_choice")) {
+                COUNTDOWN_CHOICES.forEach { sec ->
+                    val on = saved.countdownSeconds == sec
+                    BigButton((if (on) "✓ " else "") + stringResource(R.string.countdown_seconds, sec), { model.setCountdown(sec) }, Modifier.weight(1f),
+                        kind = if (on) ButtonKind.Primary else ButtonKind.Secondary)
                 }
             }
             BigButton("🎤  " + stringResource(R.string.retest_mic), {
@@ -186,7 +203,7 @@ fun SettingsScreen(model: NexusViewModel) {
             dial = model.dial,
             onDismiss = { editing = null },
             onRemove = null,
-            onSave = { d -> model.savePerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias, d.photo).also { if (it) editing = null } },
+            onSave = { d -> model.savePerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias, d.photo, d.localName).also { if (it) editing = null } },
             duplicateOf = { phone -> saved.people.firstOrNull { it.phone == phone && it.id != draft.original?.id }?.name },
         )
     }

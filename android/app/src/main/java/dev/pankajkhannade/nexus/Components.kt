@@ -162,10 +162,23 @@ val LocalOnSpeak = staticCompositionLocalOf<() -> Unit> { {} }
  * Same place for the same thing (UX sprint 1, principle): every parent screen ends with one bar, मागे on the
  * left and बोला on the right, each at least 64dp tall, so Back is never a small link that moves around.
  * [above] is pinned just over it (the safe action on a scam verdict), outside the scrolling content.
+ *
+ * UX sprint 2: the left slot is always "leave this" and the right slot always "say something". Where leaving
+ * cancels an action (the call countdown, listening) the left word is रद्द करा ([backLabel]); while listening
+ * the right slot is ✓ झालं ([speakLabel] + [onSpeak]). [centered] centres short screens (Calling, Confirm).
  */
 @Composable
-fun ParentScaffold(onBack: () -> Unit, above: (@Composable ColumnScope.() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
-    val onSpeak = LocalOnSpeak.current
+fun ParentScaffold(
+    onBack: () -> Unit,
+    above: (@Composable ColumnScope.() -> Unit)? = null,
+    backLabel: String? = null,
+    speakLabel: String? = null,
+    onSpeak: (() -> Unit)? = null,
+    speakKind: ButtonKind = ButtonKind.Primary,
+    centered: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val speak = onSpeak ?: LocalOnSpeak.current
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -173,15 +186,16 @@ fun ParentScaffold(onBack: () -> Unit, above: (@Composable ColumnScope.() -> Uni
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = if (centered) Arrangement.spacedBy(16.dp, Alignment.CenterVertically) else Arrangement.spacedBy(16.dp),
+            horizontalAlignment = if (centered) Alignment.CenterHorizontally else Alignment.Start,
             content = content,
         )
         Surface(color = NexusColors.Background, shadowElevation = 8.dp) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 above?.invoke(this)
                 Row(Modifier.fillMaxWidth().testTag("bottom_bar"), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    BigButton(stringResource(R.string.back), onBack, Modifier.weight(1f).heightIn(min = 64.dp), kind = ButtonKind.Secondary)
-                    BigButton("🎤 " + stringResource(R.string.speak), onSpeak, Modifier.weight(1f).heightIn(min = 64.dp), kind = ButtonKind.Primary)
+                    BigButton(backLabel ?: stringResource(R.string.back), onBack, Modifier.weight(1f).heightIn(min = 64.dp).testTag("bar_back"), kind = ButtonKind.Secondary)
+                    BigButton(speakLabel ?: ("🎤 " + stringResource(R.string.speak)), speak, Modifier.weight(1f).heightIn(min = 64.dp).testTag("bar_speak"), kind = speakKind)
                 }
             }
         }

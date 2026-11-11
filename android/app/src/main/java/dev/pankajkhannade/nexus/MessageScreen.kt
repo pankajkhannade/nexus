@@ -49,7 +49,24 @@ fun MessageScreen(model: NexusViewModel) {
         if (ok) model.resolveDraftRecipient()
     }
 
-    ScreenColumn {
+    // UX sprint 2: the shared bottom bar. मागे = don't send; the right slot speaks the message again, and
+    // while listening it becomes ✓ झालं with ✕ रद्द करा (keep the old words) on the left.
+    val onSpeak = LocalOnSpeak.current
+    ParentScaffold(
+        onBack = { if (model.dictating) model.stopDictating() else model.cancelDraft() },
+        backLabel = if (model.dictating) "✕  " + stringResource(R.string.cancel_action) else null,
+        speakLabel = when {
+            model.dictating -> "✓  " + stringResource(R.string.listening_done)
+            canSpeak && !editing -> "🎤  " + stringResource(R.string.speak_again)
+            else -> null
+        },
+        onSpeak = when {
+            model.dictating -> ({ model.doneDictating() })
+            canSpeak && !editing -> ({ model.dictateAgain() })
+            else -> ({ model.cancelDraft(); onSpeak() })
+        },
+        speakKind = if (model.dictating) ButtonKind.Call else ButtonKind.Primary,
+    ) {
         if (person == null) {
             BigCentredText(stringResource(R.string.msg_who))
             draft.askedName?.let {
@@ -70,15 +87,22 @@ fun MessageScreen(model: NexusViewModel) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Avatar(p, model.saved.people, 88.dp)
-                        Text(p.name, style = MaterialTheme.typography.titleLarge)
+                        Text(shownName(p), style = MaterialTheme.typography.titleLarge)
                     }
                 }
             }
         } else {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Avatar(person, model.saved.people, 72.dp)
-                Text(stringResource(R.string.msg_to, person.name), style = MaterialTheme.typography.headlineMedium)
+                Text(stringResource(R.string.msg_to, shownName(person)), style = MaterialTheme.typography.headlineMedium)
             }
+        }
+
+        // While listening, the live words take the message's place, right under the name, so they're on screen.
+        if (model.dictating) {
+            Text("🎤  " + stringResource(R.string.listening), style = MaterialTheme.typography.headlineSmall)
+            LiveWords(model.dictationLive)
+            return@ParentScaffold
         }
 
         if (editing) {
@@ -102,17 +126,6 @@ fun MessageScreen(model: NexusViewModel) {
                 )
                 Text(tapToEdit, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        }
-
-        if (model.dictating) {
-            Text("🎤  " + stringResource(R.string.listening), style = MaterialTheme.typography.headlineSmall)
-            LiveWords(model.dictationLive)
-            BigButton("✓  " + stringResource(R.string.listening_done), { model.doneDictating() }, kind = ButtonKind.Call)
-            BigButton(stringResource(R.string.stop), { model.stopDictating() }, kind = ButtonKind.Secondary)
-            return@ScreenColumn
-        }
-        if (canSpeak && !editing) {
-            BigButton("🎤  " + stringResource(R.string.speak_again), { model.dictateAgain() }, kind = ButtonKind.Secondary, enabled = !model.dictating)
         }
 
         if (person != null && !editing) {

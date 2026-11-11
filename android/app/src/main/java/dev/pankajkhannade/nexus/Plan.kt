@@ -135,7 +135,8 @@ private fun resolvePerson(readings: List<String>, people: List<Person>): Pair<Pe
             val wanted = candidate.trim().lowercase()
             people.firstOrNull { it.alias.isNotBlank() && it.alias.trim().lowercase() == wanted }?.let { return it to true }
             people.firstOrNull { it.name.trim().lowercase() == wanted }?.let { return it to true }
-            people.firstOrNull { nameMatches(it.name, candidate) || (it.alias.isNotBlank() && nameMatches(it.alias, candidate)) }
+            people.firstOrNull { it.localName.isNotBlank() && it.localName.trim().lowercase() == wanted }?.let { return it to true }
+            people.firstOrNull { p -> p.names.any { nameMatches(it, candidate) } }
                 ?.let { return it to false }
         }
         RELATION_WORDS[words.last().lowercase()]?.let { relation ->

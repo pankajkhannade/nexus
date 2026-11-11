@@ -77,4 +77,18 @@ class PersonSheetUiTest {
         save()
         assertEquals("Aai", saved?.name)
     }
+
+    // UX sprint 2: the optional Devanagari name.
+    @Test fun thePersonSheetHasTheDevanagariNameBox() {
+        var savedDraft: dev.pankajkhannade.nexus.PersonDraft? = null
+        compose.setParent {
+            dev.pankajkhannade.nexus.PersonSheet(
+                draft = dev.pankajkhannade.nexus.PersonDraft(null, "Pankaj", "98765 43210", "son", askFamily = true, alias = "", typed = true),
+                dial = "+91", onDismiss = {}, onRemove = null, onSave = { savedDraft = it; true }, duplicateOf = { null },
+            )
+        }
+        compose.onNodeWithText("Name in Marathi / Hindi letters (optional)").performTextInput("पंकज")
+        compose.onNodeWithText("Save").performScrollTo().performClick()
+        assertEquals("पंकज", savedDraft?.localName)
+    }
 }

@@ -100,6 +100,7 @@ fun MetricsScreen(model: NexusViewModel) {
             add(stringResource(R.string.metrics_retries, ratioText(report.retries)))
             add(stringResource(R.string.metrics_cancels, ratioText(report.cancels)))
             add(stringResource(R.string.metrics_wrong, ratioText(report.wrongActions)))
+            if (report.didItWork.den > 0) add(stringResource(R.string.metrics_did_it_work, ratioText(report.didItWork)))
             add(stringResource(R.string.metrics_pickers, report.pickers.num))
             add(stringResource(R.string.metrics_cutoffs, ratioText(report.cutOffs)))
         }

@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -56,40 +57,65 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-private const val SETUP_STEPS = 5
+/**
+ * Setup pages (UX sprint 2, honest progress). The ordinal is the number logged in setup_step events, so it
+ * stays fixed even when a page is skipped. Near home apps are no longer a page: they are picked
+ * automatically and changed in Family settings. Handover is not a numbered step: it says "All set".
+ */
+enum class SetupPage { LANGUAGE, FAMILY, HOME, MIC, CALL, HANDOVER }
+
+/** This phone's pages: a permission that is already on is not asked, so the "Step x of N" is true. */
+fun setupPages(micGranted: Boolean, callGranted: Boolean): List<SetupPage> = buildList {
+    add(SetupPage.LANGUAGE); add(SetupPage.FAMILY); add(SetupPage.HOME)
+    if (!micGranted) add(SetupPage.MIC)
+    if (!callGranted) add(SetupPage.CALL)
+    add(SetupPage.HANDOVER)
+}
 
 val LANGUAGES = listOf("mr" to "मराठी", "hi" to "हिंदी", "en" to "English")
 
 /** Child-assisted setup S1-S4. The child does this on the parent's phone. */
 @Composable
 fun SetupFlow(model: NexusViewModel) {
+    val context = LocalContext.current
+    model.planSetup(granted(context, Manifest.permission.RECORD_AUDIO), granted(context, Manifest.permission.CALL_PHONE))
+    val pages = model.setupPlan
+    val index = model.setupStep.coerceIn(0, pages.lastIndex)
+    val page = pages[index]
+    val numbered = pages.size - 1 // Handover is not a step.
+    val next = { model.setupStep = index + 1 }
     Column(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            LinearProgressIndicator(progress = { (model.setupStep + 1f) / SETUP_STEPS }, modifier = Modifier.fillMaxWidth())
+            LinearProgressIndicator(
+                progress = { if (page == SetupPage.HANDOVER) 1f else index.toFloat() / numbered },
+                modifier = Modifier.fillMaxWidth().testTag("setup_progress"),
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (model.setupStep > 0) {
-                    BigButton(stringResource(R.string.back), { model.setupStep -= 1 }, Modifier.weight(0.4f), kind = ButtonKind.Quiet)
+                if (index > 0) {
+                    BigButton(stringResource(R.string.back), { model.setupStep = index - 1 }, Modifier.weight(0.4f), kind = ButtonKind.Quiet)
                 }
                 Text(
-                    stringResource(R.string.setup_step_of, model.setupStep + 1, SETUP_STEPS),
+                    if (page == SetupPage.HANDOVER) stringResource(R.string.setup_all_set)
+                    else stringResource(R.string.setup_step_of, index + 1, numbered),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(0.6f),
+                    modifier = Modifier.weight(0.6f).testTag("setup_step"),
                 )
             }
         }
-        when (model.setupStep) {
-            0 -> WelcomeStep(model)
-            1 -> FamilyStep(model)
-            2 -> HomeStep(model)
-            3 -> NearHomeStep(model)
-            else -> PermissionsStep(model)
+        when (page) {
+            SetupPage.LANGUAGE -> WelcomeStep(model, next)
+            SetupPage.FAMILY -> FamilyStep(model, next)
+            SetupPage.HOME -> HomeStep(model, next)
+            SetupPage.MIC -> MicStep(model, next)
+            SetupPage.CALL -> CallStep(model, next)
+            SetupPage.HANDOVER -> HandoverStep(model)
         }
     }
 }
 
 /** S1: welcome and the parent's language, each with a sample phrase that can be played aloud. */
 @Composable
-private fun WelcomeStep(model: NexusViewModel) {
+private fun WelcomeStep(model: NexusViewModel, next: () -> Unit) {
     val context = LocalContext.current
     var missingVoice by remember { mutableStateOf<String?>(null) }
     ScreenColumn {
@@ -137,14 +163,14 @@ private fun WelcomeStep(model: NexusViewModel) {
             }
         }
         Text(stringResource(R.string.welcome_self), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        BigButton(stringResource(R.string.continue_), { model.setupStep = 1 })
+        BigButton(stringResource(R.string.continue_), next)
     }
 }
 
 /** S2: up to 4 people from the system contact picker (no contacts permission) or typed in. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FamilyStep(model: NexusViewModel) {
+private fun FamilyStep(model: NexusViewModel, next: () -> Unit) {
     val context = LocalContext.current
     var editing by remember { mutableStateOf<PersonDraft?>(null) }
     var note by remember { mutableStateOf<String?>(null) }
@@ -173,7 +199,7 @@ private fun FamilyStep(model: NexusViewModel) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), maxItemsInEachRow = 2) {
             people.forEach { person ->
                 PersonTile(Modifier.weight(1f), person, people) {
-                    editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true, photo = person.photo)
+                    editing = PersonDraft(person, person.name, displayPhone(person.phone), person.relation, person.askFamily, person.alias, typed = true, photo = person.photo, localName = person.localName)
                 }
             }
             if (people.size < NexusViewModel.MAX_PEOPLE) {
@@ -196,7 +222,7 @@ private fun FamilyStep(model: NexusViewModel) {
             else -> null
         }
         reason?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        BigButton(stringResource(R.string.continue_), { model.setupStep = 2 }, enabled = reason == null)
+        BigButton(stringResource(R.string.continue_), next, enabled = reason == null)
     }
     editing?.let { draft ->
         PersonSheet(
@@ -204,7 +230,7 @@ private fun FamilyStep(model: NexusViewModel) {
             dial = guessCountry(context).dial,
             onDismiss = { editing = null },
             onRemove = draft.original?.let { original -> { model.removeSetupPerson(original); editing = null } },
-            onSave = { d -> model.putSetupPerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias, d.photo, typed = d.typed).also { if (it) editing = null } },
+            onSave = { d -> model.putSetupPerson(d.original, d.name, d.phone, d.relation, d.askFamily, d.alias, d.photo, typed = d.typed, localName = d.localName).also { if (it) editing = null } },
             duplicateOf = { phone -> model.setupPeople.firstOrNull { it.phone == phone && it.id != draft.original?.id }?.name },
         )
     }
@@ -297,6 +323,8 @@ data class PersonDraft(
     val typed: Boolean,
     /** faces/ path ("" = coloured initial). From the photo picker or the contact's own photo. */
     val photo: String = "",
+    /** The name in Devanagari, optional (UX sprint 2). */
+    val localName: String = "",
 )
 
 /** Details for one person: name as the parent says it, relation, Ask-family flag, spoken alias. */
@@ -337,6 +365,12 @@ fun PersonSheet(
                     d.name, { d = d.copy(name = it) }, Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.name_as_said)) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+                )
+                // UX sprint 2: the name in Marathi / Hindi letters, shown on the parent's screens in mr / hi.
+                OutlinedTextField(
+                    d.localName, { d = d.copy(localName = it) }, Modifier.fillMaxWidth().testTag("local_name"),
+                    label = { Text(stringResource(R.string.local_name_label)) },
+                    supportingText = { Text(stringResource(R.string.local_name_hint)) }, singleLine = true,
                 )
                 if (d.typed) {
                     val problem = phoneProblem(d.phone, dial, strict = false)
@@ -387,20 +421,51 @@ fun PersonSheet(
     }
 }
 
-/** S3: optional home address for "Book a ride home". */
+/**
+ * S3: optional home address for "Book a ride home" and Near home. UX sprint 2: the PIN code is asked here,
+ * once, as a single question, and only when the address doesn't already give it (typed in it, or found by
+ * the phone's Geocoder). Setup never asks for it again.
+ */
 @Composable
-private fun HomeStep(model: NexusViewModel) {
-    val context = LocalContext.current
+private fun HomeStep(model: NexusViewModel, next: () -> Unit) {
+    val address = model.setupHome.trim()
+    var looked by remember { mutableStateOf("") }
+    LaunchedEffect(address) {
+        if (address.length < 4) return@LaunchedEffect
+        delay(600)
+        val found = model.findPincode(address)
+        looked = address
+        if (found.isNotBlank()) model.setupPincode = found
+    }
+    val pinOk = cleanPincode(model.setupPincode) != null
     ScreenColumn {
         Text(stringResource(R.string.home_step_title), style = MaterialTheme.typography.headlineMedium)
         PlaceBox(stringResource(R.string.place_home), model.setupHome) { model.setupHome = it }
         Text(stringResource(R.string.place_search_network), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        BigButton(stringResource(R.string.continue_), { model.setupStep = 3 }, enabled = model.setupHome.trim().length >= 4)
-        BigButton(stringResource(R.string.skip), { model.setupHome = ""; model.setupStep = 3 }, kind = ButtonKind.Secondary)
+        if (address.length >= 4) {
+            if (pinOk && pincodeIn(address) != null) {
+                Text(stringResource(R.string.pin_found, model.setupPincode), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("pin_found"))
+            } else if (looked == address || model.setupPincode.isNotBlank()) {
+                Text(stringResource(R.string.pin_question), style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    model.setupPincode, { v -> model.setupPincode = v.filter { it.isDigit() }.take(6) },
+                    Modifier.fillMaxWidth().testTag("pincode"),
+                    label = { Text(stringResource(R.string.near_pincode)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    supportingText = { Text(stringResource(R.string.pin_optional)) },
+                )
+            }
+        }
+        BigButton(stringResource(R.string.continue_), next, enabled = address.length >= 4)
+        BigButton(stringResource(R.string.skip), { model.setupHome = ""; model.setupPincode = ""; next() }, kind = ButtonKind.Secondary)
     }
 }
 
-/** S15 setup: one app per need (top apps, Installed tag or Install), and the home PIN. Also in Family settings. */
+/**
+ * Near home apps and the PIN: one app per need (top apps, Installed tag or Install). Since UX sprint 2 this is
+ * not a setup page (setup picks the first installed app per need); it stays for Family settings and tests.
+ */
 @Composable
 fun NearHomeStep(model: NexusViewModel) {
     val context = LocalContext.current
@@ -418,42 +483,51 @@ fun NearHomeStep(model: NexusViewModel) {
             onPick = { need, pkg -> model.setupServices = model.setupServices + (need.key to pkg) },
             showRide = model.setupHome.isNotBlank(),
         )
-        BigButton(stringResource(R.string.continue_), { model.setupStep = 4 })
     }
 }
 
-/** S4 (child part): microphone and direct-calling permissions, each explained first, then hand over. */
+/** S4a: the microphone, explained first. Its own numbered step (skipped when already allowed). */
 @Composable
-private fun PermissionsStep(model: NexusViewModel) {
+private fun MicStep(model: NexusViewModel, next: () -> Unit) {
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        model.markMicAsked(); model.permissionAnswered(Perm.MIC, ok); next()
+    }
+    PermissionCard(
+        "🎤", stringResource(R.string.mic_title), stringResource(R.string.mic_why_child),
+        stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.mic_on_device else R.string.mic_online),
+        onAllow = { launcher.launch(Manifest.permission.RECORD_AUDIO) },
+        onNotNow = { model.markMicAsked(); model.permissionAnswered(Perm.MIC, false); next() },
+    )
+}
+
+/** S4b: direct calling, explained first. Its own numbered step (skipped when already allowed). */
+@Composable
+private fun CallStep(model: NexusViewModel, next: () -> Unit) {
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        model.markCallAsked(); model.permissionAnswered(Perm.CALL, ok); next()
+    }
+    PermissionCard(
+        "📞", stringResource(R.string.call_title), stringResource(R.string.call_why), stringResource(R.string.call_stays),
+        onAllow = { launcher.launch(Manifest.permission.CALL_PHONE) },
+        onNotNow = { model.markCallAsked(); model.permissionAnswered(Perm.CALL, false); next() },
+    )
+}
+
+/** S4c: "All set", not a numbered step. Coaches the child for the leave-behind check, then hands over. */
+@Composable
+private fun HandoverStep(model: NexusViewModel) {
     val context = LocalContext.current
-    var micDone by remember { mutableStateOf(granted(context, Manifest.permission.RECORD_AUDIO)) }
-    var callDone by remember { mutableStateOf(granted(context, Manifest.permission.CALL_PHONE)) }
-    val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> micDone = true; model.markMicAsked(); model.permissionAnswered(Perm.MIC, ok) }
-    val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> callDone = true; model.markCallAsked(); model.permissionAnswered(Perm.CALL, ok) }
-    when {
-        !micDone -> PermissionCard(
-            "🎤", stringResource(R.string.mic_title), stringResource(R.string.mic_why_child),
-            stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.mic_on_device else R.string.mic_online),
-            onAllow = { micLauncher.launch(Manifest.permission.RECORD_AUDIO) },
-            onNotNow = { micDone = true; model.markMicAsked(); model.permissionAnswered(Perm.MIC, false) },
-        )
-        !callDone -> PermissionCard(
-            "📞", stringResource(R.string.call_title), stringResource(R.string.call_why), stringResource(R.string.call_stays),
-            onAllow = { callLauncher.launch(Manifest.permission.CALL_PHONE) },
-            onNotNow = { callDone = true; model.markCallAsked(); model.permissionAnswered(Perm.CALL, false) },
-        )
-        else -> ScreenColumn {
-            Text(stringResource(R.string.handover_title), style = MaterialTheme.typography.headlineMedium)
-            Text(stringResource(R.string.handover_body), style = MaterialTheme.typography.bodyLarge)
-            Text(stringResource(R.string.handover_settings), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (!granted(context, Manifest.permission.RECORD_AUDIO)) {
-                Text(stringResource(R.string.mic_off_setup), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            BigButton(stringResource(R.string.handover_button), {
-                model.finishSetup(guessCountry(context))
-                model.startPractice()
-            })
+    ScreenColumn {
+        Text(stringResource(R.string.handover_title), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.handover_body), style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(R.string.handover_settings), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (!granted(context, Manifest.permission.RECORD_AUDIO)) {
+            Text(stringResource(R.string.mic_off_setup), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        BigButton(stringResource(R.string.handover_button), {
+            model.finishSetup(guessCountry(context))
+            model.startPractice()
+        })
     }
 }
 

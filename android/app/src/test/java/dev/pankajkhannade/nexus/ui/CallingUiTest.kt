@@ -19,7 +19,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowTextToSpeech
 
-/** S7: the 3-second countdown. Virtual time (mainClock) means these run in milliseconds, not seconds. */
+/** S7: the countdown (5 s by default; 3 / 8 s in Family settings). Virtual time (mainClock) means these run in milliseconds, not seconds. */
 @RunWith(RobolectricTestRunner::class)
 class CallingUiTest {
     @get:Rule val compose = createComposeRule()
@@ -41,12 +41,12 @@ class CallingUiTest {
         val model = newModel(people = 1)
         showCalling(model)
         compose.onNodeWithText("Calling Pankaj").assertExists()
-        compose.onNodeWithText("3").assertExists()
+        compose.onNodeWithText("5").assertExists()
 
         compose.mainClock.advanceTimeBy(1_000)
-        compose.onNodeWithText("2").assertExists()
-        compose.onNodeWithText("Stop").performClick()
-        compose.mainClock.advanceTimeBy(5_000)
+        compose.onNodeWithText("4").assertExists()
+        compose.onNodeWithText("✕  Cancel").performClick()
+        compose.mainClock.advanceTimeBy(9_000)
 
         compose.onNodeWithText("home").assertExists()
         assertNull("Stop must not dial", nextStartedIntent())
@@ -55,7 +55,7 @@ class CallingUiTest {
     @Test fun withoutCallPermissionTheDialerOpensWithTheNumber() {
         val model = newModel(people = 1)
         showCalling(model)
-        compose.mainClock.advanceTimeBy(3_500)
+        compose.mainClock.advanceTimeBy(5_500)
         compose.waitForIdle()
 
         val intent = nextStartedIntent()!!
@@ -68,7 +68,7 @@ class CallingUiTest {
         shadowOf(app).grantPermissions(Manifest.permission.CALL_PHONE)
         val model = newModel(people = 1)
         showCalling(model)
-        compose.mainClock.advanceTimeBy(3_500)
+        compose.mainClock.advanceTimeBy(5_500)
         compose.waitForIdle()
 
         val intent = nextStartedIntent()!!
@@ -87,5 +87,46 @@ class CallingUiTest {
         val tts = ShadowTextToSpeech.getLastTextToSpeechInstance()!!
         // Spoken in the parent's language (Marathi by default), even though this test JVM is in English.
         assertEquals("Pankaj ला फोन लावत आहे", shadowOf(tts).lastSpokenText)
+    }
+
+    @Test fun theDefaultCountdownIsFiveSecondsAndDoesNotDialEarly() {
+        val model = newModel(people = 1)
+        assertEquals(5, model.saved.countdownSeconds)
+        showCalling(model)
+        compose.mainClock.advanceTimeBy(4_200)
+        assertNull("nothing is dialled before 5 s", nextStartedIntent())
+        compose.mainClock.advanceTimeBy(1_300)
+        compose.waitForIdle()
+        assertEquals(Intent.ACTION_DIAL, nextStartedIntent()!!.action)
+    }
+
+    @Test fun aThreeSecondSettingIsUsed() {
+        val model = newModel(people = 1)
+        model.setCountdown(3)
+        idleMain()
+        showCalling(model)
+        compose.onNodeWithText("3").assertExists()
+        compose.mainClock.advanceTimeBy(3_500)
+        compose.waitForIdle()
+        assertEquals(Intent.ACTION_DIAL, nextStartedIntent()!!.action)
+    }
+
+    @Test fun anEightSecondSettingWaitsEightSeconds() {
+        val model = newModel(people = 1)
+        model.setCountdown(8)
+        idleMain()
+        showCalling(model)
+        compose.onNodeWithText("8").assertExists()
+        compose.mainClock.advanceTimeBy(7_200)
+        assertNull(nextStartedIntent())
+        compose.mainClock.advanceTimeBy(1_300)
+        compose.waitForIdle()
+        assertEquals(Intent.ACTION_DIAL, nextStartedIntent()!!.action)
+    }
+
+    @Test fun anOddValueFallsBackToFive() {
+        val model = newModel(people = 1)
+        model.setCountdown(42)
+        assertEquals(5, model.saved.countdownSeconds)
     }
 }

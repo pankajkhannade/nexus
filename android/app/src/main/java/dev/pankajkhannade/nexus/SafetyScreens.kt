@@ -70,6 +70,8 @@ private fun CheckInput(model: NexusViewModel) {
             Text(stringResource(R.string.share_guide_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.share_guide), style = MaterialTheme.typography.bodyLarge)
         }
+        // "I already paid" needs no message to check first.
+        BigButton("⚠️  " + stringResource(R.string.money_gone), { model.openMoneyGone() }, kind = ButtonKind.Secondary)
     }
 }
 
@@ -104,7 +106,7 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
                     hasWhatsApp -> R.string.whatsapp_will_open
                     else -> R.string.sms_will_open
                 }
-                Text(stringResource(howTo, target.name), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(howTo, shownName(target)), style = MaterialTheme.typography.bodyLarge)
                 BigButton(stringResource(R.string.ok), {
                     sendingTo = null
                     model.record(Event.ASK_FAMILY)
@@ -119,9 +121,9 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
                 })
             }
             choosing -> askers.forEach { person ->
-                BigButton(person.name, { choosing = false; sendingTo = person }, kind = ButtonKind.Secondary)
+                BigButton(shownName(person), { choosing = false; sendingTo = person }, kind = ButtonKind.Secondary)
             }
-            askers.size == 1 -> BigButton("💬  " + stringResource(R.string.ask_x, askers[0].name), { sendingTo = askers[0] }, Modifier.testTag("safe_action"))
+            askers.size == 1 -> BigButton("💬  " + stringResource(R.string.ask_x, shownName(askers[0])), { sendingTo = askers[0] }, Modifier.testTag("safe_action"))
             askers.size > 1 -> BigButton("💬  " + stringResource(R.string.ask_family), { choosing = true }, Modifier.testTag("safe_action"))
         }
     }) {
@@ -138,7 +140,8 @@ private fun VerdictView(model: NexusViewModel, verdict: Verdict) {
             }
         }
         if (verdict.level != Level.NONE) {
-            BigButton("📞  " + stringResource(R.string.money_gone), { openDial(context, "1930"); model.actionOpened(AppCategory.DIALER) }, kind = ButtonKind.Secondary)
+            // UX sprint 2: the full पैसे गेले steps (1930, bank, cybercrime.gov.in, tell the child), not a bare dial pad.
+            BigButton("⚠️  " + stringResource(R.string.money_gone), { model.openMoneyGone() }, Modifier.testTag("money_gone"), kind = ButtonKind.Secondary)
         }
         if (model.checkText.isNotBlank()) {
             BigButton(stringResource(if (showText) R.string.hide_message else R.string.show_message), { showText = !showText }, kind = ButtonKind.Quiet)

@@ -39,7 +39,16 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun ListeningScreen(model: NexusViewModel) {
-    Centered {
+    // UX sprint 2: the same bottom bar as every parent screen. Left = ✕ रद्द करा (throw the words away),
+    // right = ✓ झालं (act on them now), so "Done" and "Stop" can no longer both read as "finish".
+    ParentScaffold(
+        onBack = { model.cancelListening() },
+        backLabel = "✕  " + stringResource(R.string.cancel_action),
+        speakLabel = "✓  " + stringResource(R.string.listening_done),
+        onSpeak = { model.doneListening() },
+        speakKind = ButtonKind.Call,
+        centered = true,
+    ) {
         Text("🎤", fontSize = 72.sp)
         BigCentredText(stringResource(R.string.listening))
         LiveWords(model.heard)
@@ -47,8 +56,6 @@ fun ListeningScreen(model: NexusViewModel) {
             stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.voice_on_device else R.string.voice_online),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        BigButton("✓  " + stringResource(R.string.listening_done), { model.doneListening() }, kind = ButtonKind.Call)
-        BigButton(stringResource(R.string.stop), { model.cancelListening() }, kind = ButtonKind.Secondary)
     }
 }
 
@@ -68,12 +75,13 @@ fun LiveWords(words: String) {
 /** S6 Confirm: shown when the name was a fuzzy match. Spoken aloud too. */
 @Composable
 fun ConfirmScreen(model: NexusViewModel, person: Person) {
-    LaunchedEffect(person.id) { model.speak(R.string.confirm_call, person.name) }
-    Centered {
+    LaunchedEffect(person.id) { model.speak(R.string.confirm_call, model.nameOf(person)) }
+    val no = { model.cancelled(CommandType.CALL); model.screen = Screen.Home }
+    ParentScaffold(onBack = no, centered = true) {
         Avatar(person, model.saved.people, 120.dp)
-        BigCentredText(stringResource(R.string.confirm_call, person.name))
-        BigButton(stringResource(R.string.yes_call), { model.startCall(person) }, kind = ButtonKind.Call)
-        BigButton(stringResource(R.string.no), { model.cancelled(CommandType.CALL); model.screen = Screen.Home }, kind = ButtonKind.Secondary)
+        BigCentredText(stringResource(R.string.confirm_call, shownName(person)))
+        BigButton("📞  " + stringResource(R.string.yes_call), { model.startCall(person) }, kind = ButtonKind.Call)
+        BigButton(stringResource(R.string.no), no, kind = ButtonKind.Secondary)
     }
 }
 
@@ -102,9 +110,9 @@ fun NotUnderstoodScreen(model: NexusViewModel, onSpeak: () -> Unit) {
                 OutlinedPanel {
                     Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Avatar(person, model.saved.people, 56.dp)
-                        Text(person.name, style = MaterialTheme.typography.titleLarge)
+                        Text(shownName(person), style = MaterialTheme.typography.titleLarge)
                     }
-                    BigButton("📞 " + stringResource(R.string.found_call, person.name), {
+                    BigButton("📞 " + stringResource(R.string.found_call, shownName(person)), {
                         model.tryingInSetup = false; model.tile(CommandType.CALL); model.startCall(person)
                     }, kind = ButtonKind.Call)
                 }
@@ -113,13 +121,18 @@ fun NotUnderstoodScreen(model: NexusViewModel, onSpeak: () -> Unit) {
     }
 }
 
-/** S7 Calling: a visible 3-second countdown with Stop, then the call is placed (or the dialer opens). */
+/**
+ * S7 Calling: a visible countdown (3, 5 or 8 s from Family settings; 5 by default, UX sprint 2) with
+ * ✕ रद्द करा in the bottom bar's left slot, then the call is placed (or the dialer opens).
+ */
 @Composable
 fun CallingScreen(model: NexusViewModel, person: Person) {
     val context = LocalContext.current
-    var left by remember(person.id) { mutableIntStateOf(3) }
+    val onSpeak = LocalOnSpeak.current
+    val total = cleanCountdown(model.saved.countdownSeconds)
+    var left by remember(person.id) { mutableIntStateOf(total) }
     LaunchedEffect(person.id) {
-        model.speak(R.string.calling_x, person.name)
+        model.speak(R.string.calling_x, model.nameOf(person))
         while (left > 0) {
             delay(1000)
             left -= 1
@@ -133,14 +146,21 @@ fun CallingScreen(model: NexusViewModel, person: Person) {
         model.notice = if (direct) "" else context.getString(R.string.dialer_fallback)
         model.screen = Screen.Home
     }
-    Centered {
+    val cancel = { model.speaker.stop(); model.cancelled(CommandType.CALL); model.screen = Screen.Home }
+    // Speak during the countdown means "not this": cancel the call, then listen.
+    ParentScaffold(
+        onBack = cancel,
+        backLabel = "✕  " + stringResource(R.string.cancel_action),
+        onSpeak = { cancel(); onSpeak() },
+        centered = true,
+    ) {
         Avatar(person, model.saved.people, 120.dp)
-        BigCentredText(stringResource(R.string.calling_x, person.name))
+        BigCentredText(stringResource(R.string.calling_x, shownName(person)))
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
-            CircularProgressIndicator(progress = { left / 3f }, modifier = Modifier.size(96.dp), strokeWidth = 8.dp)
+            CircularProgressIndicator(progress = { left / total.toFloat() }, modifier = Modifier.size(96.dp), strokeWidth = 8.dp)
             Text("$left", style = MaterialTheme.typography.displaySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
-        BigButton(stringResource(R.string.stop), { model.speaker.stop(); model.cancelled(CommandType.CALL); model.screen = Screen.Home }, kind = ButtonKind.Secondary)
+        Text(stringResource(R.string.calling_cancel_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

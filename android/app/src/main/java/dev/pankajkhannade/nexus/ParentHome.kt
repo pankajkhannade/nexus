@@ -77,10 +77,17 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 val date = LocalDate.ofEpochDay(model.today).format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault()))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.greeting), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // UX sprint 2, principle 12: help is always on home, where the greeting used to be.
+                    val helper = model.helpers().firstOrNull()
+                    if (helper != null) {
+                        HelpButton(stringResource(R.string.help_home, shownName(helper)), Modifier.weight(1f)) { model.openHelp() }
+                    } else {
+                        Text(stringResource(R.string.greeting), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                    }
                     HoldToOpen(date, onSettings)
                 }
+                model.returnCheck?.let { ReturnCheckCard(model, it) }
                 if (choosingWhatsApp) {
                     Text(stringResource(R.string.whatsapp_who), style = MaterialTheme.typography.titleLarge)
                 }
@@ -131,13 +138,33 @@ private fun FaceGrid(people: List<Person>, action: @Composable (Person) -> Unit)
                     Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Avatar(person, people, 48.dp)
-                            Text(firstName(person.name), style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                            Text(firstName(shownName(person)), style = MaterialTheme.typography.titleMedium, maxLines = 2)
                         }
                         action(person)
                     }
                 }
             }
             if (row.size == 1) Box(Modifier.weight(1f))
+        }
+    }
+}
+
+/** Help on home: an outlined pill with an icon and words (never an icon alone), 56dp tall. */
+@Composable
+private fun HelpButton(label: String, modifier: Modifier, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = CardShape,
+        color = NexusColors.Background,
+        contentColor = NexusColors.Primary,
+        modifier = modifier
+            .heightIn(min = 56.dp)
+            .testTag("home_help")
+            .border(androidx.compose.foundation.BorderStroke(2.dp, NexusColors.Primary), CardShape),
+    ) {
+        Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("🙋", style = MaterialTheme.typography.titleMedium, modifier = Modifier.clearAndSetSemantics { })
+            Text(label, style = MaterialTheme.typography.labelMedium)
         }
     }
 }

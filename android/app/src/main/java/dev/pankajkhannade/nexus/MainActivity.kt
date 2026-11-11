@@ -56,7 +56,14 @@ sealed interface Screen {
     data class ChooseContact(val name: String, val ask: Ask, val options: List<Person>) : Screen
     /** Phone book: nobody by that name. Offers the dial pad. */
     data class ContactNotFound(val name: String) : Screen
+    /** UX sprint 2: help, always one tap from home: call or message the child. */
+    data object Help : Screen
+    /** UX sprint 2 (roadmap N3): money already gone. 1930, the bank, cybercrime.gov.in, tell the child. */
+    data object MoneyGone : Screen
 }
+
+/** Handoffs that get a "did it work?" question when the parent comes back to Nexus. */
+val CHECKED_HANDOFFS = setOf(AppCategory.DIALER, AppCategory.CAB, AppCategory.WHATSAPP, AppCategory.SMS, AppCategory.MAPS)
 
 class NexusViewModel(app: Application) : AndroidViewModel(app) {
     private val store = NexusStore(app)
@@ -164,14 +171,75 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         if (cat != null) {
             track(EventType.ACTION_RETURN, category = cat, ms = (nowMs - awayAt).coerceAtLeast(0))
             awayCategory = null
-            // "Done": the last step of heard -> said back -> doing -> done, shown on home after a handoff.
-            if (saved.setupDone && screen == Screen.Home) notice = getApplication<Application>().getString(R.string.welcome_back)
+            // "Done": the last step of heard -> said back -> doing -> done. After a call, ride, message or map,
+            // home asks "did it work?" (UX sprint 2); anything else gets the plain welcome-back line.
+            if (saved.setupDone && screen == Screen.Home) {
+                if (cat in CHECKED_HANDOFFS) {
+                    notice = ""
+                    returnCheck = cat
+                    speak(returnQuestion(cat))
+                } else {
+                    notice = getApplication<Application>().getString(R.string.welcome_back)
+                }
+            }
         } else if (startedOnce) {
             track(EventType.FOREGROUND)
         }
         startedOnce = true
     }
     private var startedOnce = false
+
+    /** The handoff home is asking about ("did it work?"), or null. In memory only; the answer is logged as yes/no. */
+    var returnCheck by mutableStateOf<AppCategory?>(null)
+
+    fun returnQuestion(cat: AppCategory): Int = when (cat) {
+        AppCategory.DIALER -> R.string.check_call
+        AppCategory.WHATSAPP, AppCategory.SMS -> R.string.check_message_sent
+        AppCategory.CAB -> R.string.check_ride
+        else -> R.string.check_generic
+    }
+
+    /** The parent's answer to "did it work?": a fixed yes/no with the app category, nothing else. No opens Help. */
+    fun answerReturnCheck(worked: Boolean) {
+        val cat = returnCheck ?: return
+        returnCheck = null
+        track(EventType.RETURN_CHECK, category = cat, ok = worked)
+        if (worked) {
+            notice = getApplication<Application>().inLanguage(language).getString(R.string.check_glad)
+            speak(R.string.check_glad)
+        } else {
+            openHelp()
+        }
+    }
+
+    // ---- Help and money gone (UX sprint 2) ----
+
+    /** Who help goes to: the Ask-family people, else everyone. */
+    fun helpers(): List<Person> = saved.people.filter { it.askFamily }.ifEmpty { saved.people }
+
+    fun openHelp() {
+        returnCheck = null
+        screen = Screen.Help
+        track(EventType.HELP_OPENED)
+        helpers().firstOrNull()?.let { speak(R.string.help_tts, nameOf(it)) }
+    }
+
+    fun openMoneyGone() {
+        screen = Screen.MoneyGone
+        track(EventType.MONEY_GONE)
+        speak(R.string.money_gone_tts)
+    }
+
+    /** Back from the money-gone steps: to the verdict it came from, else home. */
+    fun leaveMoneyGone() {
+        screen = if (verdict != null) Screen.Safety else Screen.Home
+    }
+
+    /** The person's name as the parent reads it (Devanagari in mr / hi when the child typed one). */
+    fun nameOf(person: Person): String = person.shownIn(language)
+
+    /** Family settings: seconds before a call is placed (3, 5 or 8). */
+    fun setCountdown(seconds: Int) = update(saved.copy(countdownSeconds = cleanCountdown(seconds)))
 
     fun setUploadConsent(on: Boolean) {
         analyticsPrefs.setUpload(on)
@@ -210,9 +278,20 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             setupStepState = value
             if (value > furthestSetupStep) {
                 furthestSetupStep = value
-                track(EventType.SETUP_STEP, step = value)
+                // Logged as the page's fixed number (SetupPage.ordinal), so skipped permission pages don't shift it.
+                track(EventType.SETUP_STEP, step = setupPlan.getOrNull(value)?.ordinal ?: value)
             }
         }
+    /**
+     * The setup pages for this phone, decided once (UX sprint 2, honest steps): permissions already granted
+     * are left out, so "Step x of N" is true and never changes under the child. See [setupPlan].
+     */
+    var setupPlan: List<SetupPage> = emptyList()
+        private set
+
+    fun planSetup(micGranted: Boolean, callGranted: Boolean) {
+        if (setupPlan.isEmpty()) setupPlan = setupPages(micGranted, callGranted)
+    }
     var setupLanguage by mutableStateOf("mr")
     var setupPeople by mutableStateOf<List<Person>>(emptyList())
     var setupHome by mutableStateOf("")
@@ -307,7 +386,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         awayCategory = null
         usage = Usage()
         feedback = Feedback()
-        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap()))
+        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap(), countdownSeconds = DEFAULT_COUNTDOWN, practiceDone = true))
+        practiceIndex = -1
+        returnCheck = null
         viewModelScope.launch { store.writeUsage(Usage()); store.writeFeedback(Feedback()) }
     }
 
@@ -359,10 +440,10 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     /** Adds or replaces a person in the setup draft. Returns false when the number can't be used. */
     fun putSetupPerson(
         original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String,
-        photo: String = "", typed: Boolean = false,
+        photo: String = "", typed: Boolean = false, localName: String = "",
     ): Boolean {
         val phone = normalizePhone(rawPhone, dial) ?: return false
-        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim(), photo)
+        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim(), photo, localName.trim())
         // Keep the old place in the list, so faces keep their colour when someone is edited.
         val same: (Person) -> Boolean = { it.id == original?.id || it.phone == phone }
         val at = setupPeople.indexOfFirst(same)
@@ -386,6 +467,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Saves setup. Country is inferred (SIM, then locale, else India) and can be changed in Family settings. */
     fun finishSetup(country: Country) {
+        val picks = setupServices.ifEmpty { defaultPicks { isInstalled(getApplication(), it) } }
         update(
             saved.copy(
                 setupDone = true,
@@ -397,8 +479,10 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                 home = Place(setupHome.trim()),
                 people = setupPeople,
                 pincode = cleanPincode(setupPincode) ?: pincodeIn(setupHome).orEmpty(),
-                services = setupServices - Need.RIDE.key,
-                lastCab = CabApp.entries.firstOrNull { it.pkg == setupServices[Need.RIDE.key] }?.id ?: saved.lastCab,
+                // Near home apps are no longer a setup page (UX sprint 2): the first installed app per need is
+                // picked here, and the child can change it in Family settings.
+                services = picks - Need.RIDE.key,
+                lastCab = CabApp.entries.firstOrNull { it.pkg == picks[Need.RIDE.key] }?.id ?: saved.lastCab,
                 practiceDone = false,
             ),
         )
@@ -457,9 +541,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- People and places (Family settings) ----
 
-    fun savePerson(original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String, photo: String = ""): Boolean {
+    fun savePerson(original: Person?, name: String, rawPhone: String, relation: String, askFamily: Boolean, alias: String, photo: String = "", localName: String = ""): Boolean {
         val phone = normalizePhone(rawPhone, dial) ?: return false
-        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim(), photo)
+        val person = Person(phoneDigits(phone), name.trim(), phone, relation, askFamily, alias.trim(), photo, localName.trim())
         val list = saved.people.toMutableList()
         val at = list.indexOfFirst { it.id == original?.id || it.phone == phone }
         if (at >= 0) list[at] = person else list += person
@@ -635,7 +719,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Names the recogniser should expect: saved people and their aliases. */
     private fun biasingNames(): List<String> =
-        (saved.people.flatMap { listOf(it.name, it.alias) } + contactIndex.orEmpty().sortedByDescending { it.starred }.map { it.name })
+        (saved.people.flatMap { it.names } + contactIndex.orEmpty().sortedByDescending { it.starred }.map { it.name })
             .filter { it.isNotBlank() }.distinct().take(200)
 
     /**
@@ -703,7 +787,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                 screen = Screen.Home
                 openWhatsAppFor(command.person)
             }
-            // An exact name or alias goes straight to Calling, which still has a 3-second Cancel.
+            // An exact name or alias goes straight to Calling, which still has the countdown with Cancel.
             is Command.Call -> screen = if (command.exact) Screen.Calling(command.person) else Screen.Confirm(command.person)
             is Command.FindContact -> lookUpContact(command.name, command.ask)
             Command.Unknown -> Unit
@@ -869,7 +953,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     /** The name used in examples: the Ask-family person's spoken alias or name, else a sample name. */
     fun exampleName(): String {
         val person = saved.people.firstOrNull { it.askFamily } ?: saved.people.firstOrNull()
-        return person?.alias?.ifBlank { person.name } ?: getApplication<Application>().inLanguage(language).getString(R.string.sample_name)
+        return person?.alias?.ifBlank { nameOf(person) } ?: getApplication<Application>().inLanguage(language).getString(R.string.sample_name)
     }
 
     /**
@@ -880,7 +964,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val words = heard.lowercase().split(Regex("""[\s,.!?]+""")).filter { it.length >= 2 }
         fun mentioned(p: Person) = words.any { w ->
             val stem = w.removeSuffix("ला").removeSuffix("ना").removeSuffix("ko").removeSuffix("la")
-            nameMatches(p.name, stem) || (p.alias.isNotBlank() && nameMatches(p.alias, stem)) || nameMatches(p.name, w)
+            p.names.any { nameMatches(it, stem) || nameMatches(it, w) }
         }
         val (hit, rest) = saved.people.partition(::mentioned)
         return hit + rest
@@ -895,7 +979,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun openWhatsAppFor(person: Person) {
         record(Event.WHATSAPP)
         // Coach before the handoff: Nexus's voice carries on while WhatsApp opens.
-        if (isInstalled(getApplication(), "com.whatsapp")) speak(R.string.coach_whatsapp_chat, person.name)
+        if (isInstalled(getApplication(), "com.whatsapp")) speak(R.string.coach_whatsapp_chat, nameOf(person))
         if (openWhatsApp(getApplication(), person.phone, "")) actionOpened(AppCategory.WHATSAPP)
         else notice = getApplication<Application>().getString(R.string.whatsapp_missing)
     }
@@ -975,7 +1059,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         when {
             person == null -> speak(R.string.msg_who)
             d.text.isBlank() -> speak(R.string.msg_what)
-            else -> speak(R.string.msg_confirm_tts, person.name, d.text)
+            else -> speak(R.string.msg_confirm_tts, nameOf(person), d.text)
         }
     }
 

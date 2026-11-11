@@ -38,13 +38,14 @@ class NexusStore(context: Context) {
     }
 }
 
-private fun encode(saved: Saved): String {
+@androidx.annotation.VisibleForTesting
+internal fun encode(saved: Saved): String {
     val people = JSONArray()
     saved.people.forEach { person ->
         people.put(
             JSONObject().put("id", person.id).put("name", person.name).put("phone", person.phone)
                 .put("relation", person.relation).put("askFamily", person.askFamily).put("alias", person.alias)
-                .put("photo", person.photo),
+                .put("photo", person.photo).put("localName", person.localName),
         )
     }
     return JSONObject()
@@ -66,10 +67,12 @@ private fun encode(saved: Saved): String {
         .put("pincode", saved.pincode)
         .put("services", JSONObject(saved.services as Map<*, *>))
         .put("practiceDone", saved.practiceDone)
+        .put("countdown", saved.countdownSeconds)
         .toString()
 }
 
-private fun decode(raw: String): Saved {
+@androidx.annotation.VisibleForTesting
+internal fun decode(raw: String): Saved {
     val json = JSONObject(raw)
     val peopleJson = json.optJSONArray("people") ?: JSONArray()
     val dial = json.optString("dial")
@@ -84,6 +87,7 @@ private fun decode(raw: String): Saved {
             askFamily = item.optBoolean("askFamily"),
             alias = item.optString("alias"),
             photo = item.optString("photo"),
+            localName = item.optString("localName"),
         )
     }
     return Saved(
@@ -103,6 +107,7 @@ private fun decode(raw: String): Saved {
         pincode = json.optString("pincode"),
         services = json.optJSONObject("services")?.let { s -> s.keys().asSequence().associateWith { s.optString(it) } }.orEmpty(),
         practiceDone = if (json.has("practiceDone")) json.optBoolean("practiceDone") else true,
+        countdownSeconds = cleanCountdown(json.optInt("countdown", DEFAULT_COUNTDOWN)),
     )
 }
 

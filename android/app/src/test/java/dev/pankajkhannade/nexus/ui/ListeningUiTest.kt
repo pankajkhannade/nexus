@@ -43,7 +43,7 @@ class ListeningUiTest {
         assertEquals("still listening after a message pause", 3, fake.starts)
         fake.partial("ani yetana sabun ghevun ye")
 
-        compose.onNodeWithText("✓  Done").performScrollTo().performClick()
+        compose.onNodeWithText("✓  Done").performClick()
 
         assertTrue(model.screen.toString(), model.screen == Screen.Message)
         assertEquals("Pankaj", model.draft?.person?.name)
@@ -68,7 +68,7 @@ class ListeningUiTest {
         model.startListening()
         compose.setParent { ListeningScreen(model) }
         fake.partial("Pankaj la phone")
-        compose.onNodeWithText("Stop").performScrollTo().performClick()
+        compose.onNodeWithText("✕  Cancel").performClick()
         assertTrue(model.screen == Screen.Home)
     }
 
@@ -77,13 +77,13 @@ class ListeningUiTest {
         val model = model()
         model.understood("whatsapp Pankaj", typed = true)
         compose.setParent { MessageScreen(model) }
-        compose.onNodeWithText("🎤  Speak again").performScrollTo().performClick()
+        compose.onNodeWithText("🎤  Speak again").performClick()
 
         fake.partial("I will be late")
         fake.error(SpeechRecognizer.ERROR_NO_MATCH)
         fake.partial("keep dinner")
         compose.onNodeWithText("“I will be late keep dinner”").assertIsDisplayed()
-        compose.onNodeWithText("✓  Done").performScrollTo().performClick()
+        compose.onNodeWithText("✓  Done").performClick()
 
         compose.onNodeWithText("I will be late keep dinner.").assertIsDisplayed()
         assertEquals("I will be late keep dinner.", model.draft?.text)
