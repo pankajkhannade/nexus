@@ -149,7 +149,12 @@ private fun FaceGrid(people: List<Person>, perRow: Int = 2, action: @Composable 
                     Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Avatar(person, people, 48.dp)
-                            Text(firstName(shownName(person)), style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                            Column(Modifier.weight(1f)) {
+                                Text(firstName(shownName(person)), style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                                if (person.relation == Relation.MAID || person.relation == Relation.CARETAKER) {
+                                    Text(stringResource(relationText(person.relation)), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                                }
+                            }
                         }
                         action(person)
                     }

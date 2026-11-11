@@ -33,6 +33,21 @@ class ParentCommandTest {
         assertEquals("2", m.person?.id)
     }
 
+    @Test fun maidAndCaretakerAreCalledByTheWordTheParentSays() {
+        val lakshmi = Person("3", "Lakshmi", "+919900000001", Relation.MAID)
+        val tara = Person("4", "Tara", "+919900000002", Relation.CARETAKER)
+        val home = saved.copy(people = saved.people + lakshmi + tara)
+        for (said in listOf("बाईला फोन लाव", "maid ko phone lagao", "call the maid", "कामवालीला फोन लाव")) {
+            assertEquals(said, lakshmi.id, readMessage(said, home).person?.id)
+            assertEquals(said, lakshmi.id, (RuleIntentParser.parse(said, home) as Command.Call).person.id)
+        }
+        for (said in listOf("caretaker la phone lav", "नर्सला फोन लाव", "आया को फ़ोन लगाओ")) {
+            assertEquals(said, tara.id, readMessage(said, home).person?.id)
+        }
+        val twoMaids = home.copy(people = home.people + lakshmi.copy(id = "5", name = "Shanta", phone = "+919900000003"))
+        assertNull(readMessage("बाईला फोन लाव", twoMaids).person)
+    }
+
     @Test fun fuzzyNameNeedsConfirmation() {
         val r = readMessage("call Raahul", saved)
         assertEquals("1", r.person?.id)

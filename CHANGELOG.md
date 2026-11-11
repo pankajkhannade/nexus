@@ -29,6 +29,10 @@ The rest of the UX critique (section 5 and ranked fixes 7–20), as an 8-item sp
 
 **Tests:** 404 → 462 JVM tests. New `ui/UxSprint2UiTest` (29 acceptance checks), `ui/UxSprint2ScreenshotTest` (24 goldens in `roborazzi/ux2/`), `ui/LargeText.kt` (`assertNoClippedText`), and a Devanagari name check in `PersonSheetUiTest`. Updated on purpose: Calling (5 s, Cancel), Listening (Cancel), Settings (Remove label), UX sprint 1 money test (now opens the Money gone screen).
 
+### Maid and caretaker (2026-11-11)
+Setup can save a maid and a caretaker with the family (up to 6 people). The parent calls them by voice: “बाईला फोन लाव”, “maid ko phone lagao”, “नर्सला फोन लाव”, “call the maid”. Their role is written under the face. Two people with the same role are never dialled from the role word alone.
+
+
 ### UX sprint 1 (2026-11-11) — feat/ux-sprint-1
 From the UX critique Pankaj asked for (`docs/ux-critique-2026-11-11.md`): the five-item sprint plus the India-only address fix and the shared bottom bar.
 

@@ -29,7 +29,7 @@
     <string name="voice_install">आवाज़ जोड़ें</string>
     <string name="welcome_self">अपने लिए सेट कर रहे हैं? वह भी चलेगा।</string>
     <string name="family_title">वे किससे बात करना चाहेंगे?</string>
-    <string name="family_body">4 लोगों तक जोड़ें। “ये असली है?” वाले सवालों के लिए कम से कम एक चुनें।</string>
+    <string name="family_body">6 लोगों तक जोड़ें, जिनमें बाई या केयरटेकर भी हों जिन्हें वे फ़ोन करते हैं। “ये असली है?” वाले सवालों के लिए कम से कम एक चुनें।</string>
     <string name="add_person">व्यक्ति जोड़ें</string>
     <string name="type_number_instead">नंबर ख़ुद लिखें</string>
     <string name="already_added">यह नंबर पहले से %1$s का है।</string>
@@ -43,6 +43,8 @@
     <string name="relation_son">बेटा</string>
     <string name="relation_daughter">बेटी</string>
     <string name="relation_spouse">पति / पत्नी</string>
+    <string name="relation_maid">बाई</string>
+    <string name="relation_caretaker">केयरटेकर</string>
     <string name="relation_other">अन्य</string>
     <string name="ask_family_toggle">परिवार से पूछें: शक वाले मैसेज इन्हें जाएँ</string>
     <string name="alias_label">दूसरा नाम जो वे बोलते हैं (ज़रूरी नहीं)</string>

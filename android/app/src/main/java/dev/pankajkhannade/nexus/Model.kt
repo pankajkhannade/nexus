@@ -5,8 +5,10 @@ object Relation {
     const val SON = "son"
     const val DAUGHTER = "daughter"
     const val SPOUSE = "spouse"
+    const val MAID = "maid"
+    const val CARETAKER = "caretaker"
     const val OTHER = "other"
-    val ALL = listOf(SON, DAUGHTER, SPOUSE, OTHER)
+    val ALL = listOf(SON, DAUGHTER, SPOUSE, MAID, CARETAKER, OTHER)
 }
 
 /**

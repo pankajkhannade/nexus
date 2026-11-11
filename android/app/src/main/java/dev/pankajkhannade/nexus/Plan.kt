@@ -120,6 +120,14 @@ internal val RELATION_WORDS: Map<String, String> = buildMap {
     listOf("son", "beta", "bete", "mulga", "mula", "mulala", "बेटा", "बेटे", "मुलगा", "मुला").forEach { put(it, Relation.SON) }
     listOf("daughter", "beti", "mulgi", "muli", "mulila", "बेटी", "मुलगी", "मुली").forEach { put(it, Relation.DAUGHTER) }
     listOf("husband", "wife", "pati", "patni", "navra", "bayko", "पति", "पत्नी", "नवरा", "बायको", "अहो").forEach { put(it, Relation.SPOUSE) }
+    listOf(
+        "maid", "bai", "baai", "baila", "बाई", "बाईला", "kaamwali", "kaamwalila", "कामवाली", "कामवालीला",
+        "molkarin", "मोलकरीण", "मोलकरणी",
+    ).forEach { put(it, Relation.MAID) }
+    listOf(
+        "caretaker", "caretakerla", "nurse", "nursela", "नर्स", "नर्सला", "परिचारिका", "परिचारिकेला",
+        "aaya", "आया", "आयाला", "sevika", "सेविका", "सेविकेला",
+    ).forEach { put(it, Relation.CARETAKER) }
 }
 
 /**

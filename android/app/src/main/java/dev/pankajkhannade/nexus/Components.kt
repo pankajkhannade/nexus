@@ -79,6 +79,8 @@ fun relationText(relation: String): Int = when (relation) {
     Relation.SON -> R.string.relation_son
     Relation.DAUGHTER -> R.string.relation_daughter
     Relation.SPOUSE -> R.string.relation_spouse
+    Relation.MAID -> R.string.relation_maid
+    Relation.CARETAKER -> R.string.relation_caretaker
     else -> R.string.relation_other
 }
 

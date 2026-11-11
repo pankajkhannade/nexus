@@ -167,7 +167,7 @@ private fun WelcomeStep(model: NexusViewModel, next: () -> Unit) {
     }
 }
 
-/** S2: up to 4 people from the system contact picker (no contacts permission) or typed in. */
+/** S2: up to 6 people, including a maid or caretaker, from the contact picker or typed in. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FamilyStep(model: NexusViewModel, next: () -> Unit) {

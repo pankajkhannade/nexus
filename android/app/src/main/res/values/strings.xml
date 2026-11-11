@@ -30,7 +30,7 @@
     <string name="voice_install">Add the voice</string>
     <string name="welcome_self">Setting it up for yourself? That works too.</string>
     <string name="family_title">Who should they reach?</string>
-    <string name="family_body">Add up to 4 people. Choose at least one to get “Is this real?” questions.</string>
+    <string name="family_body">Add up to 6 people, including the maid or caretaker they call. Choose at least one to get “Is this real?” questions.</string>
     <string name="add_person">Add a person</string>
     <string name="type_number_instead">Type a number instead</string>
     <string name="already_added">%1$s already has this number.</string>
@@ -44,6 +44,8 @@
     <string name="relation_son">Son</string>
     <string name="relation_daughter">Daughter</string>
     <string name="relation_spouse">Husband / wife</string>
+    <string name="relation_maid">Maid</string>
+    <string name="relation_caretaker">Caretaker</string>
     <string name="relation_other">Other</string>
     <string name="ask_family_toggle">Ask family: gets messages you’re unsure about</string>
     <string name="alias_label">Other name they use (optional)</string>
