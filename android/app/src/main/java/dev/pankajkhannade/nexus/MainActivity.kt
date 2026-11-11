@@ -1072,7 +1072,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     companion object {
-        const val MAX_PEOPLE = 4
+        const val MAX_PEOPLE = 6
     }
 }
 

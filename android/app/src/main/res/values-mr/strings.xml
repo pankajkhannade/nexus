@@ -29,7 +29,7 @@
     <string name="voice_install">आवाज जोडा</string>
     <string name="welcome_self">स्वतःसाठी सेट करताय? तेही चालेल.</string>
     <string name="family_title">त्यांना कोणाशी बोलायचं असतं?</string>
-    <string name="family_body">4 जणांपर्यंत जोडा. “हे खरं आहे का?” प्रश्नांसाठी किमान एक निवडा.</string>
+    <string name="family_body">6 जणांपर्यंत जोडा, ज्यात बाई किंवा काळजीवाहूही असू शकतात. “हे खरं आहे का?” प्रश्नांसाठी किमान एक निवडा.</string>
     <string name="add_person">व्यक्ती जोडा</string>
     <string name="type_number_instead">नंबर स्वतः लिहा</string>
     <string name="already_added">हा नंबर आधीच %1$s चा आहे.</string>
@@ -43,6 +43,8 @@
     <string name="relation_son">मुलगा</string>
     <string name="relation_daughter">मुलगी</string>
     <string name="relation_spouse">नवरा / बायको</string>
+    <string name="relation_maid">बाई</string>
+    <string name="relation_caretaker">काळजीवाहू</string>
     <string name="relation_other">इतर</string>
     <string name="ask_family_toggle">“हे खरं आहे का?” प्रश्न यांना जातील</string>
     <string name="alias_label">ते वापरतात ते दुसरं नाव (गरजेचे नाही)</string>

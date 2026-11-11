@@ -4,6 +4,10 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Maid and caretaker (2026-11-11)
+Setup can save a maid and a caretaker with the family (up to 6 people). The parent calls them by voice: “बाईला फोन लाव”, “maid ko phone lagao”, “नर्सला फोन लाव”, “call the maid”. Their role is written under the face. Two people with the same role are never dialled from the role word alone.
+
+
 ### UX sprint 1 (2026-11-11) — feat/ux-sprint-1
 From the UX critique Pankaj asked for (`docs/ux-critique-2026-11-11.md`): the five-item sprint plus the India-only address fix and the shared bottom bar.
 
