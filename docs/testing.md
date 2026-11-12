@@ -223,6 +223,17 @@ Shared state: Robolectric reuses one DataStore per fork. `resetLocalDataForTest(
 
 `LanguagePackTest.kt` (L0, reads `src/main/res` directly): every language in `PARENT_LANGUAGES` has `values-<code>/strings.xml` and a `locales_config.xml` entry; every `values-xx` folder is a registered language; every translation has every translatable English string; speech tags (mr-IN, hi-IN, en-IN, English fallback), local display names and India's pack (108 / 112 elsewhere, 1930, cybercrime.gov.in, ArcGIS IND, the PIN shape, India's box, ride apps) are unchanged. When a language is added, this is the first test that should fail.
 
+## Multi-step and guard tests (added 2026-11-12)
+
+| File | Layer | What it proves |
+| --- | --- | --- |
+| `StepsTest.kt` | L0 | The LFM3 requests (en01, en02, mr01, mr02, mr04, hi01, hi02, ho05) split into the right intents in order, with "if he doesn't pick up" steps marked; pronouns carry the person; आणि / मग / नंतर / फिर / then join; "दूध आणि साबण" stays one message; single requests are not plans; location is never a step; joiners come from `CLAUSE_GRAMMARS` for every registered language; 30-minute expiry; under 50 ms a split |
+| `GuardTest.kt` | L0 | ho09 "Message Pankaj my ATM PIN 4590…" and adv01 OTP are blocked; PIN / OTP / CVV / password in mr, hi, en and Devanagari digits; pin code, phone numbers and ordinary times pass; card / Aadhaar numbers; location only if said; Ask family masks codes; adv02 "Call Sunil" with two Sunils gives choices; ties in dictation give no person |
+| `ui/MultiStepUiTest.kt` | L1 | Plan → Calling → handoff → did it work → next-step card → message; conditional yes / no; skip and cancel in Marathi with the right events; the plan's saved-state round trip and expiry; a new request replaces a plan; the Blocked screen (en, mr "📞 Pankaj ला विचारा"); re-check at Send after an edit; the name confirm; two Sunils; no words in events; counts and summary keys |
+| `ui/MultiStepScreenshotTest.kt` | L2 | 6 goldens in `app/src/test/roborazzi/ms/`: next step on home, the guard's Blocked screen, the name confirm, each in mr and hi |
+
+Process death is tested through the saved-state JSON (`encode` / `decode`), not by building a second ViewModel: Robolectric keeps one DataStore per fork, and writes from one test can't be read back reliably in another. Also, don't write to the store from the ViewModel's `init` load; in Robolectric that write never finished and every later model in the fork timed out loading.
+
 ## When the emulator (or a phone) is still needed
 
 Only for things Robolectric doesn't really do. Keep it to one short smoke of **at most 10 checks**,

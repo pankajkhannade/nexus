@@ -419,4 +419,36 @@
     <string name="pin_question">What is the home PIN code?</string>
     <string name="pin_optional">6 digits. Helps find shops and doctors nearby. You can leave it empty.</string>
     <string name="metrics_did_it_work">“Did it work?” answered yes: %1$s</string>
+
+    <!-- Multi-step plans and the safety guard (2026-11-12) -->
+    <string name="plan_intro">%1$d things. One at a time: I\'ll ask before each one.</string>
+    <string name="plan_next">Next (%1$d of %2$d): %3$s?</string>
+    <string name="plan_title">Next (%1$d of %2$d)</string>
+    <string name="plan_yes">Yes, do it</string>
+    <string name="plan_skip">Skip this</string>
+    <string name="plan_cancel">Cancel all</string>
+    <string name="plan_done">All done.</string>
+    <string name="plan_cancelled">Okay, cancelled the rest.</string>
+    <string name="step_call">Call %1$s</string>
+    <string name="step_message">Message %1$s</string>
+    <string name="step_whatsapp">WhatsApp %1$s</string>
+    <string name="step_ride_home">Ride home</string>
+    <string name="step_ride_to">Ride to %1$s</string>
+    <string name="step_generic">“%1$s”</string>
+    <string name="location_note">I don\'t send your location. To share it, tap 📎 then Location in WhatsApp.</string>
+    <string name="guard_title">Nexus won\'t send this</string>
+    <string name="guard_secret_body">This message has an OTP, PIN, CVV or password in it. Never send these by message, not even to family. Banks never ask for them.</string>
+    <string name="guard_card_body">This message has a long card or Aadhaar-like number in it. Don\'t send it by message.</string>
+    <string name="guard_location_body">This message has a location in it that you didn\'t ask for. Nexus doesn\'t share location.</string>
+    <string name="guard_secret_tts">I won\'t send this. It has a PIN or OTP in it. Never send these by message. Press the green button to call %1$s and ask.</string>
+    <string name="guard_card_tts">I won\'t send this. It has a card or Aadhaar number in it. Press the green button to call %1$s and ask.</string>
+    <string name="guard_location_tts">I won\'t send a location you didn\'t ask for. Press the green button to call %1$s if you need help.</string>
+    <string name="guard_ask">Ask %1$s</string>
+    <string name="guard_ok">Okay, don\'t send</string>
+    <string name="guard_family">family</string>
+    <string name="msg_confirm_name">This message will go to %1$s. Is that right?</string>
+    <string name="msg_confirm_name_yes">Yes, %1$s</string>
+    <string name="msg_someone_else">Someone else</string>
+    <string name="metrics_multi_step">Multi-step requests: %1$d (steps done %2$d, skipped %3$d)</string>
+    <string name="metrics_guard">Guard stopped a message: %1$d</string>
 </resources>

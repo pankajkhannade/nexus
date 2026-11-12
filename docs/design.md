@@ -561,6 +561,10 @@ From the UX critique (`ux-critique-2026-11-11.md`). Every parent screen is revie
 - **S6/S7 Listening, Confirm, Calling, Message:** the bottom bar with ✕ रद्द करा / ✓ झालं; the countdown follows Family settings.
 - **S11 Family settings:** "Wait before calling" 3 / 5 / 8 s; "↑ Move up"; "🗑 Remove <name>" on its own row; Devanagari name in the person sheet.
 
+#### Multi-step and guard screens (2026-11-12)
+- **S5 Home, next step:** after a plan's step and "did it work?", a yellow card: "पुढचं (2/2)", the step in words ("Pankaj ला मेसेज"), a big green **✓ हो, करा** with **वगळा** beside it, and a quiet **✕ सगळं रद्द करा** below. Voice says "पुढचं (2/2): Pankaj ला मेसेज करायचं?". Nothing runs without the tap.
+- **Blocked (new):** "⛔ Nexus हा मेसेज पाठवणार नाही", a red panel with the reason in plain words (OTP / PIN / CVV / password, a card or Aadhaar number, or a location), a green **📞 <child> ला विचारा** (the usual countdown) and **ठीक आहे, पाठवू नका**. The blocked text isn't shown again.
+- **S14 Message, name confirm:** when the name was only roughly heard, a yellow "हा मेसेज Pankaj ला जाईल. बरोबर?" with **✓ हो, Pankaj** and **दुसरं कोणी** replaces the Send buttons until answered.
 
 ## 4. Phase 1 build order (screens)
 

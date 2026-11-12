@@ -19,6 +19,14 @@ data class Dictation(
     val text: String,
     /** The words as heard, before the rewrite. */
     val rawBody: String,
+    /**
+     * Guard (2026-11-12): true when [person] is certain: the saved name or alias as said, the same sound as only
+     * one saved person, a relation only one person has, or a face the parent tapped. A one-letter slip of the
+     * recogniser must be confirmed before sending.
+     */
+    val sure: Boolean = true,
+    /** Two or more saved people matched the spoken name equally ("Sunil" with Sunil Patil and Sunil Kale): ask. */
+    val options: List<Person> = emptyList(),
 )
 
 // ---- Tokens --------------------------------------------------------------------------------
@@ -107,6 +115,8 @@ private fun channelOf(word: String): Channel? {
 private val TELL_WORDS = setOf(
     "tell", "सांग", "सांगा", "sang", "saang", "sanga", "saanga", "बोल", "बोलो", "बोला", "bol", "bolo", "bola",
     "कहो", "कह", "kaho", "keh", "kah", "kehna", "bata", "batao", "बता", "बताओ", "बताना",
+    // "उसे लिखो कि …", "तिला लिहा की …" (write to): a message, never a call.
+    "लिखो", "likho", "लिख", "लिहा", "liha",
 )
 
 private val CALL_WORDS = setOf("call", "phone", "fone", "fon", "ring", "dial", "कॉल", "फ़ोन", "फोन", "phon")
@@ -117,7 +127,7 @@ private val CASE_WORDS = setOf(
     "mere", "meri", "mera", "maza", "majha", "mazya", "majhya", "maajhya", "mazi", "majhi", "मेरे", "मेरी", "माझ्या", "माझी",
 )
 
-private val CASE_SUFFIXES = listOf("ला", "ना", "ले", "को", "ने", "शी", "la", "ko", "na", "ne", "le")
+private val CASE_SUFFIXES = listOf("ांना", "ाला", "ला", "ना", "ले", "को", "ने", "शी", "la", "ko", "na", "ne", "le")
 
 private val NOT_A_NAME = setOf(
     "me", "him", "her", "them", "us", "you", "it", "i", "that", "and", "saying", "someone", "everyone", "nexus",
@@ -151,7 +161,7 @@ private fun stripLead(body: String): String {
 // ---- Recipient --------------------------------------------------------------------------------
 
 /** Spellings to try for one spoken word: as heard, and without a case ending ("पंकचला" -> "पंकच"). */
-private fun nameForms(word: String): List<String> {
+internal fun nameForms(word: String): List<String> {
     val forms = mutableListOf(word)
     for (suffix in CASE_SUFFIXES) {
         if (word.length > suffix.length + 1 && word.endsWith(suffix, ignoreCase = true)) forms += word.dropLast(suffix.length)
@@ -177,21 +187,34 @@ private fun matchScore(person: Person, spoken: String): Int {
     return best
 }
 
-private fun bestPerson(spoken: String, people: List<Person>): Pair<Person, Int>? {
-    var best: Pair<Person, Int>? = null
+
+/** The best match and how sure it is; [ties] holds every person with the same best score. */
+private class Match(val person: Person, val score: Int, val sure: Boolean, val ties: List<Person>)
+
+private fun bestMatch(spoken: String, people: List<Person>): Match? {
+    var best: Match? = null
     for (form in nameForms(spoken)) {
-        for (p in people) {
-            val s = matchScore(p, form)
-            if (s > 0 && (best == null || s > best.second)) best = p to s
+        val scored = people.map { it to matchScore(it, form) }.filter { it.second > 0 }
+        val top = scored.maxOfOrNull { it.second }
+        if (top != null && (best == null || top > best.score)) {
+            val ties = scored.filter { it.second == top }.map { it.first }.distinctBy { it.id }
+            // Sure = the saved name / alias, or the same sound as exactly one person ("पंकच" for पंकज). A one-letter
+            // slip of the recogniser is only a guess, so the message screen asks before Send appears.
+            best = Match(ties.first(), top, sure = top >= 2 && ties.size == 1, ties = ties)
         }
         val relation = RELATION_WORDS[form.lowercase()]
         val only = relation?.let { r -> people.filter { it.relation == r }.singleOrNull() }
-        if (only != null && (best == null || best.second < 2)) best = only to 2
+        if (only != null && (best == null || best.score < 2)) best = Match(only, 2, sure = true, ties = listOf(only))
     }
     return best
 }
 
-private class Recipient(val person: Person?, val asked: String?, val firstTok: Int, val lastTok: Int)
+private class Recipient(val person: Person?, val asked: String?, val firstTok: Int, val lastTok: Int, val sure: Boolean = true, val ties: List<Person> = emptyList())
+
+/** A recipient from a match: two equal matches give no person, only the choices (the guard never guesses). */
+private fun recipientOf(m: Match, spoken: String, first: Int, last: Int): Recipient =
+    if (m.ties.size > 1) Recipient(null, spoken, first, last, sure = false, ties = m.ties)
+    else Recipient(m.person, null, first, last, sure = m.sure)
 
 private fun isVerbOrFiller(word: String): Boolean = LEAD.matchEntire(word + " ") != null
 
@@ -206,12 +229,12 @@ private fun recipientBefore(toks: List<Tok>, at: Int, people: List<Person>): Rec
     if (i < 0) return null
     val one = toks[i]
     if (one.low !in NOT_A_NAME && channelOf(one.text) == null && one.low !in CALL_WORDS) {
-        val single = bestPerson(one.text, people)
+        val single = bestMatch(one.text, people)
         if (i >= 1 && toks[i - 1].low !in NOT_A_NAME && channelOf(toks[i - 1].text) == null) {
-            val pair = bestPerson(toks[i - 1].text + " " + one.text, people)
-            if (pair != null && (single == null || pair.second > single.second)) return Recipient(pair.first, null, i - 1, i)
+            val pair = bestMatch(toks[i - 1].text + " " + one.text, people)
+            if (pair != null && (single == null || pair.score > single.score)) return recipientOf(pair, toks[i - 1].text + " " + one.text, i - 1, i)
         }
-        if (single != null) return Recipient(single.first, null, i, i)
+        if (single != null) return recipientOf(single, nameForms(one.text).last(), i, i)
         val forms = nameForms(one.text)
         val asked = forms.last()
         if ((marked || forms.size > 1) && asked.length >= 2 && asked.none(Char::isDigit) && !isVerbOrFiller(asked)) {
@@ -220,8 +243,8 @@ private fun recipientBefore(toks: List<Tok>, at: Int, people: List<Person>): Rec
     }
     // "Send Pankaj a WhatsApp": a saved name a little further back.
     for (j in (i - 1 downTo maxOf(0, i - 2))) {
-        val hit = bestPerson(toks[j].text, people)?.takeIf { it.second >= 2 } ?: continue
-        return Recipient(hit.first, null, j, j)
+        val hit = bestMatch(toks[j].text, people)?.takeIf { it.score >= 2 } ?: continue
+        return recipientOf(hit, nameForms(toks[j].text).last(), j, j)
     }
     return null
 }
@@ -234,11 +257,11 @@ private fun recipientAfter(toks: List<Tok>, at: Int, people: List<Person>): Reci
     val one = toks[i]
     if (one.low in NOT_A_NAME || isVerbOrFiller(one.text)) return null
     if (i + 1 < toks.size) {
-        val pair = bestPerson(one.text + " " + toks[i + 1].text, people)
-        val single = bestPerson(one.text, people)
-        if (pair != null && (single == null || pair.second > single.second)) return Recipient(pair.first, null, i, i + 1)
+        val pair = bestMatch(one.text + " " + toks[i + 1].text, people)
+        val single = bestMatch(one.text, people)
+        if (pair != null && (single == null || pair.score > single.score)) return recipientOf(pair, one.text + " " + toks[i + 1].text, i, i + 1)
     }
-    bestPerson(one.text, people)?.let { return Recipient(it.first, null, i, i) }
+    bestMatch(one.text, people)?.let { return recipientOf(it, one.text, i, i) }
     // An unknown word after "text/whatsapp" is taken as a name only when it looks like one (capitalised Latin or Devanagari).
     val looksLikeName = one.text.first().isUpperCase() || one.text.first() in '\u0900'..'\u097F'
     return if (looksLikeName) Recipient(null, one.text, i, i) else null
@@ -294,6 +317,8 @@ fun readDictation(said: String, saved: Saved): Dictation? {
         channel = channel ?: Channel.ANY,
         text = polishMessage(raw),
         rawBody = raw,
+        sure = recipient?.sure ?: true,
+        options = recipient?.ties.orEmpty().takeIf { it.size > 1 }.orEmpty(),
     )
 }
 

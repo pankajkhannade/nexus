@@ -117,6 +117,11 @@ data class MetricsReport(
     val didItWorkBy: Map<AppCategory, Ratio> = emptyMap(),
     val helpOpened: Int = 0,
     val moneyGoneOpened: Int = 0,
+    /** Multi-step (2026-11-12): plans started, steps done / skipped, and guard stops by reason. */
+    val multiStepStarted: Int = 0,
+    val stepsDone: Int = 0,
+    val stepsSkipped: Int = 0,
+    val guardBlocked: Map<GuardReason, Int> = emptyMap(),
 )
 
 private val ACTIVE_TYPES = setOf(EventType.APP_OPEN, EventType.FOREGROUND, EventType.COMMAND, EventType.VOICE_START, EventType.ACTION_OPENED)
@@ -235,6 +240,10 @@ fun computeMetrics(events: List<UsageEvent>, now: Long, zone: ZoneId = ZoneId.sy
         didItWorkBy = checks.filter { it.category != null }.groupBy { it.category!! }.mapValues { (_, c) -> Ratio(c.count { it.ok == true }, c.size) },
         helpOpened = of(EventType.HELP_OPENED).size,
         moneyGoneOpened = of(EventType.MONEY_GONE).size,
+        multiStepStarted = of(EventType.MULTI_STEP_STARTED).size,
+        stepsDone = of(EventType.STEP_DONE).size,
+        stepsSkipped = of(EventType.STEP_SKIPPED).size,
+        guardBlocked = of(EventType.GUARD_BLOCKED).mapNotNull { it.guard }.groupingBy { it }.eachCount(),
     )
 }
 
@@ -278,6 +287,16 @@ fun dailyCounts(events: List<UsageEvent>, day: LocalDate, zone: ZoneId = ZoneId.
             }
             EventType.HELP_OPENED -> add("help_opened")
             EventType.MONEY_GONE -> add("money_gone_opened")
+            EventType.MULTI_STEP_STARTED -> {
+                add("multi_step_started")
+                e.step?.let { add("multi_step_${it.coerceIn(2, MAX_PLAN_STEPS)}") }
+            }
+            EventType.STEP_DONE -> add("step_done")
+            EventType.STEP_SKIPPED -> add(if (e.ok == false) "step_cancelled" else "step_skipped")
+            EventType.GUARD_BLOCKED -> {
+                add("guard_blocked")
+                e.guard?.let { add("guard_${it.key}") }
+            }
         }
     }
     classifyAttempts(sorted).filter { dayOf(it.t, zone) == day }.forEach { a ->
@@ -338,6 +357,10 @@ fun summaryJson(report: MetricsReport, tester: TesterSource, appVersion: String,
         put("did_it_work_by_app", ratios(report.didItWorkBy) { (it as AppCategory).key })
         put("help_opened", report.helpOpened)
         put("money_gone_opened", report.moneyGoneOpened)
+        put("multi_step_started", report.multiStepStarted)
+        put("steps_done", report.stepsDone)
+        put("steps_skipped", report.stepsSkipped)
+        put("guard_blocked", JSONObject().apply { report.guardBlocked.forEach { (r, n) -> put(r.key, n) } })
         put("recognizer_errors", JSONObject().apply { report.recognizerErrors.forEach { (c, n) -> put(c.toString(), n) } })
         put("median_utterance_chars", report.medianUtteranceChars ?: JSONObject.NULL)
         put("median_ms_to_action", report.medianTimeToActionMs ?: JSONObject.NULL)

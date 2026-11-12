@@ -40,7 +40,15 @@ enum class EventType(val key: String) {
     /** UX sprint 2: Help opened (the home help button, or a "no" to did it work). */
     HELP_OPENED("help_opened"),
     /** UX sprint 2: the money-already-gone steps opened. */
-    MONEY_GONE("money_gone");
+    MONEY_GONE("money_gone"),
+    /** Multi-step (2026-11-12): one request became a plan; [UsageEvent.step] = how many steps. */
+    MULTI_STEP_STARTED("multi_step_started"),
+    /** A plan step's action opened ([UsageEvent.step] = its position, [UsageEvent.category] = the app). */
+    STEP_DONE("step_done"),
+    /** A plan step was skipped (ok=true: by the parent or not needed; ok=false: the plan was cancelled or replaced). */
+    STEP_SKIPPED("step_skipped"),
+    /** The guard stopped or questioned an outgoing message; [UsageEvent.guard] = the reason category only. */
+    GUARD_BLOCKED("guard_blocked");
 
     companion object {
         fun from(key: String): EventType? = entries.firstOrNull { it.key == key }
@@ -139,7 +147,8 @@ enum class TesterSource(val key: String) {
 /**
  * One usage event. [t] is epoch milliseconds. Optional fields are null when they don't apply.
  * [ms] is a duration (session length, time to action, time away, setup time); [chars] an utterance length;
- * [code] an Android recogniser error code; [step] a setup step number.
+ * [code] an Android recogniser error code; [step] a setup step number, or a plan's step count / position;
+ * [guard] the guard's reason category (never the message).
  */
 data class UsageEvent(
     val t: Long,
@@ -155,6 +164,7 @@ data class UsageEvent(
     val chars: Int? = null,
     val code: Int? = null,
     val step: Int? = null,
+    val guard: GuardReason? = null,
 ) {
     fun toJson(): String = JSONObject().apply {
         put("t", t); put("e", type.key)
@@ -169,6 +179,7 @@ data class UsageEvent(
         chars?.let { put("chars", it) }
         code?.let { put("code", it) }
         step?.let { put("step", it) }
+        guard?.let { put("guard", it.key) }
     }.toString()
 
     companion object {
@@ -189,6 +200,7 @@ data class UsageEvent(
                 chars = if (j.has("chars")) j.getInt("chars") else null,
                 code = if (j.has("code")) j.getInt("code") else null,
                 step = if (j.has("step")) j.getInt("step") else null,
+                guard = j.optString("guard").let(GuardReason::from),
             )
         }.getOrNull()
     }

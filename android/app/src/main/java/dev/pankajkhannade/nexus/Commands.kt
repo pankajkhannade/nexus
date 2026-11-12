@@ -17,7 +17,7 @@ sealed interface Command {
     /** "whatsapp Pankaj" with nothing to say: opens the chat. */
     data class WhatsApp(val person: Person) : Command
     /** "सुनीलला फोन लाव" with no saved Sunil: look in the phone book. */
-    data class FindContact(val name: String, val ask: Ask) : Command
+    data class FindContact(val name: String, val ask: Ask, val options: List<Person> = emptyList()) : Command
     /** "दूध मागव", "doctor", "ambulance": a Near home tile. */
     data class OpenNeed(val need: Need) : Command
     data object Unknown : Command
@@ -45,6 +45,9 @@ object RuleIntentParser : IntentParser {
         }
         val need = if (person == null && (reading.ask == null || reading.askedName?.let(::readNeed) != null)) readNeed(text) else null
         if (need != null && (need != Need.RIDE || saved.home.isSet)) return Command.OpenNeed(need)
+        if (person == null && reading.options.size > 1 && reading.ask != null) {
+            return Command.FindContact(reading.askedName ?: reading.options.first().name, reading.ask, reading.options)
+        }
         if (person == null) {
             val asked = reading.askedName
             return if (asked != null && reading.ask != null) Command.FindContact(asked, reading.ask) else Command.Unknown

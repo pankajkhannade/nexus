@@ -127,6 +127,8 @@ class ScreenshotTest {
         fakeInstall("com.whatsapp")
         val model = newModel(people = 1)
         model.understood("पंकचला वाटसब कर आणि सांग की तू कधी येणार आहेस घरी. आणी येताना एक साबून घेऊन ये.", typed = true)
+        // "पंकच" is a recogniser slip: the parent confirms the name first (see ms/message_confirm_name_360_mr).
+        model.confirmDraftPerson()
         compose.setParent { MessageScreen(model) }
         shot("message_confirm_mr")
     }

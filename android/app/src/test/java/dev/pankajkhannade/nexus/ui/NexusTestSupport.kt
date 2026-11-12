@@ -69,3 +69,13 @@ fun nextStartedIntent(): Intent? = shadowOf(app).nextStartedActivity
 fun ComposeContentTestRule.setParent(content: @Composable () -> Unit) = setContent {
     NexusTheme(mode = UiMode.Parent) { content() }
 }
+
+/** Finishes setup in [language] with the model's people and home, and skips the leave-behind voice check. */
+fun readyFor(model: NexusViewModel, language: String) {
+    model.setupLanguage = language
+    model.setupPeople = model.saved.people
+    model.setupHome = model.saved.home.address
+    model.finishSetup(dev.pankajkhannade.nexus.COUNTRIES.first { it.code == "IN" })
+    model.practiceIndex = -1
+    idleMain()
+}

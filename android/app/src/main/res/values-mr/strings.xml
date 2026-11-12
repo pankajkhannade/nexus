@@ -418,4 +418,36 @@
     <string name="pin_question">घराचा पिन कोड काय आहे?</string>
     <string name="pin_optional">6 अंक. जवळची दुकानं आणि डॉक्टर शोधायला मदत होते. रिकामं ठेवू शकता.</string>
     <string name="metrics_did_it_work">“काम झालं का?” ला हो: %1$s</string>
+
+    <!-- Multi-step plans and the safety guard (2026-11-12) -->
+    <string name="plan_intro">%1$d कामं. एका वेळी एक: प्रत्येक आधी विचारीन.</string>
+    <string name="plan_next">पुढचं (%1$d/%2$d): %3$s करायचं?</string>
+    <string name="plan_title">पुढचं (%1$d/%2$d)</string>
+    <string name="plan_yes">हो, करा</string>
+    <string name="plan_skip">वगळा</string>
+    <string name="plan_cancel">सगळं रद्द करा</string>
+    <string name="plan_done">सगळं झालं.</string>
+    <string name="plan_cancelled">ठीक आहे, बाकीचं रद्द केलं.</string>
+    <string name="step_call">%1$s ला फोन</string>
+    <string name="step_message">%1$s ला मेसेज</string>
+    <string name="step_whatsapp">%1$s ला WhatsApp</string>
+    <string name="step_ride_home">घरी जायला गाडी</string>
+    <string name="step_ride_to">%1$s ला गाडी</string>
+    <string name="step_generic">“%1$s”</string>
+    <string name="location_note">मी तुमचं लोकेशन पाठवत नाही. पाठवायचं असेल तर WhatsApp मध्ये 📎 मग लोकेशन दाबा.</string>
+    <string name="guard_title">Nexus हा मेसेज पाठवणार नाही</string>
+    <string name="guard_secret_body">या मेसेजमध्ये OTP, PIN, CVV किंवा पासवर्ड आहे. हे कधीही मेसेजने पाठवू नका, घरच्यांनाही नाही. बँक हे कधीच मागत नाही.</string>
+    <string name="guard_card_body">या मेसेजमध्ये कार्ड किंवा आधारसारखा मोठा नंबर आहे. तो मेसेजने पाठवू नका.</string>
+    <string name="guard_location_body">या मेसेजमध्ये तुम्ही न मागितलेलं लोकेशन आहे. Nexus लोकेशन पाठवत नाही.</string>
+    <string name="guard_secret_tts">मी हा मेसेज पाठवणार नाही. यात PIN किंवा OTP आहे. हे कधीही मेसेजने पाठवू नका. %1$s ला विचारायला हिरवं बटण दाबा.</string>
+    <string name="guard_card_tts">मी हा मेसेज पाठवणार नाही. यात कार्ड किंवा आधार नंबर आहे. %1$s ला विचारायला हिरवं बटण दाबा.</string>
+    <string name="guard_location_tts">न मागितलेलं लोकेशन मी पाठवणार नाही. मदत हवी असेल तर %1$s ला फोन करायला हिरवं बटण दाबा.</string>
+    <string name="guard_ask">%1$s ला विचारा</string>
+    <string name="guard_ok">ठीक आहे, पाठवू नका</string>
+    <string name="guard_family">घरच्यांना</string>
+    <string name="msg_confirm_name">हा मेसेज %1$s ला जाईल. बरोबर?</string>
+    <string name="msg_confirm_name_yes">हो, %1$s</string>
+    <string name="msg_someone_else">दुसरं कोणी</string>
+    <string name="metrics_multi_step">एकापेक्षा जास्त कामं: %1$d (झाली %2$d, वगळली %3$d)</string>
+    <string name="metrics_guard">Guard ने थांबवलेले मेसेज: %1$d</string>
 </resources>

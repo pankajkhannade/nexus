@@ -99,6 +99,7 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
                     }
                 }
                 model.returnCheck?.let { ReturnCheckCard(model, it) }
+                if (model.returnCheck == null) model.pendingStep()?.let { NextStepCard(model, it) }
                 if (choosingWhatsApp) {
                     Text(stringResource(R.string.whatsapp_who), style = MaterialTheme.typography.titleLarge)
                 }

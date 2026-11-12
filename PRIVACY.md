@@ -17,6 +17,7 @@ Nexus keeps a usage log **on this phone** so the family (and, if they choose, th
 - Actions: the **kind** of app Nexus opened (dialer, WhatsApp, SMS, cab, maps, grocery, pharmacy, doctor, home service, Play Store, emergency) and how long until Nexus was back on screen.
 - Near home tile taps and Play Store install hand-offs, by kind.
 - "Did it work?" after a hand-off: the answer (yes or no) and the **kind** of app (dialer, WhatsApp, SMS, cab, maps). Not who was called or where the ride went.
+- Multi-step requests: started (how many steps), each step done or skipped, and guard stops by category only (secret code, long number, location, unsure name).
 - Help opened and "Money gone" opened (counts only). Nexus never knows whether money was lost, how much, or which bank.
 - Whether each action started from voice or a button.
 
@@ -49,6 +50,12 @@ The steps open the phone's dial pad (1930, the bank), the browser (cybercrime.go
 - The draft is held in memory while the confirm screen is open. It is not written to storage. Cancelling drops it.
 - When the parent taps the Send button in Nexus, the text is handed to WhatsApp (or WhatsApp Business) or to the SMS app, already typed in. The parent taps Send in that app. Nothing goes out if they don't.
 - Nexus does not have the SMS send permission and cannot send a WhatsApp message by itself.
+
+## Requests with more than one step, and the safety guard (added 2026-11-12)
+- When the parent asks for two or three things at once ("book a cab and tell Pankaj I've left"), the steps still to do are saved **only on this phone**, as the words of each step, so they are waiting when the parent comes back from Uber or WhatsApp. They are excluded from Android backup like the rest, deleted when the last step starts, when the parent taps "सगळं रद्द करा", when a new request is made, or after 30 minutes.
+- The safety guard runs on the phone with fixed rules. It reads the message only to check for an OTP, PIN, CVV, password, card or Aadhaar-like number, or a location link the parent didn't say. A blocked message is dropped, not saved.
+- Usage counts record only that a multi-step request started (how many steps), that a step was done or skipped, and the **category** of a guard stop (secret code, long number, location, unsure name). Never the words, the code, the name or the place.
+- Nexus never shares the parent's location by itself and has no location permission.
 
 ## Near home
 - The home pincode and the home coordinates are stored only on this phone. The pincode is used to label the screen ("Services for 411045") and, when there are no coordinates, as a fallback for maps search. Nexus cannot check whether an app delivers to that pincode.

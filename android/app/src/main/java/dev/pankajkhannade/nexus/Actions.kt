@@ -239,7 +239,8 @@ internal object IndiaBox {
 
 /** The "Ask family" WhatsApp text: the message quoted, then the question in the parent's language. */
 fun askFamilyText(message: String, question: String): String {
-    val quoted = message.trim().take(600)
+    // Guard (2026-11-12): the child sees the suspicious message, never the OTP or card number inside it.
+    val quoted = maskSecrets(message.trim()).take(600)
     return if (quoted.isEmpty()) question else "\"$quoted\"\n\n$question"
 }
 
