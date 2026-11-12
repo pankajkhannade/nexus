@@ -12,22 +12,25 @@
 
 **UX sprint 2 (2026-11-11, feat/ux-sprint-2).** Adjustable 3 / 5 / 8 s countdown (default 5), झालं / रद्द करा everywhere, an honest shorter setup (PIN as one question, true step counts), help always on home, "did it work?" after every hand-off (counted as yes/no by app kind), the bottom bar on the voice and message screens, the full पैसे गेले flow, 2.0x text tests, and Devanagari display names. 463 JVM tests.
 
+**Global direction (2026-11-12).** Pankaj: Nexus is a global product (every Indian language, then the world); Pune Marathi parents stay the beachhead. Vision stages A (mr/hi/en, India) → B (all major Indian languages) → C (global, diaspora first) are in `vision.md`. Hard-coding audit and the language/region pack plan: `i18n-architecture.md`. Step 1 (language registry + India region pack, no behaviour change) is merged; 469 JVM tests.
+
 **Next.**
 1. Pankaj's second real-phone test, using the new leave-behind practice (call, message, ride home) with a parent: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot). Also: does Ola open with Swargate filled in; is the spoken coach line helpful or too much; are the 4 faces easy to tell apart; does "Save in phone contacts" return to Nexus.
 2. Native Hindi and Marathi review of the app's strings (including the new coaching lines).
 3. ~~UX sprint 2~~ **done 2026-11-11**. In Pankaj's real-phone test, also check: is 5 s right, does the parent answer "did it work?", and does 1930 / cybercrime.gov.in open on his phone. Deferred: the bar on Practice / Try it, a spoken "मदत".
-4. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
-5. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
-6. Then the exit / kill rule below.
+4. Language packs, steps 2–4 of `i18n-architecture.md` (grammar as data with an utterance corpus, script-aware name matching, a list picker and metrics language codes), about 3 weeks, no visible change for Marathi parents. New languages wait for the Phase 1 exit metric.
+5. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
+6. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
+7. Then the exit / kill rule below.
 
 ## Thesis (one line)
-Nexus is the family co-pilot for your parents' Android phone: they speak in their own language and the simple thing happens; before anything risky, it pulls you in, and nothing leaves the phone without their say.
+Nexus is the family co-pilot for your parents' Android phone: they speak in their own language and the simple thing happens; before anything risky, it pulls you in, and nothing leaves the phone without their say. Global and language-pluggable, starting with Marathi in Pune.
 
 ## What exists (2026-11-10)
 - Repo: github.com/pankajkhannade/nexus, native app in android/, package dev.pankajkhannade.nexus
 - Parent mode, child-assisted setup, calls, dictated WhatsApp/SMS, ride home (Uber, Ola, Rapido, Namma Yatri), Near home tiles, "Is this safe?", "Ask family", family settings with usage export, day-3 / day-7 feedback, Privacy screen
 - Debug APK for sideload only. No Play release.
-- 463 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
+- 469 JVM tests (logic + Robolectric Compose UI + Roborazzi) and 11 Worker tests. See `docs/testing.md`.
 - Metrics: on-device log + opt-in daily counts + share-able summary. See `docs/metrics.md`.
 - Play needs: signed AAB, upload key Pankaj keeps, Play Console account (paid, needs Pankaj's yes), privacy policy at a public URL, Data safety form
 

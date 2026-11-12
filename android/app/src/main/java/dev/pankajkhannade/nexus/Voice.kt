@@ -5,12 +5,8 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import java.util.Locale
 
-/** BCP-47 tag for a parent language key ("mr" -> "mr-IN"). */
-fun speechTag(language: String): String = when (language) {
-    "mr" -> "mr-IN"
-    "hi" -> "hi-IN"
-    else -> "en-IN"
-}
+/** BCP-47 tag for a parent language key ("mr" -> "mr-IN"), from [PARENT_LANGUAGES]. */
+fun speechTag(language: String): String = parentLanguage(language).speechTag
 
 fun localeOf(language: String): Locale = Locale.forLanguageTag(speechTag(language))
 

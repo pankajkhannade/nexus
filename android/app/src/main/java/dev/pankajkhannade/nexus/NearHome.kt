@@ -60,7 +60,7 @@ val SERVICE_CATALOG: Map<Need, List<ServiceApp>> = mapOf(
         ServiceApp("Apollo 24|7", "com.apollo.patientapp"),
         ServiceApp("Tata 1mg", "com.aranoah.healthkart.plus"),
     ),
-    Need.RIDE to CabApp.entries.map { ServiceApp(it.label, it.pkg) },
+    Need.RIDE to INDIA.cabApps.map { ServiceApp(it.label, it.pkg) },
     Need.HOME_SERVICE to listOf(
         ServiceApp("Urban Company", "com.urbanclap.urbanclap"),
         ServiceApp("Snabbit", "com.snabbit.customer"),
@@ -80,7 +80,7 @@ fun defaultPicks(installed: (String) -> Boolean): Map<String, String> = Need.PIC
 
 // ---- Pincode ---------------------------------------------------------------------------------
 
-private val PIN = Regex("""(?<!\d)([1-9]\d{2})\s?(\d{3})(?!\d)""")
+private val PIN = INDIA.postalCode
 
 /** An Indian PIN code (6 digits, first not 0) written in [address], e.g. "Baner, Pune 411045" -> "411045". */
 fun pincodeIn(address: String): String? = PIN.findAll(address).lastOrNull()?.let { it.groupValues[1] + it.groupValues[2] }
@@ -188,7 +188,9 @@ fun launchApp(context: Context, pkg: String): Boolean {
 }
 
 /** The emergency number for the phone's country: 108 (ambulance) in India, else 112. */
-fun emergencyNumber(countryCode: String): String = if (countryCode.isBlank() || countryCode == "IN") "108" else "112"
+fun emergencyNumber(countryCode: String): String =
+    if (countryCode.isBlank()) INDIA.emergencyNumber
+    else REGION_PACKS.firstOrNull { it.countryCode == countryCode }?.emergencyNumber ?: GLOBAL_EMERGENCY
 
 /** Tiles the parent sees, in order. Doctor, Medicines and Emergency always work (maps / dial); the rest need a pick. */
 fun visibleNeeds(saved: Saved): List<Need> = Need.entries.filter { need ->

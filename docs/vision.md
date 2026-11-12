@@ -1,9 +1,23 @@
-# Nexus: final vision and phase plan (2026-11-10)
+# Nexus: vision and phase plan (2026-11-10, global mission added 2026-11-12)
 Base: commit 7fd6d17 (android/, package dev.pankajkhannade.nexus, ~1,270 lines Kotlin: Actions.kt, Model.kt, Plan.kt, HomeScreen.kt, SetupScreen.kt, Store.kt).
 Teardown: evaluation-2026-11-10.md. Design: design.md.
 
 ## Vision (one line)
 Nexus is the family co-pilot for your parents' Android phone: they speak in their own language and the simple thing happens; before anything risky, it pulls you in, and nothing leaves the phone without their say.
+
+## Mission: global, language-pluggable (added 2026-11-12)
+Nexus is a global product. Every parent should be able to speak to their phone in their own language, in any country, and have the simple thing happen, with their family one tap away. India is where we start, not where we stop (Pankaj, 2026-11-12: "it will expand to everything and every language in india and later in the world").
+
+**Win one place first.** Pune Marathi parents (and their children in metros) stay the beachhead until it passes the Phase 1 exit metric. A global product that works badly everywhere loses to one that works brilliantly for one community, so expansion is gated by retention, not by ambition.
+
+**Language and market stages** (they run alongside the feature phases below):
+| Stage | Languages / markets | Gate to start |
+|---|---|---|
+| A (now) | Marathi first, Hindi and English, in India (Pune beachhead) | — |
+| B | All major Indian languages, one at a time by tester demand (likely first: Gujarati, Tamil, Bengali, Telugu, Kannada; then Malayalam, Punjabi, Odia, Urdu and the rest of the 22 scheduled languages) | Phase 1 exit metric met in Marathi; language packs in place (`i18n-architecture.md` steps 2–4) |
+| C | Global markets: diaspora corridors first (Indian families in the Gulf, UK, US, where the same languages and the same parent-child gap exist), then local languages of new countries | Two or more Indian languages beyond Marathi at Marathi-level first-try success; one country pack piloted with real families |
+
+**Architecture rule (from 2026-11-12):** no new language or country may be hard-coded. Languages and countries are packs: strings, voice grammar, speech locale, name romaniser and scam phrases per language; emergency and fraud numbers, address search, postal code, phone rules, ride and service apps and bank brands per country. The audit and plan are in `i18n-architecture.md`. The first step (one registry for languages, one India region pack) shipped on 2026-11-12.
 
 - First user (buyer): a working adult in a metro (25-40) whose parents (60+) live elsewhere and phone them for help. Daily user: the parent.
 - Core problem: parents can't do simple phone tasks alone, so children become remote tech support and fraud guards. Evidence: HelpAge India 2025, 66% of elders find tech confusing, 51% fear errors, 44% are embarrassed to ask again; seniors were 4.3% of 2025 cyber-fraud complaints but 18% of losses (Rs 4,005 cr); RBI April 2026 discussion paper proposes a "trusted person" approval for 70+ transfers above Rs 50,000.
@@ -24,6 +38,8 @@ Analytics (added 2026-11-11): an on-device usage log of counts and timings only,
 UX sprint 1 (added 2026-11-11, from the UX critique Pankaj asked for): faces you can tell apart, a home that fits one small screen, "Didn't understand" that says what it heard, the scam verdict's "Ask <child>" always on screen, spoken coaching before every handoff (and Ola's drop-off link), India-only place search, and one मागे / बोला bar on every flow screen. The 19 design principles in `design.md` 3.8 are now the standard for Phase 2 and 3 screens too, especially "heard → said back → doing → done" and "continuity across handoffs", which the child companion app (Phase 2) and the risky-moment guard (Phase 3) build on.
 
 UX sprint 2 (added 2026-11-11): a 3 / 5 / 8 s call countdown, one pair of words (झालं / रद्द करा), an honest shorter setup, help always on home, a "did it work?" check after every hand-off, the bottom bar on the voice and message screens, the full पैसे गेले flow (1930, bank, cybercrime.gov.in, tell the child), 2.0x text tests, and Devanagari display names. "Did it work?" is the first measure of the handoff gap, which the Phase 2 child companion (seeing a parent's "नाही") and the Phase 3 risky-moment guard (पैसे गेले as its recovery path) build on.
+
+Global direction (2026-11-12): the product is global and language-pluggable; Marathi in Pune stays the beachhead. The language and country registries (`Languages.kt`, `Regions.kt`) and the hard-coding audit (`i18n-architecture.md`) are the first step.
 
 Still ahead: Pankaj's real-phone test, a native Hindi and Marathi review of the strings, release prep (signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form), and the 14-day Play closed test with 12 testers (6 parent-child pairs). The Play Console fee needs Pankaj's yes.
 
@@ -71,7 +87,7 @@ Exit metric: 200 paying families; call-screening declaration approved by Play; a
 
 ## Phase 4: Trusted-person layer and distribution (6-12 months)
 Goal: become the family's trusted-person app as the rules land.
-Features: if RBI finalises trusted-person approval, partner with a bank/TPAP as the approval surface; multi-elder families; Marathi/Tamil/Bengali voice packs (Sarvam Edge-class on-device ASR/TTS if licensable); distribution via insurers, senior communities, OEM preload.
+Features: if RBI finalises trusted-person approval, partner with a bank/TPAP as the approval surface; multi-elder families; voice packs for every major Indian language (stage B above; Sarvam Edge-class on-device ASR/TTS if licensable) and the first country packs outside India (stage C); distribution via insurers, senior communities, OEM preload.
 Exit metric: Rs 10 lakh ARR or one signed bank/OEM partnership.
 
 ## What we stop

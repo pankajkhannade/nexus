@@ -72,7 +72,7 @@ fun setupPages(micGranted: Boolean, callGranted: Boolean): List<SetupPage> = bui
     add(SetupPage.HANDOVER)
 }
 
-val LANGUAGES = listOf("mr" to "मराठी", "hi" to "हिंदी", "en" to "English")
+val LANGUAGES: List<Pair<String, String>> = PARENT_LANGUAGES.map { it.code to it.nativeName }
 
 /** Child-assisted setup S1-S4. The child does this on the parent's phone. */
 @Composable

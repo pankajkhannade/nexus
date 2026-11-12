@@ -4,6 +4,8 @@
 
 The child sets Nexus up on the parent's phone in a few minutes. The parent uses it every day.
 
+**Global, language-pluggable.** Nexus is built to work in every Indian language and then in other countries. Today it speaks Marathi, Hindi and English in India, starting with Marathi-speaking parents in Pune. New languages and countries are meant to arrive as packs, not rewrites; see [docs/i18n-architecture.md](docs/i18n-architecture.md).
+
 > Status: Phase 1 is built (screens S1–S13, plus S14 dictated messages and S15 Near home), with Pankaj's first real-phone feedback fixed (voice cut-off, phone-book calling, rides anywhere). A debug APK is ready to sideload. There is no Play Store release yet. Next: a real-phone test, a native Hindi and Marathi review of the strings, then the 14-day Play closed test (the Console fee needs Pankaj's yes).
 
 The native Android app lives in [`android/`](android/). Package: `dev.pankajkhannade.nexus`.
@@ -64,6 +66,7 @@ UI checks run on the JVM first (Robolectric + Roborazzi). The emulator is only a
 | [docs/plan.md](docs/plan.md) | Living plan: status, milestones, exit and kill rules |
 | [docs/testing.md](docs/testing.md) | Fast-testing playbook: JVM first, emulator last |
 | [docs/metrics.md](docs/metrics.md) | Success metrics: definitions, targets, data sources, caveats, the event schema, the opt-in upload, check-in and survey drafts |
+| [docs/i18n-architecture.md](docs/i18n-architecture.md) | Global plan for languages and countries: where language and India are hard-coded today, the language-pack and region-pack shape, effort per language and per country |
 | [docs/voice-architecture.md](docs/voice-architecture.md) | Voice research and decision: STT options, rules + opt-in LLM fallback, phone-book matching, destinations, elderly voice UX, remote help, test plan |
 | [CHANGELOG.md](CHANGELOG.md) | What changed, by milestone |
 | [PRIVACY.md](PRIVACY.md) | What is stored, what leaves the phone, and only when |
