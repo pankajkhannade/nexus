@@ -78,6 +78,8 @@ data class Saved(
     val practiceDone: Boolean = true,
     /** Seconds before a call is placed, with Cancel on screen: 3, 5 or 8 (default 5). */
     val countdownSeconds: Int = DEFAULT_COUNTDOWN,
+    /** A multi-step request still waiting on the parent (Steps.kt); null when none. Expires after 30 minutes. */
+    val plan: PlanQueue? = null,
 )
 
 data class Country(val name: String, val dial: String, val code: String)

@@ -68,6 +68,7 @@ internal fun encode(saved: Saved): String {
         .put("services", JSONObject(saved.services as Map<*, *>))
         .put("practiceDone", saved.practiceDone)
         .put("countdown", saved.countdownSeconds)
+        .apply { saved.plan?.let { put("plan", encodePlan(it)) } }
         .toString()
 }
 
@@ -108,7 +109,25 @@ internal fun decode(raw: String): Saved {
         services = json.optJSONObject("services")?.let { s -> s.keys().asSequence().associateWith { s.optString(it) } }.orEmpty(),
         practiceDone = if (json.has("practiceDone")) json.optBoolean("practiceDone") else true,
         countdownSeconds = cleanCountdown(json.optInt("countdown", DEFAULT_COUNTDOWN)),
+        plan = json.optJSONObject("plan")?.let(::decodePlan),
     )
+}
+
+private fun encodePlan(plan: PlanQueue): JSONObject {
+    val steps = JSONArray()
+    plan.steps.forEach { steps.put(JSONObject().put("text", it.text).put("ifNot", it.onlyIfNotWorked)) }
+    return JSONObject().put("steps", steps).put("next", plan.next).put("at", plan.touchedAt)
+}
+
+/** A damaged or empty plan reads as none: a missed step is better than a wrong one. */
+private fun decodePlan(json: JSONObject): PlanQueue? {
+    val array = json.optJSONArray("steps") ?: return null
+    val steps = (0 until array.length()).mapNotNull { i ->
+        array.optJSONObject(i)?.let { PlannedStep(it.optString("text"), it.optBoolean("ifNot")) }?.takeIf { it.text.isNotBlank() }
+    }
+    val next = json.optInt("next", -1)
+    if (steps.isEmpty() || next !in steps.indices) return null
+    return PlanQueue(steps.take(MAX_PLAN_STEPS), next, json.optLong("at"))
 }
 
 private fun JSONObject.putCoordinates(key: String, place: Place): JSONObject {

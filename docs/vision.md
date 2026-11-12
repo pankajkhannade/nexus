@@ -73,6 +73,8 @@ Built on main after Phase 1, before the closed test, so testers get both.
 - [x] S15 Near home: six need tiles (groceries, medicines, doctor, ride, home help, emergency) in the parent's language. The child picks an app for each need from a dropdown of top Indian apps (an "Installed" tag, or Install opens the Play Store). Medicines, Doctor and Emergency always work through Maps search near home and a 108 dial pad. Voice jumps straight to a tile ("औषध पाहिजे").
 - Quick-commerce ordering by voice is deferred (no public APIs; Accessibility automation is blocked). Near home opens the apps instead.
 
+- [x] Multi-step requests and the safety guard (2026-11-12): one sentence can be two or three steps, done one at a time with the parent confirming each, waiting on home after each handoff; a fixed-rules guard stops OTPs, PINs and card numbers in any outgoing message, asks when a name fits two people, and never adds a location share. This is the first piece of Phase 3's guard, pulled forward because multi-step makes it necessary. On-device model orchestration is parked until it's fast and safe enough (LFM3 test, 2026-11-12).
+
 ## Phase 2: Child companion and daily habit (6-8 weeks)
 Goal: the child can help without a phone call; the parent has a reason to open Nexus every day.
 User outcome: the child adds a contact, reminder or shortcut to the parent's phone from their own phone, and sees a weekly "all fine" note. The parent gets medicine, bill and recharge reminders read aloud.

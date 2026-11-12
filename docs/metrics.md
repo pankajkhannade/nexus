@@ -27,7 +27,7 @@ Everything below either explains that number or is vanity.
 Every `UsageEvent` field is an enum, a number or a boolean (`PrivacySchemaTest` fails the build if a text field is
 added). Fields: time (ms), type, language (mr/hi/en/other), command type, source (voice/tile/typed), end reason,
 permission, app category, ok, duration ms, utterance length (characters, not the characters themselves), recogniser
-error code, setup step.
+error code, setup step (or a plan's step count / position), guard reason (a fixed category, added 2026-11-12).
 
 | Event | When | Extra fields |
 |---|---|---|
@@ -47,6 +47,10 @@ error code, setup step.
 | `return_check` | The parent answered "did it work?" on home after a hand-off (added 2026-11-11) | category (dialer, whatsapp, sms, cab, maps), ok (yes = true) |
 | `help_opened` | Help on home opened (button, or a "No" to did-it-work) | |
 | `money_gone` | The पैसे गेले steps opened | |
+| `multi_step_started` | One request became a plan of 2+ steps (added 2026-11-12) | step = number of steps, source |
+| `step_done` | A plan step's action opened another app | step = position (1-based), category |
+| `step_skipped` | A plan step was skipped | step = position; ok = true (parent skipped, or not needed after "it worked"), false (plan cancelled or replaced) |
+| `guard_blocked` | The guard stopped or questioned an outgoing message | guard = `secret_code`, `long_number`, `location` or `name_unsure` |
 
 End reasons: `user_done` (Done tapped), `complete` (a whole command heard), `silence`, `no_speech`, `max_time` (60 s),
 `error` (failed before any words), `cut_off` (failed after words were heard), `cancelled` (Stop).
@@ -98,6 +102,12 @@ Every percentage is shown with its raw counts (`7 of 9 (78%)`), on the phone, in
 - **Did it work** = `return_check` yes / all `return_check` answers, overall and by app category. The parent's own word, the closest we get to "the call connected" or "the cab was booked" without risky permissions. Unanswered checks are not counted as no.
 - **Help opened** and **Money gone opened**: counts per week. A rising help count after a sprint is a signal to look, not a failure by itself.
 - Daily count keys: `did_it_work_yes`, `did_it_work_no`, `did_it_work_{yes|no}_{dialer|whatsapp|sms|cab|maps}`, `help_opened`, `money_gone_opened`. The Worker accepts them as-is (it checks the key shape, not a list). Summary JSON: `did_it_work`, `did_it_work_by_app`, `help_opened`, `money_gone_opened`.
+
+### Multi-step and the guard (added 2026-11-12)
+- **Multi-step share** = `multi_step_started` / voice attempts. Tells us whether parents actually say two things at once (the LFM3 report assumed they would).
+- **Step completion** = `step_done` / steps done + skipped; **step skip rate** = `step_skipped` (ok=true) / steps done + skipped. A high skip rate on step 2 means the plan guessed something the parent didn't want.
+- **Guard stops** by category per week. `secret_code` is the one to read: each is a moment a PIN or OTP nearly left the phone. `name_unsure` counts "Which one?" for ties and the name confirm; it should fall as families save distinct names.
+- Daily count keys: `multi_step_started`, `multi_step_{2..5}`, `step_done`, `step_skipped`, `step_cancelled`, `guard_blocked`, `guard_{secret_code|long_number|location|name_unsure}`. Summary JSON: `multi_step_started`, `steps_done`, `steps_skipped`, `guard_blocked` (by category).
 
 ## The upload (opt-in)
 

@@ -14,14 +14,17 @@
 
 **Global direction (2026-11-12).** Pankaj: Nexus is a global product (every Indian language, then the world); Pune Marathi parents stay the beachhead. Vision stages A (mr/hi/en, India) → B (all major Indian languages) → C (global, diaspora first) are in `vision.md`. Hard-coding audit and the language/region pack plan: `i18n-architecture.md`. Step 1 (language registry + India region pack, no behaviour change) is merged; 469 JVM tests.
 
+**Multi-step and safety guard (2026-11-12, feat/multi-step).** One sentence, two or three steps ("ride to Dinanath and tell Pankaj I've left"; "call the doctor, if he doesn't pick up message him") through a rules splitter with per-language joiners, a saved step queue that waits on home after each handoff (30-minute expiry), and a deterministic guard on every outgoing message (no OTP / PIN / card numbers, ties and slips asked, no added location). The on-device LLM is parked (LFM3 test). 516 JVM tests.
+
 **Next.**
 1. Pankaj's second real-phone test, using the new leave-behind practice (call, message, ride home) with a parent: a long Marathi message with pauses, "Sunil la phone lav" for a phone-book contact, two contacts with one name, "स्वारगेटला जायचं आहे" into Uber or Ola, plus the earlier list (WhatsApp keeping Marathi text, Near home tags, a real scam screenshot). Also: does Ola open with Swargate filled in; is the spoken coach line helpful or too much; are the 4 faces easy to tell apart; does "Save in phone contacts" return to Nexus.
 2. Native Hindi and Marathi review of the app's strings (including the new coaching lines).
 3. ~~UX sprint 2~~ **done 2026-11-11**. In Pankaj's real-phone test, also check: is 5 s right, does the parent answer "did it work?", and does 1930 / cybercrime.gov.in open on his phone. Deferred: the bar on Practice / Try it, a spoken "मदत".
 4. Language packs, steps 2–4 of `i18n-architecture.md` (grammar as data with an utterance corpus, script-aware name matching, a list picker and metrics language codes), about 3 weeks, no visible change for Marathi parents. New languages wait for the Phase 1 exit metric.
-5. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
-6. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
-7. Then the exit / kill rule below.
+5. Multi-step on a real phone: does the parent come back to Nexus after Uber (or stay in Uber), is the next-step card noticed, and do parents say two things at once often enough to keep it (`multi_step_started` / voice attempts). "Show the way to X" (Maps directions by voice) is the missing intent from the LFM3 set.
+6. Release prep: signed AAB, upload key Pankaj keeps, privacy policy URL, Data safety form.
+7. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
+8. Then the exit / kill rule below.
 
 ## Thesis (one line)
 Nexus is the family co-pilot for your parents' Android phone: they speak in their own language and the simple thing happens; before anything risky, it pulls you in, and nothing leaves the phone without their say. Global and language-pluggable, starting with Marathi in Pune.

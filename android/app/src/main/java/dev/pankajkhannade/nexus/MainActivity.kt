@@ -60,6 +60,8 @@ sealed interface Screen {
     data object Help : Screen
     /** UX sprint 2 (roadmap N3): money already gone. 1930, the bank, cybercrime.gov.in, tell the child. */
     data object MoneyGone : Screen
+    /** Guard (2026-11-12): a message Nexus will not prepare (an OTP / PIN, a card number, a location it wasn't asked for). */
+    data class Blocked(val reason: GuardReason) : Screen
 }
 
 /** Handoffs that get a "did it work?" question when the parent comes back to Nexus. */
@@ -132,8 +134,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     private fun track(
         type: EventType, lang: Lang? = null, command: CommandType? = null, source: Source? = null, end: EndReason? = null,
         perm: Perm? = null, category: AppCategory? = null, ok: Boolean? = null, ms: Long? = null, chars: Int? = null,
-        code: Int? = null, step: Int? = null,
-    ) = track(UsageEvent(nowMs, type, lang, command, source, end, perm, category, ok, ms, chars, code, step))
+        code: Int? = null, step: Int? = null, guard: GuardReason? = null,
+    ) = track(UsageEvent(nowMs, type, lang, command, source, end, perm, category, ok, ms, chars, code, step, guard))
 
     fun metrics(): MetricsReport = computeMetrics(events.all(), nowMs)
 
@@ -146,6 +148,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     /** Nexus handed the parent to another app. The return time (see [cameBack]) tells a wrong action from a real one. */
     fun actionOpened(category: AppCategory) {
         track(EventType.ACTION_OPENED, category = category, source = currentSource)
+        runningStep?.let { track(EventType.STEP_DONE, step = it + 1, category = category); runningStep = null }
         awayCategory = category
         awayAt = nowMs
     }
@@ -180,6 +183,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                     speak(returnQuestion(cat))
                 } else {
                     notice = getApplication<Application>().getString(R.string.welcome_back)
+                    if (pendingStep() != null) offerNext()
                 }
             }
         } else if (startedOnce) {
@@ -204,6 +208,17 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val cat = returnCheck ?: return
         returnCheck = null
         track(EventType.RETURN_CHECK, category = cat, ok = worked)
+        if (pendingStep() != null) {
+            // Multi-step: "did it work?" decides the "if he doesn't pick up" steps, then the next step is offered.
+            if (worked) skipConditionalSteps()
+            val next = pendingStep()
+            when {
+                next == null -> { notice = getApplication<Application>().inLanguage(language).getString(R.string.plan_done); speak(R.string.plan_done) }
+                worked || next.onlyIfNotWorked -> offerNext()
+                else -> openHelp() // A ride or message that failed: help first; the next step waits on home.
+            }
+            return
+        }
         if (worked) {
             notice = getApplication<Application>().inLanguage(language).getString(R.string.check_glad)
             speak(R.string.check_glad)
@@ -336,7 +351,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             // A screenshot from an earlier check is not kept between sessions.
             withContext(Dispatchers.IO) { File(app.cacheDir, "shared/check.jpg").delete() }
-            saved = store.read()
+            // A plan older than 30 minutes is dropped on load (in memory; the next save writes it out).
+            saved = store.read().let { s -> if (s.plan?.expired(nowMs) == true) s.copy(plan = null) else s }
             usage = store.readUsage()
             feedback = store.readFeedback()
             loaded = true
@@ -376,6 +392,122 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { store.write(next) }
     }
 
+    // ---- Multi-step plans (Steps.kt, 2026-11-12) ----
+
+    /** Index of the step whose action is open now, so its handoff is logged as step_done. In memory only. */
+    private var runningStep: Int? = null
+
+    /** The step waiting on the parent, or null (none, finished, or older than 30 minutes). */
+    fun pendingStep(): PlannedStep? = saved.plan?.takeIf { !it.expired(nowMs) }?.pending
+
+    /** "पुढचं (2/3): पंकजला मेसेज" for the card and the voice. */
+    fun stepLabel(step: PlannedStep): String {
+        val res = getApplication<Application>().inLanguage(language)
+        return when (val command = parser.parse(step.text, saved)) {
+            is Command.Call -> res.getString(R.string.step_call, nameOf(command.person))
+            is Command.WhatsApp -> res.getString(R.string.step_whatsapp, nameOf(command.person))
+            is Command.Message -> command.dictation.person?.let { res.getString(R.string.step_message, nameOf(it)) }
+                ?: res.getString(R.string.step_generic, step.text)
+            Command.RideHome -> res.getString(R.string.step_ride_home)
+            is Command.RideTo -> res.getString(R.string.step_ride_to, command.place?.address?.substringBefore(',')?.trim() ?: command.query)
+            is Command.FindContact -> res.getString(if (command.ask == Ask.CALL) R.string.step_call else R.string.step_message, command.name)
+            else -> res.getString(R.string.step_generic, step.text)
+        }
+    }
+
+    private fun savePlan(plan: PlanQueue?) = update(saved.copy(plan = plan?.takeIf { it.pending != null }))
+
+    /** Starts a plan of two or more steps: says how many, then does the first (it has its own confirm screen). */
+    private fun startPlan(split: SplitResult) {
+        cancelPlan(silent = true)
+        track(EventType.MULTI_STEP_STARTED, step = split.steps.size, source = currentSource)
+        update(saved.copy(plan = PlanQueue(split.steps, 0, nowMs)))
+        speak(R.string.plan_intro, split.steps.size)
+        if (split.locationDropped) speak(R.string.location_note)
+        runStep(0)
+    }
+
+    /** Does step [index]: the plan moves on first, so coming back after the handoff offers the one after it. */
+    private fun runStep(index: Int) {
+        val plan = saved.plan ?: return
+        val step = plan.steps.getOrNull(index) ?: return
+        val command = parser.parse(step.text, saved)
+        savePlan(plan.copy(next = index + 1, touchedAt = nowMs))
+        if (command == Command.Unknown) {
+            track(EventType.STEP_SKIPPED, step = index + 1)
+            if (pendingStep() != null) offerNext()
+            return
+        }
+        runningStep = index
+        act(command)
+    }
+
+    /** Home's "पुढचं" card and voice line. */
+    fun offerNext() {
+        val step = pendingStep() ?: return
+        val plan = saved.plan ?: return
+        speak(R.string.plan_next, plan.next + 1, plan.steps.size, stepLabel(step))
+    }
+
+    /** हो on the card: do the next step. */
+    fun acceptNext() {
+        val plan = saved.plan ?: return
+        if (pendingStep() == null) { savePlan(null); return }
+        returnCheck = null
+        currentSource = Source.TILE
+        runStep(plan.next)
+    }
+
+    /** वगळा: skip this step, offer the next one. */
+    fun skipNext() {
+        val plan = saved.plan ?: return
+        track(EventType.STEP_SKIPPED, step = plan.next + 1, ok = true)
+        savePlan(plan.copy(next = plan.next + 1, touchedAt = nowMs))
+        if (pendingStep() != null) offerNext() else speak(R.string.plan_done)
+    }
+
+    /** सगळं रद्द करा: the rest of the plan is dropped (each logged as skipped, ok=false). */
+    fun cancelPlan(silent: Boolean = false) {
+        val plan = saved.plan ?: return
+        if (!plan.expired(nowMs)) for (i in plan.next until plan.steps.size) track(EventType.STEP_SKIPPED, step = i + 1, ok = false)
+        runningStep = null
+        savePlan(null)
+        if (!silent) { notice = ""; speak(R.string.plan_cancelled) }
+    }
+
+    /** After a "yes, it worked": the "if he doesn't pick up" steps right after are not needed. */
+    private fun skipConditionalSteps() {
+        var plan = saved.plan ?: return
+        while (plan.pending?.onlyIfNotWorked == true) {
+            track(EventType.STEP_SKIPPED, step = plan.next + 1, ok = true)
+            plan = plan.copy(next = plan.next + 1)
+        }
+        savePlan(plan.copy(touchedAt = nowMs))
+    }
+
+    // ---- Guard (Guard.kt, 2026-11-12) ----
+
+    /** A message Nexus won't prepare: say why, offer to call the Ask-family person instead. */
+    private fun block(reason: GuardReason) {
+        track(EventType.GUARD_BLOCKED, guard = reason, source = currentSource)
+        runningStep = null
+        draft = null
+        screen = Screen.Blocked(reason)
+        speak(
+            when (reason) {
+                GuardReason.LONG_NUMBER -> R.string.guard_card_tts
+                GuardReason.LOCATION -> R.string.guard_location_tts
+                else -> R.string.guard_secret_tts
+            },
+            helpers().firstOrNull()?.let(::nameOf) ?: getApplication<Application>().inLanguage(language).getString(R.string.guard_family),
+        )
+    }
+
+    fun leaveBlocked() {
+        screen = Screen.Home
+        if (pendingStep() != null) offerNext()
+    }
+
     /** Tests only: Robolectric shares one DataStore per JVM, so each test starts from empty counts, India, the default language and no one-time hints. */
     @androidx.annotation.VisibleForTesting
     internal fun resetLocalDataForTest() {
@@ -386,7 +518,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         awayCategory = null
         usage = Usage()
         feedback = Feedback()
-        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap(), countdownSeconds = DEFAULT_COUNTDOWN, practiceDone = true))
+        update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap(), countdownSeconds = DEFAULT_COUNTDOWN, practiceDone = true, plan = null))
+        runningStep = null
         practiceIndex = -1
         returnCheck = null
         viewModelScope.launch { store.writeUsage(Usage()); store.writeFeedback(Feedback()) }
@@ -729,6 +862,22 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun understood(said: String?, typed: Boolean = false, alternatives: List<String> = emptyList()) {
         voice.cancel()
         val readings = (listOfNotNull(said?.trim()) + alternatives.map { it.trim() }).filter { it.isNotEmpty() }.distinct()
+        // Multi-step (2026-11-12): "…आणि पंकजला सांग…" becomes a plan; anything with one step works as before.
+        val split = if (practiceIndex < 0) readings.asSequence().map { splitCommand(it, saved, parser) }.firstOrNull { it.isPlan } else null
+        if (split != null) {
+            voiceFails = 0
+            tryingInSetup = false
+            heard = readings.first()
+            currentSource = if (typed) Source.TYPED else Source.VOICE
+            val first = parser.parse(split.steps.first().text, saved)
+            track(
+                EventType.COMMAND, lang = Lang.of(language), command = CommandType.of(first), source = currentSource,
+                ok = true, ms = if (typed || voiceStartedAt == 0L) null else nowMs - voiceStartedAt,
+            )
+            if (!typed) record(Event.VOICE)
+            startPlan(split)
+            return
+        }
         val (text, command) = readings.asSequence().map { it to parser.parse(it, saved) }.firstOrNull { it.second != Command.Unknown }
             ?: (said.orEmpty().trim() to Command.Unknown)
         heard = text
@@ -773,6 +922,13 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         }
         voiceFails = 0
         tryingInSetup = false
+        // A new single request replaces a plan still waiting from before.
+        if (saved.plan != null) cancelPlan(silent = true)
+        act(command)
+    }
+
+    /** Does one understood command (a step of a plan, or a whole request). */
+    private fun act(command: Command) {
         when (command) {
             is Command.Message -> openDraft(command.dictation)
             Command.RideHome -> { rideHome(); speak(R.string.ride_readback_home) }
@@ -789,7 +945,15 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             }
             // An exact name or alias goes straight to Calling, which still has the countdown with Cancel.
             is Command.Call -> screen = if (command.exact) Screen.Calling(command.person) else Screen.Confirm(command.person)
-            is Command.FindContact -> lookUpContact(command.name, command.ask)
+            is Command.FindContact -> if (command.options.size > 1) {
+                // Guard: two saved people fit the name ("Call Sunil"): ask, never guess.
+                track(EventType.GUARD_BLOCKED, guard = GuardReason.NAME_UNSURE, source = currentSource)
+                track(EventType.PICKER_SHOWN, source = currentSource)
+                screen = Screen.ChooseContact(command.name, command.ask, command.options)
+                speak(R.string.which_one)
+            } else {
+                lookUpContact(command.name, command.ask)
+            }
             Command.Unknown -> Unit
         }
     }
@@ -868,7 +1032,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             when (val found = findContact(name, phoneBook(), dial)) {
                 is ContactLookup.Clear -> {
                     val person = found.match.person
-                    if (ask == Ask.MESSAGE) {
+                    if (ask == Ask.MESSAGE && !found.exact) {
+                        // Guard: a phone-book name that only sounds like what was said is confirmed first.
+                        track(EventType.PICKER_SHOWN, source = currentSource)
+                        screen = Screen.ChooseContact(name, ask, listOf(person))
+                        speak(R.string.which_one)
+                    } else if (ask == Ask.MESSAGE) {
                         screen = Screen.Home
                         openWhatsAppFor(person)
                     } else {
@@ -919,10 +1088,14 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun resolveDraftRecipient() {
         val d = draft ?: return
         val asked = d.askedName ?: return
-        if (d.person != null || !contacts.hasPermission()) return
+        if (d.person != null || d.options.isNotEmpty() || !contacts.hasPermission()) return
         viewModelScope.launch {
             when (val found = findContact(asked, phoneBook(), dial)) {
-                is ContactLookup.Clear -> if (draft === d) setDraftPerson(found.match.person)
+                is ContactLookup.Clear -> if (draft === d) {
+                    setDraftPerson(found.match.person)
+                    // Guard: a phone-book name that only sounds alike is confirmed before Send appears.
+                    if (!found.exact) draft = draft?.copy(sure = false)
+                }
                 is ContactLookup.Choose -> draftChoices = found.options.map { it.person }
                 ContactLookup.NotFound -> draftChoices = emptyList()
             }
@@ -987,8 +1160,12 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     // ---- Dictated messages ----
 
     fun openDraft(dictation: Dictation) {
+        guardMessage(dictation.text, dictation.rawBody).reason?.let { block(it); return }
+        if (dictation.options.isNotEmpty() || (dictation.person != null && !dictation.sure)) {
+            track(EventType.GUARD_BLOCKED, guard = GuardReason.NAME_UNSURE, source = currentSource)
+        }
         draft = dictation
-        draftChoices = emptyList()
+        draftChoices = dictation.options
         draftVersion += 1
         screen = Screen.Message
         resolveDraftRecipient()
@@ -1000,7 +1177,20 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setDraftPerson(person: Person) {
         draftChoices = emptyList()
-        draft = draft?.copy(person = person, askedName = null)
+        // A face or contact the parent tapped is a confirmed name.
+        draft = draft?.copy(person = person, askedName = null, sure = true, options = emptyList())
+        draftVersion += 1
+    }
+
+    /** "✓ हो, पंकज": the roughly heard name is the right person. */
+    fun confirmDraftPerson() {
+        draft = draft?.copy(sure = true)
+        draftVersion += 1
+    }
+
+    /** "दुसरं कोणी": back to the faces to pick who. */
+    fun clearDraftPerson() {
+        draft = draft?.copy(person = null, sure = true)
         draftVersion += 1
     }
 
@@ -1041,6 +1231,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             current.copy(
                 person = again.person ?: current.person,
                 askedName = if (again.person != null) null else current.askedName,
+                sure = if (again.person != null) again.sure else current.sure,
                 channel = if (again.channel != Channel.ANY) again.channel else current.channel,
                 text = again.text,
                 rawBody = again.rawBody,
@@ -1058,6 +1249,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         val person = d.person
         when {
             person == null -> speak(R.string.msg_who)
+            !d.sure -> speak(R.string.msg_confirm_name, nameOf(person))
             d.text.isBlank() -> speak(R.string.msg_what)
             else -> speak(R.string.msg_confirm_tts, nameOf(person), d.text)
         }
@@ -1067,6 +1259,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun sendDraft(via: Channel): Boolean {
         val d = draft ?: return false
         val person = d.person ?: return false
+        if (!d.sure) return false
+        // The guard runs again at send: the words may have been edited or spoken again since.
+        guardMessage(d.text, d.rawBody).reason?.let { block(it); return false }
         val app = getApplication<Application>()
         val waPkg = if (via == Channel.SMS) null else whatsAppPackage(app)
         // One coaching line before the handoff: where to press in the other app.

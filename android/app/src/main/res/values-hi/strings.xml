@@ -418,4 +418,36 @@
     <string name="pin_question">घर का पिन कोड क्या है?</string>
     <string name="pin_optional">6 अंक। पास की दुकानें और डॉक्टर खोजने में मदद। खाली छोड़ सकते हैं।</string>
     <string name="metrics_did_it_work">“काम हो गया क्या?” पर हाँ: %1$s</string>
+
+    <!-- Multi-step plans and the safety guard (2026-11-12) -->
+    <string name="plan_intro">%1$d काम हैं। एक-एक करके करेंगे, हर एक से पहले पूछकर।</string>
+    <string name="plan_next">अगला (%1$d/%2$d): %3$s करें?</string>
+    <string name="plan_title">अगला (%1$d/%2$d)</string>
+    <string name="plan_yes">हाँ, करो</string>
+    <string name="plan_skip">छोड़ें</string>
+    <string name="plan_cancel">सब रद्द करें</string>
+    <string name="plan_done">सब हो गया।</string>
+    <string name="plan_cancelled">ठीक है, बाकी रद्द कर दिया।</string>
+    <string name="step_call">%1$s को फ़ोन</string>
+    <string name="step_message">%1$s को मैसेज</string>
+    <string name="step_whatsapp">%1$s को WhatsApp</string>
+    <string name="step_ride_home">घर के लिए गाड़ी</string>
+    <string name="step_ride_to">%1$s के लिए गाड़ी</string>
+    <string name="step_generic">“%1$s”</string>
+    <string name="location_note">Nexus आपकी लोकेशन नहीं भेजता। भेजनी हो तो WhatsApp में 📎 फिर लोकेशन दबाएँ।</string>
+    <string name="guard_title">Nexus यह मैसेज नहीं भेजेगा</string>
+    <string name="guard_secret_body">इस मैसेज में OTP, PIN, CVV या पासवर्ड है। इन्हें कभी मैसेज से न भेजें, घरवालों को भी नहीं। बैंक ये कभी नहीं माँगता।</string>
+    <string name="guard_card_body">इस मैसेज में कार्ड या आधार जैसा लंबा नंबर है। इसे मैसेज से न भेजें।</string>
+    <string name="guard_location_body">इस मैसेज में ऐसी लोकेशन है जो आपने नहीं माँगी। Nexus लोकेशन नहीं भेजता।</string>
+    <string name="guard_secret_tts">यह मैसेज नहीं भेजा जाएगा। इसमें PIN या OTP है। इन्हें कभी मैसेज से न भेजें। %1$s से पूछने के लिए हरा बटन दबाइए।</string>
+    <string name="guard_card_tts">यह मैसेज नहीं भेजा जाएगा। इसमें कार्ड या आधार नंबर है। %1$s से पूछने के लिए हरा बटन दबाइए।</string>
+    <string name="guard_location_tts">बिना माँगी लोकेशन नहीं भेजी जाएगी। मदद चाहिए तो %1$s को फ़ोन करने के लिए हरा बटन दबाइए।</string>
+    <string name="guard_ask">%1$s से पूछें</string>
+    <string name="guard_ok">ठीक है, न भेजें</string>
+    <string name="guard_family">घरवालों</string>
+    <string name="msg_confirm_name">यह मैसेज %1$s को जाएगा। सही है?</string>
+    <string name="msg_confirm_name_yes">हाँ, %1$s</string>
+    <string name="msg_someone_else">कोई और</string>
+    <string name="metrics_multi_step">एक से ज़्यादा काम: %1$d (हुए %2$d, छोड़े %3$d)</string>
+    <string name="metrics_guard">Guard ने रोके मैसेज: %1$d</string>
 </resources>

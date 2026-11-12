@@ -66,6 +66,7 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.NeedHelp || screen is Screen.Install || screen == Screen.Emergency -> model.screen = Screen.NearHome
                     screen == Screen.Ride || screen == Screen.Destination -> model.leaveRide()
                     screen == Screen.MoneyGone -> model.leaveMoneyGone()
+                    screen is Screen.Blocked -> model.leaveBlocked()
                     else -> { model.clearCheck(); model.tryingInSetup = false; model.screen = Screen.Home }
                 }
             }
@@ -94,6 +95,7 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.Safety -> SafetyScreen(model)
                     screen is Screen.Help -> HelpScreen(model)
                     screen is Screen.MoneyGone -> MoneyGoneScreen(model)
+                    screen is Screen.Blocked -> BlockedScreen(model, screen.reason)
                     screen is Screen.Ride -> RideScreen(model)
                     screen is Screen.Destination -> DestinationScreen(model)
                     screen is Screen.NearHome -> NearHomeScreen(model)

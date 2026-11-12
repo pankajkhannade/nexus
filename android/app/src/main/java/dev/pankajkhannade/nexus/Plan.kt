@@ -24,6 +24,8 @@ data class Reading(
     val trip: Trip? = null,
     /** True when the spoken name equals the person's saved name or alias exactly (safe to skip the confirm step). */
     val exact: Boolean = false,
+    /** Guard (2026-11-12): two or more saved people fit the spoken name equally; Nexus asks which, never guesses. */
+    val options: List<Person> = emptyList(),
 )
 
 // Unicode-aware word edges. Java's \b breaks on Devanagari vowel signs, so use lookarounds.
@@ -46,8 +48,9 @@ private val EN_MSG = Regex("""$OPT$B(?:text|sms|message|msg|whatsapp)\s+(?:to\s+
  * "Aai ko call karo", "Pankaj ko phone lagao", "Aai la phone lav", "Pankajla phone kar",
  * "पंकज को फ़ोन लगाओ", "पंकजला फोन लाव", "आईला फोन लाव".
  */
-private val IN_CALL = Regex("""$OPT($LATIN_NAME|$DEV_NAME)\s*(?:ko|la|को|ला)\s+$CALL_WORD$E""")
-private val IN_MSG = Regex("""$OPT($LATIN_NAME|$DEV_NAME)\s*(?:ko|la|को|ला)\s+$MSG_WORD$E""")
+// "ना" is the respectful Marathi form ("डॉक्टरांना फोन लाव", "आजोबांना").
+private val IN_CALL = Regex("""$OPT($LATIN_NAME|$DEV_NAME)\s*(?:ko|la|को|ला|ना)\s+$CALL_WORD$E""")
+private val IN_MSG = Regex("""$OPT($LATIN_NAME|$DEV_NAME)\s*(?:ko|la|को|ला|ना)\s+$MSG_WORD$E""")
 
 private val PHONE = Regex("""[+\d(][\d\s().+-]{8,20}\d""")
 private val STREET = Regex(
@@ -69,7 +72,7 @@ fun readMessage(text: String, saved: Saved): Reading {
 
     val found = findAsk(clean)
     val resolved = found?.let { resolvePerson(it.names, saved.people) }
-    val person = resolved?.first
+    val person = resolved?.person
     val asked = if (person == null) found?.names?.lastOrNull()?.let(::cleanName) else null
 
     val numberInText = PHONE.find(clean)?.value?.let { normalizePhone(it, saved.dial) }
@@ -82,7 +85,8 @@ fun readMessage(text: String, saved: Saved): Reading {
         askedName = if (matched == null && numberInText == null) asked else null,
         number = if (matched == null) numberInText else null,
         trip = readTrip(clean, saved),
-        exact = resolved?.second == true,
+        exact = resolved?.exact == true,
+        options = if (matched == null) resolved?.options.orEmpty() else emptyList(),
     )
 }
 
@@ -134,21 +138,36 @@ internal val RELATION_WORDS: Map<String, String> = buildMap {
  * Tries each reading, then each trailing sub-phrase ("please Pankaj" -> "Pankaj"), against the saved
  * name and the spoken alias, then relation words. Returns the person and whether the match was exact.
  */
-private fun resolvePerson(readings: List<String>, people: List<Person>): Pair<Person, Boolean>? {
+private class Resolved(val person: Person?, val exact: Boolean, val options: List<Person> = emptyList())
+
+private fun resolvePerson(readings: List<String>, people: List<Person>): Resolved? {
+    fun pick(hits: List<Person>, exact: Boolean): Resolved? {
+        val unique = hits.distinctBy { it.id }
+        return when {
+            unique.isEmpty() -> null
+            unique.size == 1 -> Resolved(unique.single(), exact)
+            else -> Resolved(null, false, unique) // "Call Sunil" with Sunil Patil and Sunil Kale: ask.
+        }
+    }
     for (raw in readings) {
         val name = cleanName(raw) ?: continue
         val words = name.split(" ")
         for (i in words.indices) {
             val candidate = words.drop(i).joinToString(" ")
             val wanted = candidate.trim().lowercase()
-            people.firstOrNull { it.alias.isNotBlank() && it.alias.trim().lowercase() == wanted }?.let { return it to true }
-            people.firstOrNull { it.name.trim().lowercase() == wanted }?.let { return it to true }
-            people.firstOrNull { it.localName.isNotBlank() && it.localName.trim().lowercase() == wanted }?.let { return it to true }
-            people.firstOrNull { p -> p.names.any { nameMatches(it, candidate) } }
-                ?.let { return it to false }
+            pick(people.filter { it.alias.isNotBlank() && it.alias.trim().lowercase() == wanted }, true)?.let { return it }
+            pick(people.filter { it.name.trim().lowercase() == wanted }, true)?.let { return it }
+            pick(people.filter { it.localName.isNotBlank() && it.localName.trim().lowercase() == wanted }, true)?.let { return it }
+            // "डॉक्टरांना फोन लाव": the saved name with a Marathi / Hindi case ending.
+            for (form in (nameForms(candidate).drop(1) + candidate.removeSuffix("ां")).distinct()) {
+                val bare = form.trim().lowercase().removeSuffix("ां")
+                if (bare == wanted) continue
+                pick(people.filter { p -> p.names.any { it.trim().lowercase() == bare } }, true)?.let { return it }
+            }
+            pick(people.filter { p -> p.names.any { nameMatches(it, candidate) } }, false)?.let { return it }
         }
         RELATION_WORDS[words.last().lowercase()]?.let { relation ->
-            people.filter { it.relation == relation }.singleOrNull()?.let { return it to false }
+            people.filter { it.relation == relation }.singleOrNull()?.let { return Resolved(it, false) }
         }
     }
     return null

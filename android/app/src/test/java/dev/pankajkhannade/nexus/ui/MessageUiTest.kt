@@ -34,10 +34,18 @@ class MessageUiTest {
     private val pankajSaid = "पंकचला वाटसब कर आणि सांग की तू कधी येणार आहेस घरी. आणी येताना एक साबून घेऊन ये."
     private val pankajText = "तू घरी कधी येणार आहेस? आणि येताना एक साबून घेऊन ये."
 
-    private fun dictate(said: String, people: Int = 4): NexusViewModel {
+    /**
+     * Dictates [said] and opens the message screen. "पंकच" is one slip away from Pankaj, so since the guard
+     * (2026-11-12) the screen first asks "This message will go to Pankaj. Is that right?"; [confirm] taps yes.
+     */
+    private fun dictate(said: String, people: Int = 4, confirm: Boolean = true): NexusViewModel {
         val model = newModel(people = people)
         model.understood(said, typed = true)
         compose.setParent { MessageScreen(model) }
+        val person = model.draft?.person
+        if (confirm && person != null && model.draft?.sure == false) {
+            compose.onNodeWithText("✓  Yes, ${person.name}").performScrollTo().performClick()
+        }
         return model
     }
 
@@ -45,9 +53,13 @@ class MessageUiTest {
 
     @Test fun pankajsSentenceShowsWhoAndTheMessage() {
         fakeInstall("com.whatsapp")
-        val model = dictate(pankajSaid)
+        val model = dictate(pankajSaid, confirm = false)
         assertEquals(Screen.Message, model.screen)
         compose.onNodeWithText("To: Pankaj").assertExistsCompat()
+        // A recogniser slip ("पंकच") is confirmed before any Send button appears.
+        compose.onNodeWithText("This message will go to Pankaj. Is that right?").assertExistsCompat()
+        compose.onAllNodesWithText("Send on WhatsApp").assertCountEquals(0)
+        compose.onNodeWithText("✓  Yes, Pankaj").performScrollTo().performClick()
         compose.onNodeWithText(pankajText).assertExistsCompat()
         compose.onNodeWithText("WhatsApp will open with this message written", substring = true).assertExistsCompat()
     }
@@ -155,6 +167,10 @@ class MessageUiTest {
         compose.waitForIdle()
         idleMain()
         val tts = ShadowTextToSpeech.getLastTextToSpeechInstance()!!
+        assertEquals("हा मेसेज Pankaj ला जाईल. बरोबर?", shadowOf(tts).lastSpokenText)
+        compose.onNodeWithText("✓  Yes, Pankaj").performScrollTo().performClick()
+        compose.waitForIdle()
+        idleMain()
         assertEquals("Pankaj ला हा मेसेज पाठवू? $pankajText", shadowOf(tts).lastSpokenText)
     }
 

@@ -105,6 +105,8 @@ fun readDestination(said: String): String? {
     if (vehicleAt > 0) {
         val before = words.subList(0, vehicleAt)
         val marker = before.last()
+        // "दीनानाथ अस्पताल के लिए कैब बुक करो", "station ke liye auto".
+        if (marker.low in setOf("लिए", "liye", "lie") && before.size >= 3 && before[before.size - 2].low in setOf("के", "ke")) return cleanPlace(before.dropLast(2))
         if (marker.low in setOf("la", "ला", "tak", "तक", "ko", "को", "sathi", "साठी") || stripGlued(marker.text) != marker.text) return cleanPlace(before)
     }
     return null

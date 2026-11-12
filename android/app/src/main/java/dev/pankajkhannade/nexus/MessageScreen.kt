@@ -128,7 +128,15 @@ fun MessageScreen(model: NexusViewModel) {
             }
         }
 
-        if (person != null && !editing) {
+        // Guard (2026-11-12): a name that was only roughly heard is confirmed before any send button appears.
+        if (person != null && !editing && !draft.sure) {
+            OutlinedPanel(color = NexusColors.WarningContainer) {
+                Text(stringResource(R.string.msg_confirm_name, shownName(person)), style = MaterialTheme.typography.headlineSmall)
+            }
+            BigButton("✓  " + stringResource(R.string.msg_confirm_name_yes, shownName(person)), { model.confirmDraftPerson() }, kind = ButtonKind.Call)
+            BigButton(stringResource(R.string.msg_someone_else), { model.clearDraftPerson() }, kind = ButtonKind.Secondary)
+        }
+        if (person != null && !editing && draft.sure) {
             val smsFirst = draft.channel == Channel.SMS || whatsApp == null
             if (!model.saved.messageExplained) {
                 Text(

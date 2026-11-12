@@ -4,6 +4,19 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Multi-step voice commands and the safety guard (2026-11-12) — feat/multi-step
+After the LFM3 on-device-model test (`orchestration-lfm3-2026-11-12.md`: too slow and unsafe on its own), multi-app requests are handled by rules: a clause splitter, a saved step queue and a deterministic guard.
+
+**Clause splitter (`Steps.kt`).** One utterance becomes an ordered list of the intents Nexus already has (call, WhatsApp, dictated message, ride home, ride to a place, Near home, phone-book contact). Joining and "if it didn't work" words are per-language data (`CLAUSE_GRAMMARS`: mr आणि / मग / नंतर, "नाही उचलला तर"; hi और / फिर, "अगर न उठाएं तो", "नहीं लगे तो"; en and / then, "if he doesn't pick up"), used together because parents mix languages. A cut is kept only when both sides are commands, and after a message only when a new action clearly starts, so "दूध आणि साबण आण" stays in the message. Pronouns and "tell him" carry the earlier person ("message him" → the doctor). Single requests behave exactly as before. Small parser fixes found by the LFM3 cases: "डॉक्टरांना फोन लाव" (respectful -ांना), "X के लिए कैब बुक करो", and "उसे लिखो कि …" are understood.
+
+**Step queue.** The plan is saved with the rest of the phone's state, so it survives Nexus being killed while the parent is in Uber, and is dropped after 30 minutes. Each step uses its normal screen (Calling countdown, Confirm, Message, Ride). Back home, after "did it work?", a card offers the next step: हो, करा / वगळा / सगळं रद्द करा. Yes after a call skips the "if he doesn't pick up" steps; No offers them (and for a failed ride or message with no fallback step, Help opens as before). A new request replaces a waiting plan.
+
+**Safety guard (`Guard.kt`).** Every message is checked when the draft opens and again at Send: OTP / PIN / MPIN / CVV / password words with a code, or a 12–19 digit card / Aadhaar-like number, are blocked with a spoken reason and "📞 <child> ला विचारा" (the usual countdown). "PIN code 411038" and phone numbers pass. Location links are allowed only if the parent said them; location requests are never turned into a step. Names: two saved people that fit equally ("Call Sunil" with Sunil Patil and Sunil Kale) go to "Which one?" instead of the first match, and a one-letter recogniser slip (and a phone-book match that isn't exact) is confirmed ("हा मेसेज Pankaj ला जाईल. बरोबर?") before Send appears. Ask family masks codes in the forwarded message.
+
+**Events (no words).** `multi_step_started` (step count), `step_done` (position, app kind), `step_skipped` (position; ok=false when cancelled or replaced), `guard_blocked` with a new `guard` field holding only the reason category (`secret_code`, `long_number`, `location`, `name_unsure`). Daily keys and summary fields in `docs/metrics.md`.
+
+**Tests.** 469 → 516 JVM tests: `StepsTest` (the LFM3 cases en01, en02, mr01, mr02, mr04, hi01, hi02, ho05, joiners, non-regression, location, speed), `GuardTest` (ho09 ATM PIN, adv01 OTP, adv02 two Sunils, card numbers, pin code, masking), `MultiStepUiTest` (handoff → did it work → next step, conditional yes/no, skip/cancel in Marathi, saved state round trip and expiry, the Blocked screen in en/mr, re-check at Send, name confirm, no words in events), 6 Roborazzi goldens in `roborazzi/ms/` (mr, hi).
+
 ### Global direction and language packs, step 1 (2026-11-12) — docs/global-i18n
 Pankaj: Nexus is a global product, not India-only and not only Marathi voice. Pune Marathi parents stay the beachhead.
 
