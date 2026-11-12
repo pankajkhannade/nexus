@@ -292,7 +292,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun planSetup(micGranted: Boolean, callGranted: Boolean) {
         if (setupPlan.isEmpty()) setupPlan = setupPages(micGranted, callGranted)
     }
-    var setupLanguage by mutableStateOf("mr")
+    var setupLanguage by mutableStateOf(DEFAULT_LANGUAGE)
     var setupPeople by mutableStateOf<List<Person>>(emptyList())
     var setupHome by mutableStateOf("")
     /** S15 setup step: need key -> picked package ("" = none), and the home PIN. */

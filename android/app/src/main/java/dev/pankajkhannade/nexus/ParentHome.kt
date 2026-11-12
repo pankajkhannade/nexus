@@ -315,7 +315,7 @@ private fun FeedbackCard(model: NexusViewModel, round: Int) {
 @Composable
 fun RideScreen(model: NexusViewModel) {
     val context = LocalContext.current
-    val installed = remember { CabApp.entries.filter { isInstalled(context, it.pkg) } }
+    val installed = remember { regionFor(model.saved.countryCode).cabApps.filter { isInstalled(context, it.pkg) } }
     val apps = rideOrder(installed, model.saved.lastCab)
     val target = model.rideTo
     val home = model.saved.home

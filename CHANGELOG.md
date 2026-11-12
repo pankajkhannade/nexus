@@ -4,6 +4,13 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Global direction and language packs, step 1 (2026-11-12) — docs/global-i18n
+Pankaj: Nexus is a global product, not India-only and not only Marathi voice. Pune Marathi parents stay the beachhead.
+
+**Docs.** `docs/vision.md` gets the global mission and three language and market stages: (A) Marathi, Hindi and English in India now; (B) every major Indian language, one at a time; (C) global markets, diaspora corridors first. New `docs/i18n-architecture.md`: an audit of every place a language or India is hard-coded (voice grammar, Devanagari-only name matching, scam phrases and Indian bank brands, strings and the 3-button picker, speech locales, the metrics language enum, India-only address search, 1930 / cybercrime.gov.in / 108, Indian ride and service apps, the PIN and phone shapes), the proposed language-pack and region-pack shape, and effort per step, per language and per country. Plan, decisions and README updated.
+
+**Code (no behaviour change).** `Languages.kt`: one registry of parent languages (code, own name, speech tag, script); speech tags, the language picker, the default language and Devanagari display names read from it. `Regions.kt`: `RegionPack` with one pack, `INDIA` (108, 1930, cybercrime.gov.in, ArcGIS "IND", India's bounding box, the PIN shape, ride apps); the Emergency tile, Money gone, address search, the PIN reader and the Ride screen read from it. New `LanguagePackTest` (6 tests): every registered language has strings and a locales_config entry, every strings folder is registered, every translation has every English string, and speech tags, display names and India's numbers are unchanged. 463 → 469 JVM tests.
+
 ### UX sprint 2 (2026-11-11) — feat/ux-sprint-2
 The rest of the UX critique (section 5 and ranked fixes 7–20), as an 8-item sprint.
 

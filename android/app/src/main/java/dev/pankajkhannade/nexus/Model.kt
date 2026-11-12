@@ -31,13 +31,13 @@ data class Person(
     val localName: String = "",
 )
 
-/** The name to show in [lang]: the Devanagari one in mr / hi when the child entered it, else the saved name. */
-fun Person.shownIn(lang: String): String = if (lang != "en" && hasDevanagari(localName)) localName.trim() else name.trim()
+/** The name to show in [lang]: the local-script one (Devanagari for mr / hi) when the child entered it, else the saved name. */
+fun Person.shownIn(lang: String): String = if (parentLanguage(lang).script.isIn(localName)) localName.trim() else name.trim()
 
 /** Every written form of this person's name that voice may match: saved name, Devanagari name, spoken alias. */
 val Person.names: List<String> get() = listOf(name, localName, alias).filter { it.isNotBlank() }
 
-fun hasDevanagari(text: String): Boolean = text.any { it in '\u0900'..'\u097F' }
+fun hasDevanagari(text: String): Boolean = Script.DEVANAGARI.isIn(text)
 
 /** UX sprint 2 (WCAG 2.2.1 Timing Adjustable): the action countdown, set in Family settings. */
 val COUNTDOWN_CHOICES = listOf(3, 5, 8)

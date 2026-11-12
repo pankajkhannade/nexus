@@ -219,6 +219,10 @@ If `recordRoborazziDebug` / `verifyRoborazziDebug` stalls with `AppNotIdleExcept
 
 Shared state: Robolectric reuses one DataStore per fork. `resetLocalDataForTest()` now also resets the countdown, marks the practice done and clears the return check; before that, one test's unfinished practice made later tests in the fork speak practice lines and time out.
 
+## Language and region registry tests (added 2026-11-12)
+
+`LanguagePackTest.kt` (L0, reads `src/main/res` directly): every language in `PARENT_LANGUAGES` has `values-<code>/strings.xml` and a `locales_config.xml` entry; every `values-xx` folder is a registered language; every translation has every translatable English string; speech tags (mr-IN, hi-IN, en-IN, English fallback), local display names and India's pack (108 / 112 elsewhere, 1930, cybercrime.gov.in, ArcGIS IND, the PIN shape, India's box, ride apps) are unchanged. When a language is added, this is the first test that should fail.
+
 ## When the emulator (or a phone) is still needed
 
 Only for things Robolectric doesn't really do. Keep it to one short smoke of **at most 10 checks**,

@@ -15,8 +15,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 /** India's National Cyber Crime Reporting Portal and its helpline (both run by the Ministry of Home Affairs). */
-const val CYBER_HELPLINE = "1930"
-const val CYBER_PORTAL = "https://cybercrime.gov.in"
+val CYBER_HELPLINE: String = INDIA.fraudHelpline!!
+val CYBER_PORTAL: String = INDIA.fraudPortal!!
 
 /**
  * UX sprint 2, principle 12 (the child is the support channel): help, one tap from home. For each helper a big

@@ -201,7 +201,7 @@ fun readPickedPhone(context: Context, uri: Uri): Pair<String, String>? {
  */
 fun suggestUrl(query: String, near: Place? = null): String = buildString {
     append("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?f=json&maxSuggestions=5")
-    append("&countryCode=IND")
+    append("&countryCode=").append(INDIA.countryCode3)
     append("&text=").append(URLEncoder.encode(query, "UTF-8"))
     if (near != null && near.hasCoordinates) {
         append("&location=").append(String.format(java.util.Locale.US, "%.5f,%.5f", near.lng, near.lat))
@@ -213,8 +213,8 @@ fun parseSuggestions(json: String): List<String> {
     val array = JSONObject(json).optJSONArray("suggestions") ?: JSONArray()
     return (0 until array.length()).mapNotNull { index ->
         array.optJSONObject(index)?.optString("text")?.trim()
-            ?.takeIf { it.endsWith(", IND") }
-            ?.removeSuffix(", IND")
+            ?.takeIf { it.endsWith(", ${INDIA.countryCode3}") }
+            ?.removeSuffix(", ${INDIA.countryCode3}")
             ?.takeIf { it.isNotEmpty() }
     }.distinct()
 }
@@ -230,11 +230,11 @@ fun suggestPlaces(query: String, near: Place? = null): List<String> {
 
 /** India's bounding box, so the phone's Geocoder never returns a same-named place abroad. */
 internal object IndiaBox {
-    const val SOUTH = 6.5
-    const val WEST = 68.0
-    const val NORTH = 37.2
-    const val EAST = 97.5
-    fun contains(lat: Double, lng: Double) = lat in SOUTH..NORTH && lng in WEST..EAST
+    val SOUTH = INDIA.bounds.south
+    val WEST = INDIA.bounds.west
+    val NORTH = INDIA.bounds.north
+    val EAST = INDIA.bounds.east
+    fun contains(lat: Double, lng: Double) = INDIA.bounds.contains(lat, lng)
 }
 
 /** The "Ask family" WhatsApp text: the message quoted, then the question in the parent's language. */
