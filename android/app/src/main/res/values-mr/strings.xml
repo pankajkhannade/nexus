@@ -450,4 +450,21 @@
     <string name="msg_someone_else">दुसरं कोणी</string>
     <string name="metrics_multi_step">एकापेक्षा जास्त कामं: %1$d (झाली %2$d, वगळली %3$d)</string>
     <string name="metrics_guard">Guard ने थांबवलेले मेसेज: %1$d</string>
+    <string name="dose_title">औषध</string>
+    <string name="dose_body">गरजेचे नाही. Nexus या वेळी बोलेल, ॲप बंद असले तरी, आणि विचारेल की औषध घेतले का. नाव या फोनवरच राहते.</string>
+    <string name="dose_name">औषधाचे नाव, ते जसे म्हणतात</string>
+    <string name="dose_add">ही वेळ जोडा</string>
+    <string name="dose_pick_time">दुसरी वेळ</string>
+    <string name="dose_taken">घेतली</string>
+    <string name="dose_not_yet">अजून नाही</string>
+    <string name="dose_no_answer">उत्तर नाही</string>
+    <string name="dose_due_tts">%1$s. घेतली का?</string>
+    <string name="dose_ask">घेतली का?</string>
+    <string name="dose_remove">काढा</string>
+    <string name="dose_none">अजून वेळ नाही. नंतर जोडता येईल.</string>
+    <string name="dose_share">Nexus, %1$s\n%2$s</string>
+    <string name="dose_send">आजचे उत्तर मुलाला पाठवा</string>
+    <string name="dose_home_due">%1$s, %2$s वाजता</string>
+    <string name="dose_name_short">किमान 2 अक्षरे लिहा.</string>
+    <string name="dose_full">चार औषधांपर्यंत.</string>
 </resources>

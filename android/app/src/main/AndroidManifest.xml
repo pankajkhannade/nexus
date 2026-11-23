@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- "Sunil la phone lav" for anyone in the phone book. Asked at first need; read on the phone, kept in memory only, never uploaded. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Puts the medicine alarms back after a reboot. No network. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
@@ -100,6 +102,14 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".DoseBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Shares a screenshot being checked with WhatsApp (Ask family). Only cache/shared/ is exposed. -->
         <provider

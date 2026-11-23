@@ -106,6 +106,10 @@ fun SettingsScreen(model: NexusViewModel) {
                         kind = if (on) ButtonKind.Primary else ButtonKind.Secondary)
                 }
             }
+            DoseEditor(saved.doses, model::setDoses)
+            if (saved.doses.isNotEmpty()) {
+                BigButton(stringResource(R.string.dose_send), { model.sendDoseSummary() }, kind = ButtonKind.Secondary)
+            }
             BigButton("🎤  " + stringResource(R.string.retest_mic), {
                 if (granted(context, Manifest.permission.RECORD_AUDIO)) model.startListening() else model.screen = Screen.Home
             }, kind = ButtonKind.Secondary)

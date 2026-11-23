@@ -451,4 +451,21 @@
     <string name="msg_someone_else">Someone else</string>
     <string name="metrics_multi_step">Multi-step requests: %1$d (steps done %2$d, skipped %3$d)</string>
     <string name="metrics_guard">Guard stopped a message: %1$d</string>
+    <string name="dose_title">Medicines</string>
+    <string name="dose_body">Optional. Nexus speaks at this time even if the app is closed, and asks if it was taken. The name stays on this phone.</string>
+    <string name="dose_name">Medicine, as they say it</string>
+    <string name="dose_add">Add this time</string>
+    <string name="dose_pick_time">Other time</string>
+    <string name="dose_taken">Taken</string>
+    <string name="dose_not_yet">Not yet</string>
+    <string name="dose_no_answer">No answer</string>
+    <string name="dose_due_tts">%1$s. Did you take it?</string>
+    <string name="dose_ask">Did you take it?</string>
+    <string name="dose_remove">Remove</string>
+    <string name="dose_none">No medicine times yet. You can add one later.</string>
+    <string name="dose_share">Nexus, %1$s\n%2$s</string>
+    <string name="dose_send">Send today’s answer to the child</string>
+    <string name="dose_home_due">%1$s at %2$s</string>
+    <string name="dose_name_short">Add at least 2 letters.</string>
+    <string name="dose_full">Four medicines is the limit.</string>
 </resources>

@@ -62,6 +62,8 @@ sealed interface Screen {
     data object MoneyGone : Screen
     /** Guard (2026-11-12): a message Nexus will not prepare (an OTP / PIN, a card number, a location it wasn't asked for). */
     data class Blocked(val reason: GuardReason) : Screen
+    /** A medicine alarm, or the home card for one that is waiting on an answer. */
+    data object DoseDue : Screen
 }
 
 /** Handoffs that get a "did it work?" question when the parent comes back to Nexus. */
@@ -362,6 +364,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             if (saved.setupDone) record(Event.OPEN)
             if (saved.setupDone && !saved.practiceDone) startPractice()
             if (saved.home.isSet && !saved.home.hasCoordinates) locate(saved.home.address)
+            if (saved.setupDone) rescheduleDoses(app, saved.doses)
+            pendingDoseId?.let { showDose(it); pendingDoseId = null }
             refreshVoiceMode()
             // Warm the in-memory phone-book index so names can bias the recogniser.
             if (contacts.hasPermission()) runCatching { phoneBook() }
@@ -617,14 +621,72 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
                 services = picks - Need.RIDE.key,
                 lastCab = CabApp.entries.firstOrNull { it.pkg == picks[Need.RIDE.key] }?.id ?: saved.lastCab,
                 practiceDone = false,
+                doses = setupDoses,
             ),
         )
+        rescheduleDoses(getApplication(), setupDoses)
         locate(setupHome)
         record(Event.OPEN)
         if (events.all().none { it.type == EventType.SETUP_DONE }) {
             track(EventType.SETUP_DONE, lang = Lang.of(setupLanguage), ms = if (setupStartedAt > 0) nowMs - setupStartedAt else null)
         }
         applyLanguage(setupLanguage)
+    }
+
+    /** Medicine times chosen during setup, copied onto the phone when setup finishes. */
+    var setupDoses by mutableStateOf<List<Dose>>(emptyList())
+
+    fun replaceSetupDoses(doses: List<Dose>) {
+        setupDoses = doses.take(MAX_DOSES)
+    }
+
+    /** The medicine alarm that is on screen, if any. */
+    var dueDoseId by mutableStateOf<String?>(null)
+    private var pendingDoseId: String? = null
+
+    fun noteDoseIntent(id: String?) {
+        if (id.isNullOrBlank()) return
+        if (!loaded || !saved.setupDone) pendingDoseId = id else showDose(id)
+    }
+
+    fun showDose(id: String) {
+        if (saved.doses.none { it.id == id }) return
+        dueDoseId = id
+        screen = Screen.DoseDue
+        track(EventType.DOSE_DUE)
+    }
+
+    fun dosePrompt(dose: Dose): String =
+        getApplication<Application>().inLanguage(language).getString(R.string.dose_due_tts, dose.name)
+
+    fun answerDose(id: String, taken: Boolean) {
+        val day = java.time.LocalDate.ofEpochDay(today)
+        update(saved.copy(doseMarks = recordMark(saved.doseMarks, DoseMark(id, day.toString(), taken), saved.doses, day)))
+        track(EventType.DOSE_ANSWER, ok = taken)
+        dueDoseId = null
+        screen = Screen.Home
+    }
+
+    fun leaveDose() {
+        dueDoseId = null
+        if (screen == Screen.DoseDue) screen = Screen.Home
+    }
+
+    fun setDoses(doses: List<Dose>) {
+        val previous = saved.doses
+        val next = doses.take(MAX_DOSES)
+        val day = java.time.LocalDate.ofEpochDay(today)
+        update(saved.copy(doses = next, doseMarks = pruneMarks(saved.doseMarks, next, day)))
+        rescheduleDoses(getApplication(), next, alsoCancel = previous)
+    }
+
+    /** Opens WhatsApp (or SMS) to the child with today's medicine answers. The parent sends. */
+    fun sendDoseSummary() {
+        val app = getApplication<Application>()
+        val text = doseSummary(this)
+        val person = saved.people.firstOrNull { it.askFamily } ?: saved.people.firstOrNull() ?: return
+        if (!askFamilyByText(app, person.phone, text)) shareText(app, text)
+        actionOpened(AppCategory.WHATSAPP)
     }
 
     /** The child stays for a call, a message, and (if home is set) the ride home. Nothing is opened during it. */
@@ -1380,6 +1442,7 @@ class MainActivity : AppCompatActivity() {
     private fun consume(intent: Intent?) {
         intent ?: return
         if (BuildConfig.DEBUG && intent.hasExtra("debug_days")) model.dayOffset = intent.getLongExtra("debug_days", 0)
+        model.noteDoseIntent(intent.getStringExtra(EXTRA_DOSE_ID))
         model.handleShare(intent)
     }
 }

@@ -297,6 +297,8 @@ fun dailyCounts(events: List<UsageEvent>, day: LocalDate, zone: ZoneId = ZoneId.
                 add("guard_blocked")
                 e.guard?.let { add("guard_${it.key}") }
             }
+            EventType.DOSE_DUE -> add("dose_due")
+            EventType.DOSE_ANSWER -> if (e.ok != null) add(if (e.ok) "dose_taken" else "dose_not_yet")
         }
     }
     classifyAttempts(sorted).filter { dayOf(it.t, zone) == day }.forEach { a ->

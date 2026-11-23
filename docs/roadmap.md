@@ -121,7 +121,18 @@ What survives: the family link (2, 4) and first-try voice for a closed set of fa
 
 ## Roadmap
 
-### Now: next 2-3 weeks, before and during the Play closed test (6 parent-child pairs)
+### Added 2026-11-23, from a competitor pass
+
+FamAI, Athnova, LifeWise, Sahai and Reca all get a daily open from a medicine reminder or a morning check-in. Emoha sells a person, not a screen. BharatCaller, Truecaller and the Phone app already warn while a number is ringing. Nexus was ahead on a Marathi sentence that places a call, and behind on a reason to come back tomorrow.
+
+| # | What | Status |
+|---|---|---|
+| N7 | Spoken medicine reminder. The child sets up to 4 times during setup or in Family settings. The phone speaks at that time even if Nexus is closed (alarm clock, put back after reboot). The parent answers Taken or Not yet. One tap sends today's line to the child on WhatsApp. The medicine name is never written into the usage log. | Built 2026-11-23 |
+| N8 | The child sees that line without standing at the phone (the remote half of X2). | Not now. Needs the child app (X1). Until then the parent sends the line. |
+| L6 | When an unknown number rings, one line: don't share an OTP, call the child. Family numbers stay quiet. Not a spam list and not a call screener. | Later. The kill list still stands: do not build our own caller-ID or scam detector. |
+| — | A native review of the Marathi and Hindi strings, including the new medicine lines. No new language. | Still a person, not a feature. |
+
+## Now: next 2-3 weeks, before and during the Play closed test (6 parent-child pairs)
 
 Goal: pass the kill rule (4 of 6 parents use Nexus on 4+ of 7 days) and get one real "Nexus helped" story per pair.
 
@@ -144,7 +155,7 @@ Goal: the child pays because they can see and fix things from far away.
 |---|---|---|---|---|---|---|---|
 | X1 | Child app and pairing by QR; remote configuration of Nexus (people, Near home apps, reminders, ringer guard) through an end-to-end encrypted relay | "There's no one around to help her delete those mistakes"; every fix needs a call | r/GadgetsIndia; r/nri; Oscar Family's model | L | Medium: first server, so Data safety and privacy copy change | Child's willingness to pay | The family link is the product; needs N1-N5 to have daily use first |
 | X2 | Daily "all fine" signal: passive (Nexus used, phone unlocked, charging) with an optional one-tap "मी ठीक आहे"; no signal by a set time leads to a reminder, then an alert to the child | Living alone; nobody notices a bad day | r/india fall; Emoha "2am"; Sentio and Athnova exist and charge | M | Low-medium (background limits; no location) | Willingness to pay, retention | It's what people already pay Rs 299-1,999 a month for |
-| X3 | Medicine reminders spoken in the parent's language, with "taken" visible to the child | Missed doses; the child can't know | r/nri; r/eldercare; r/india; Sentio; BaldPhone; Oscar | M | Medium (exact alarms need a user grant on Android 14+; use inexact windows) | Willingness to pay, D30 | High demand, and the child sees value |
+| X3 | Medicine reminders spoken in the parent's language, with "taken" visible to the child. The on-phone half is N7 (built 2026-11-23). What remains is the child seeing it from their own phone, which waits on X1. | Missed doses; the child can't know | r/nri; r/eldercare; r/india; Sentio; BaldPhone; Oscar; FamAI; Athnova; LifeWise | M | Medium (exact alarms need a user grant on Android 14+; N7 uses the alarm-clock API instead) | Willingness to pay, D30 | The daily habit competitors already charge for |
 | X4 | Phone-health view for the child: storage, battery, silent mode, Wi-Fi off, apps out of date, remote-access apps | "Half the battle is even realizing something isn't working" | r/nri; r/IndiaTech storage; BIG Launcher review; Truecaller shares sound status | M | Low | Willingness to pay | Cheap once X1 exists |
 | X5 | Pricing test: Rs 999 a year against Rs 149 a month, with a family plan for 2 parents | Unknown willingness to pay | Sentio Rs 299-699 a month; Emoha Rs 1,999+; BIG Launcher $13.99 a year | S | Low (Play Billing) | Willingness to pay | Anchors the business; needs Pankaj's yes before any charge |
 
@@ -155,8 +166,9 @@ Goal: the child pays because they can see and fix things from far away.
 | L1 | On-device Indic speech (Sarvam Edge-class, AI4Bharat models) if it can be licensed and runs on 4-6 GB phones; adopt only if it beats Google's recogniser on the N1 test set | Sarvam Edge is built with OEMs and measured on flagship chips; licensing is unclear |
 | L2 | Trusted-person approval surface if RBI finalises it (70+, transfers above Rs 50,000) | Only a discussion paper (April 2026); no draft yet |
 | L3 | "Explain this screen" from a shared screenshot (on-device OCR and rules, then Ask family) | Useful, but behind the daily-use basics |
-| L4 | More languages (Gujarati, Tamil, Bengali) | After Marathi and Hindi prove out |
+| L4 | More languages (Gujarati, Tamil, Bengali) | After Marathi and Hindi prove out. A native pass on Marathi beats adding a language LifeWise already lists. |
 | L5 | Partnering with banks on verified calls if Google brings it to India | Google runs it in Brazil only today |
+| L6 | One line when an unknown number rings: don't share an OTP, call the child | After the medicine habit is real. Not a spam list. Truecaller and the Phone app already do caller ID. |
 
 ## Kill list: what not to build, and why
 

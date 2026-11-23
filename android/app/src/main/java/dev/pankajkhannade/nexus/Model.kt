@@ -80,6 +80,10 @@ data class Saved(
     val countdownSeconds: Int = DEFAULT_COUNTDOWN,
     /** A multi-step request still waiting on the parent (Steps.kt); null when none. Expires after 30 minutes. */
     val plan: PlanQueue? = null,
+    /** Medicine times the child set. Spoken on the phone even when Nexus is closed. */
+    val doses: List<Dose> = emptyList(),
+    /** Taken / not yet, for the last 14 days. Stays on the phone. */
+    val doseMarks: List<DoseMark> = emptyList(),
 )
 
 data class Country(val name: String, val dial: String, val code: String)

@@ -1,4 +1,5 @@
 # Decisions log
+- 2026-11-23: Medicine reminders are built on the parent's phone now (N7), not held for the child app. FamAI, Athnova, LifeWise, Sahai and Reca all use a reminder or a morning check-in as the daily open. The name stays on the phone; the child gets it only when someone taps Send. An unknown-number warning (L6) is not a call screener and is not built. No new language.
 - 2026-11-10: Nexus picked as the company (Pankaj, yes in chat). Reason: already built, Pankaj's own interest (consumer app + AI assistant).
 - 2026-11-10: No Play Store work until a 7-day sideload test shows a repeated daily command. Reason: overlap with Google Assistant / cab app shortcuts is the top risk; Play costs money and time.
 - 2026-11-10: Teardown (evaluation-2026-11-10.md) found the cab handoff probably doesn't prefill the destination in Uber/Ola, and phone numbers are stored with the wrong country code. Fix those before adding features. Run the tester round as a 12-person Play closed test instead of sideloading. Reason: Play requires that test anyway, and it stops us testing a broken core promise.

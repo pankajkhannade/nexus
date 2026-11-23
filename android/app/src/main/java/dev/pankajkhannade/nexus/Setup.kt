@@ -222,6 +222,7 @@ private fun FamilyStep(model: NexusViewModel, next: () -> Unit) {
             else -> null
         }
         reason?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        DoseEditor(model.setupDoses, model::replaceSetupDoses)
         BigButton(stringResource(R.string.continue_), next, enabled = reason == null)
     }
     editing?.let { draft ->

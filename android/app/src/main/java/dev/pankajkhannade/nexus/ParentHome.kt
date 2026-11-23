@@ -125,6 +125,12 @@ fun ParentHome(model: NexusViewModel, onSpeak: () -> Unit, onSettings: () -> Uni
                     }
                     TileGrid(tiles)
                 }
+                dueDoses(saved.doses, saved.doseMarks, java.time.ZonedDateTime.now()).firstOrNull()?.let { dose ->
+                    OutlinedPanel {
+                        Text(stringResource(R.string.dose_home_due, dose.name, doseClock(dose)), style = MaterialTheme.typography.titleLarge)
+                        BigButton(stringResource(R.string.dose_ask), { model.showDose(dose.id) })
+                    }
+                }
                 if (model.notice.isNotEmpty()) Text(model.notice, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("home_notice"))
                 model.feedback.due(saved.installDay, model.today)?.let { round -> FeedbackCard(model, round) }
             }

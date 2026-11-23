@@ -68,6 +68,8 @@ internal fun encode(saved: Saved): String {
         .put("services", JSONObject(saved.services as Map<*, *>))
         .put("practiceDone", saved.practiceDone)
         .put("countdown", saved.countdownSeconds)
+        .put("doses", encodeDoses(saved.doses))
+        .put("doseMarks", encodeMarks(saved.doseMarks))
         .apply { saved.plan?.let { put("plan", encodePlan(it)) } }
         .toString()
 }
@@ -110,7 +112,38 @@ internal fun decode(raw: String): Saved {
         practiceDone = if (json.has("practiceDone")) json.optBoolean("practiceDone") else true,
         countdownSeconds = cleanCountdown(json.optInt("countdown", DEFAULT_COUNTDOWN)),
         plan = json.optJSONObject("plan")?.let(::decodePlan),
+        doses = decodeDoses(json.optJSONArray("doses")),
+        doseMarks = decodeMarks(json.optJSONArray("doseMarks")),
     )
+}
+
+private fun encodeDoses(doses: List<Dose>): JSONArray = JSONArray().apply {
+    doses.take(MAX_DOSES).forEach { put(JSONObject().put("id", it.id).put("name", it.name).put("h", it.hour).put("m", it.minute)) }
+}
+
+private fun decodeDoses(array: JSONArray?): List<Dose> {
+    if (array == null) return emptyList()
+    return (0 until array.length()).mapNotNull { i ->
+        val item = array.optJSONObject(i) ?: return@mapNotNull null
+        val name = cleanDoseName(item.optString("name")) ?: return@mapNotNull null
+        val time = cleanDoseTime(item.optInt("h", -1), item.optInt("m", -1)) ?: return@mapNotNull null
+        val id = item.optString("id").takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        Dose(id, name, time.first, time.second)
+    }.take(MAX_DOSES)
+}
+
+private fun encodeMarks(marks: List<DoseMark>): JSONArray = JSONArray().apply {
+    marks.takeLast(56).forEach { put(JSONObject().put("id", it.doseId).put("day", it.day).put("taken", it.taken)) }
+}
+
+private fun decodeMarks(array: JSONArray?): List<DoseMark> {
+    if (array == null) return emptyList()
+    return (0 until array.length()).mapNotNull { i ->
+        val item = array.optJSONObject(i) ?: return@mapNotNull null
+        val day = item.optString("day")
+        if (!Regex("""\d{4}-\d{2}-\d{2}""").matches(day)) return@mapNotNull null
+        DoseMark(item.optString("id"), day, item.optBoolean("taken"))
+    }
 }
 
 private fun encodePlan(plan: PlanQueue): JSONObject {

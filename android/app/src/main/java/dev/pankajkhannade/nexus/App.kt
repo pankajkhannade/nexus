@@ -66,6 +66,7 @@ fun NexusApp(model: NexusViewModel) {
                     screen is Screen.NeedHelp || screen is Screen.Install || screen == Screen.Emergency -> model.screen = Screen.NearHome
                     screen == Screen.Ride || screen == Screen.Destination -> model.leaveRide()
                     screen == Screen.MoneyGone -> model.leaveMoneyGone()
+                    screen == Screen.DoseDue -> model.leaveDose()
                     screen is Screen.Blocked -> model.leaveBlocked()
                     else -> { model.clearCheck(); model.tryingInSetup = false; model.screen = Screen.Home }
                 }
@@ -74,6 +75,7 @@ fun NexusApp(model: NexusViewModel) {
               androidx.compose.runtime.CompositionLocalProvider(LocalOnSpeak provides onSpeak) {
                 when {
                     !saved.setupDone -> SetupFlow(model)
+                    screen is Screen.DoseDue -> DoseDueScreen(model)
                     micGate -> PermissionCard(
                         "🎤", stringResource(R.string.mic_title), stringResource(R.string.mic_why_parent),
                         stringResource(if (model.voiceMode == VoiceMode.ON_DEVICE) R.string.mic_on_device else R.string.mic_online),

@@ -48,7 +48,11 @@ enum class EventType(val key: String) {
     /** A plan step was skipped (ok=true: by the parent or not needed; ok=false: the plan was cancelled or replaced). */
     STEP_SKIPPED("step_skipped"),
     /** The guard stopped or questioned an outgoing message; [UsageEvent.guard] = the reason category only. */
-    GUARD_BLOCKED("guard_blocked");
+    GUARD_BLOCKED("guard_blocked"),
+    /** A medicine alarm opened. The medicine name is not logged. */
+    DOSE_DUE("dose_due"),
+    /** The parent answered a medicine alarm. [UsageEvent.ok] = taken. */
+    DOSE_ANSWER("dose_answer");
 
     companion object {
         fun from(key: String): EventType? = entries.firstOrNull { it.key == key }

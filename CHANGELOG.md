@@ -4,6 +4,9 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### Spoken medicine reminders (2026-11-23)
+The child can add up to four medicine times in setup or Family settings. Nexus speaks at that time even if the app is closed, and asks if it was taken. Today's answers can be sent to the child on WhatsApp. The medicine name stays on the phone and is not in the usage log.
+
 ### Multi-step voice commands and the safety guard (2026-11-12) — feat/multi-step
 After the LFM3 on-device-model test (`orchestration-lfm3-2026-11-12.md`: too slow and unsafe on its own), multi-app requests are handled by rules: a clause splitter, a saved step queue and a deterministic guard.
 
