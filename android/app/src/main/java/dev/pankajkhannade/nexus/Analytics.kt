@@ -86,6 +86,7 @@ enum class CommandType(val key: String) {
             is Command.WhatsApp -> WHATSAPP
             is Command.FindContact -> FIND_CONTACT
             is Command.OpenNeed -> NEAR_HOME
+            Command.CheckSafety -> SAFETY
             Command.Unknown -> UNKNOWN
         }
     }

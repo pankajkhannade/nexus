@@ -1001,7 +1001,16 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
             } else {
                 findDestination(command.query)
             }
-            is Command.OpenNeed -> openNeed(command.need)
+            is Command.OpenNeed -> {
+                val due = dueDoses(saved.doses, saved.doseMarks, java.time.ZonedDateTime.now())
+                val dose = if (command.need == Need.MEDICINE && asksAboutTaking(heard)) due.firstOrNull() ?: saved.doses.singleOrNull() else null
+                if (dose != null) showDose(dose.id) else openNeed(command.need)
+            }
+            Command.CheckSafety -> {
+                clearCheck()
+                screen = Screen.Safety
+                speak(R.string.safety_voice)
+            }
             is Command.WhatsApp -> {
                 screen = Screen.Home
                 openWhatsAppFor(command.person)

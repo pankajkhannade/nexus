@@ -69,3 +69,15 @@ fun doseShareLines(doses: List<Dose>, marks: List<DoseMark>, day: LocalDate, sta
         "${dose.name} ${doseClock(dose)}: ${state(mark)}"
     }
 }
+
+private val TAKE_WORDS = setOf(
+    "ghya", "ghe", "ghyaychi", "ghyayche", "ghetli", "ghetla", "lena", "leni", "liya", "lo", "le", "li",
+    "taken", "take", "took", "khaya", "khayi",
+    "घ्या", "घेतली", "घेतला", "घ्यायची", "घ्यायचे", "ले", "ली", "लो", "लेनी", "लेना", "खा",
+)
+
+/** "goli ghyaychi" / "dawai le li": they mean today's dose, not the pharmacy. "औषध पाहिजे" does not. */
+fun asksAboutTaking(said: String): Boolean {
+    val words = said.lowercase().split(Regex("""[^\p{L}\p{M}]+""")).filter { it.isNotBlank() }
+    return words.any { it in TAKE_WORDS }
+}

@@ -24,7 +24,17 @@ private val GO_VERBS = setOf(
 /** English (and Hinglish) words before "to"/"at" + place. */
 private val EN_LEAD = setOf("take", "go", "going", "drop", "ride", "head", "heading", "reach", "travel", "book", "cab", "taxi", "auto", "rickshaw", "uber", "ola", "rapido")
 
-/** Vehicles and booking words, dropped from the place phrase. */
+private val CAB_NAME = setOf(
+    "rickshaw", "riksha", "rikshaw", "auto", "cab", "taxi", "uber", "ola", "rapido",
+    "रिक्षा", "रिक्शा", "ऑटो", "कॅब", "कैब", "टॅक्सी", "टैक्सी", "उबर", "ओला", "रॅपिडो",
+)
+
+/** Leftovers that are "I want", not a place: "रिक्षा पाहिजे" must stay the ride tile. */
+private val NOT_A_PLACE = setOf(
+    "pahije", "pahije", "pahiije", "have", "hawa", "havi", "chahiye", "chahie", "chahiye",
+    "पाहिजे", "पाहिजेत", "हवे", "हवं", "हवी", "चाहिए", "चाहिये", "बघ", "बघा",
+    "bulao", "bulava", "बुलाओ", "बोलवा",
+)
 private val VEHICLE = setOf(
     "rickshaw", "riksha", "rikshaw", "auto", "cab", "taxi", "car", "gaadi", "gadi", "ride", "uber", "ola", "rapido", "bus",
     "रिक्षा", "रिक्शा", "ऑटो", "कॅब", "कैब", "टॅक्सी", "टैक्सी", "गाडी", "गाड़ी", "उबर", "ओला", "रॅपिडो",
@@ -108,6 +118,11 @@ fun readDestination(said: String): String? {
         // "दीनानाथ अस्पताल के लिए कैब बुक करो", "station ke liye auto".
         if (marker.low in setOf("लिए", "liye", "lie") && before.size >= 3 && before[before.size - 2].low in setOf("के", "ke")) return cleanPlace(before.dropLast(2))
         if (marker.low in setOf("la", "ला", "tak", "तक", "ko", "को", "sathi", "साठी") || stripGlued(marker.text) != marker.text) return cleanPlace(before)
+    }
+    // "rickshaw book karo swargate", "ola book kar swargate": the place is last and has no case ending.
+    if (words.any { it.low in CAB_NAME }) {
+        val place = cleanPlace(words)
+        if (place != null && place.lowercase(Locale.ROOT) !in NOT_A_PLACE && readNeed(place) == null) return place
     }
     return null
 }

@@ -20,6 +20,8 @@ sealed interface Command {
     data class FindContact(val name: String, val ask: Ask, val options: List<Person> = emptyList()) : Command
     /** "दूध मागव", "doctor", "ambulance": a Near home tile. */
     data class OpenNeed(val need: Need) : Command
+    /** "हे मेसेज खरं आहे का", "is this message safe": open the check, never a draft. */
+    data object CheckSafety : Command
     data object Unknown : Command
 }
 
@@ -32,7 +34,14 @@ object RuleIntentParser : IntentParser {
     override fun parse(said: String, saved: Saved): Command {
         val text = said.trim()
         if (text.isEmpty()) return Command.Unknown
-        readDictation(text, saved)?.let { return Command.Message(it) }
+        if (isSafetyAsk(text)) return Command.CheckSafety
+        readDictation(text, saved)?.let { dictated ->
+            // "पंकजला व्हॉट्सॲप कर" with nothing to say opens the chat. A body still waits for Send.
+            if (dictated.text.isBlank() && dictated.person != null && dictated.channel == Channel.WHATSAPP && dictated.options.isEmpty()) {
+                return Command.WhatsApp(dictated.person)
+            }
+            return Command.Message(dictated)
+        }
         val reading = readMessage(text, saved)
         val person = reading.person
         if (wantsRideHome(reading) && saved.home.isSet) return Command.RideHome
@@ -65,3 +74,20 @@ fun isCompleteCommand(parser: IntentParser, said: String, saved: Saved): Boolean
         is Command.Message, Command.Unknown -> false
         else -> true
     }
+
+/** Words that mean "check this", not "send this". A tell-word ("सांग", "tell") keeps it a message. */
+private val SAFETY_WORDS = setOf(
+    "safe", "unsafe", "scam", "fraud", "fake", "nakli", "nakali", "real", "khara", "khare", "khota", "khot",
+    "सुरक्षित", "फसवणूक", "ठगी", "नकली", "खरा", "खरं", "खरे", "खोटा", "खोटं", "असली",
+)
+
+private val SAFETY_TELL = setOf(
+    "tell", "सांग", "सांगा", "sang", "sanga", "call", "phone", "फोन", "कॉल", "whatsapp", "sms",
+)
+
+fun isSafetyAsk(said: String): Boolean {
+    val words = said.lowercase().split(Regex("""[^\p{L}\p{M}]+""")).filter { it.isNotBlank() }
+    if (words.none { it in SAFETY_WORDS }) return false
+    if (words.any { it in SAFETY_TELL }) return false
+    return true
+}

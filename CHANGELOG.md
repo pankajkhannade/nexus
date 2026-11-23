@@ -4,6 +4,9 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### A cab word no longer drops the place (2026-11-23)
+"ola book kar swargate" goes to Swargate, not the plain ride tile. "is this message safe" opens the check screen instead of a draft. "पंकजला व्हॉट्सॲप कर" with nothing to say opens the chat. "goli ghyaychi" opens today's medicine when one is saved.
+
 ### The language you pick changes the whole app (2026-11-23)
 Setup asks which language Nexus should use, and the screens and the voice switch as soon as you tap it. The phone's own language is selected to start, when Nexus has it. Marathi is still first in the list, not the default. Family settings has the same choice, one language per row.
 

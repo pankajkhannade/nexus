@@ -23,6 +23,7 @@
     <string name="welcome_body">Nexus से वे बोलकर परिवार को फ़ोन कर सकते हैं, शक वाला मैसेज जाँच सकते हैं, और कुछ करने से पहले आपसे पूछ सकते हैं। लगभग 5 मिनट लगेंगे।</string>
     <string name="language_question">Nexus किस भाषा में चले?</string>
     <string name="language_applies">पूरा ऐप इसी भाषा में बदल जाएगा, और Nexus भी इसी में बोलेगा।</string>
+    <string name="safety_voice">मैसेज यहाँ चिपकाएँ, या उसे Nexus में शेयर करें।</string>
     <string name="play_sample">सुनें</string>
     <string name="sample_name">राहुल</string>
     <string name="try_phrase">%1$s को फ़ोन लगाओ</string>

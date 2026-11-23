@@ -32,6 +32,8 @@ class DestinationTest {
             "ride to Magarpatta City" to "Magarpatta City",
             "मंडईपर्यंत रिक्षा" to "मंडई",
             "Ruby Hall jana hai jaldi" to "Ruby Hall",
+            "rickshaw book karo swargate" to "swargate",
+            "ola book kar swargate" to "swargate",
         )
         for ((said, place) in cases) assertEquals(said, place, readDestination(said))
     }
@@ -39,6 +41,14 @@ class DestinationTest {
     @Test fun theParserTurnsThemIntoRides() {
         assertEquals(Command.RideTo("स्वारगेट"), RuleIntentParser.parse("स्वारगेटला जायचं आहे", saved))
         assertEquals(Command.RideTo("Pune airport"), RuleIntentParser.parse("take me to Pune airport", saved))
+        assertEquals(Command.RideTo("swargate"), RuleIntentParser.parse("ola book kar swargate", saved))
+        assertEquals(Command.OpenNeed(Need.RIDE), RuleIntentParser.parse("रिक्षा पाहिजे", saved))
+        assertEquals(Command.CheckSafety, RuleIntentParser.parse("is this message safe", saved))
+        assertEquals(Command.CheckSafety, RuleIntentParser.parse("हा मेसेज खरा आहे का", saved))
+        assertTrue(RuleIntentParser.parse("tell Pankaj this is not safe", saved) is Command.Message)
+        val named = pankaj.copy(localName = "पंकज")
+        val got = RuleIntentParser.parse("पंकजला व्हॉट्सॲप कर", saved.copy(people = listOf(named)))
+        assertEquals(Command.WhatsApp(named), got)
     }
 
     @Test fun homeStaysRideHome() {
