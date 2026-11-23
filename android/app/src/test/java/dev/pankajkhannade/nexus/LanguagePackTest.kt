@@ -44,6 +44,9 @@ class LanguagePackTest {
         assertEquals("en-IN", speechTag("xx"))
         assertEquals(listOf("mr", "hi", "en"), LANGUAGES.map { it.first })
         assertEquals(DEFAULT_LANGUAGE, PARENT_LANGUAGES.first().code)
+        assertEquals("hi", phoneLanguage("hi"))
+        assertEquals("en", phoneLanguage("fr"))
+        assertEquals("en", phoneLanguage(""))
     }
 
     @Test fun localNamesFollowTheLanguagesScript() {

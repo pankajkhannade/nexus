@@ -1,4 +1,5 @@
 # Decisions log
+- 2026-11-23: Choosing a language applies it immediately (AppCompat per-app locale), during setup and in Family settings. The screen starts in the phone's language when that is Marathi, Hindi or English, otherwise English. Marathi stays first in the list because that is the beachhead, not because the app is Marathi-only.
 - 2026-11-23: Medicine reminders are built on the parent's phone now (N7), not held for the child app. FamAI, Athnova, LifeWise, Sahai and Reca all use a reminder or a morning check-in as the daily open. The name stays on the phone; the child gets it only when someone taps Send. An unknown-number warning (L6) is not a call screener and is not built. No new language.
 - 2026-11-10: Nexus picked as the company (Pankaj, yes in chat). Reason: already built, Pankaj's own interest (consumer app + AI assistant).
 - 2026-11-10: No Play Store work until a 7-day sideload test shows a repeated daily command. Reason: overlap with Google Assistant / cab app shortcuts is the top risk; Play costs money and time.

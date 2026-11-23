@@ -120,8 +120,8 @@ private fun WelcomeStep(model: NexusViewModel, next: () -> Unit) {
     var missingVoice by remember { mutableStateOf<String?>(null) }
     ScreenColumn {
         Text(stringResource(R.string.welcome_title), style = MaterialTheme.typography.headlineMedium)
-        Text(stringResource(R.string.welcome_body), style = MaterialTheme.typography.bodyLarge)
-        Text(stringResource(R.string.language_question), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.language_question), style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.language_applies), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LANGUAGES.forEach { (code, label) ->
                 val sample = context.inLanguage(code).getString(R.string.try_phrase, context.inLanguage(code).getString(R.string.sample_name))
@@ -162,6 +162,7 @@ private fun WelcomeStep(model: NexusViewModel, next: () -> Unit) {
                 }, kind = ButtonKind.Secondary)
             }
         }
+        Text(stringResource(R.string.welcome_body), style = MaterialTheme.typography.bodyLarge)
         Text(stringResource(R.string.welcome_self), color = MaterialTheme.colorScheme.onSurfaceVariant)
         BigButton(stringResource(R.string.continue_), next)
     }

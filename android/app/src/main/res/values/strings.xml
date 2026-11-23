@@ -22,7 +22,8 @@
     <string name="setup_step_of">Step %1$d of %2$d</string>
     <string name="welcome_title">Set up Nexus for your parent</string>
     <string name="welcome_body">Nexus lets them call family by voice, check a suspicious message, and ask you before they act. It takes about 5 minutes.</string>
-    <string name="language_question">Which language does your parent speak?</string>
+    <string name="language_question">Which language should Nexus use?</string>
+    <string name="language_applies">The whole app switches to this language, including what Nexus says.</string>
     <string name="play_sample">Hear it</string>
     <string name="sample_name">Rahul</string>
     <string name="try_phrase">Call %1$s</string>

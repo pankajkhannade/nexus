@@ -309,7 +309,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     fun planSetup(micGranted: Boolean, callGranted: Boolean) {
         if (setupPlan.isEmpty()) setupPlan = setupPages(micGranted, callGranted)
     }
-    var setupLanguage by mutableStateOf(DEFAULT_LANGUAGE)
+    var setupLanguage by mutableStateOf(phoneLanguage())
     var setupPeople by mutableStateOf<List<Person>>(emptyList())
     var setupHome by mutableStateOf("")
     /** S15 setup step: need key -> picked package ("" = none), and the home PIN. */
@@ -570,8 +570,9 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun chooseLanguage(lang: String) {
-        setupLanguage = lang
-        refreshVoiceMode()
+        setupLanguage = parentLanguage(lang).code
+        // Switch the whole interface now, not at the end of setup.
+        applyLanguage(setupLanguage)
     }
 
     /** Adds or replaces a person in the setup draft. Returns false when the number can't be used. */

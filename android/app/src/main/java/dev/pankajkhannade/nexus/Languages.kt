@@ -25,15 +25,19 @@ enum class Script(private val range: CharRange?) {
     fun isIn(text: String): Boolean = range != null && text.any { it in range }
 }
 
-/** Marathi first (the Pune beachhead), then Hindi and English. Order is the picker order. */
+/** Marathi is listed first (the Pune beachhead). It is not the interface until someone chooses it. */
+const val DEFAULT_LANGUAGE = "mr"
+
+/** Picker order. The screen starts in [phoneLanguage], not in Marathi. */
 val PARENT_LANGUAGES: List<ParentLanguage> = listOf(
     ParentLanguage("mr", "मराठी", "mr-IN", Script.DEVANAGARI),
     ParentLanguage("hi", "हिंदी", "hi-IN", Script.DEVANAGARI),
     ParentLanguage("en", "English", "en-IN", Script.LATIN),
 )
 
-/** The language setup starts in before the child picks one. */
-const val DEFAULT_LANGUAGE = "mr"
+/** The language setup starts in: the phone's language when Nexus speaks it, otherwise English. */
+fun phoneLanguage(system: String = java.util.Locale.getDefault().language): String =
+    PARENT_LANGUAGES.firstOrNull { it.code == system }?.code ?: "en"
 
 private val ENGLISH = PARENT_LANGUAGES.first { it.code == "en" }
 

@@ -89,10 +89,12 @@ fun SettingsScreen(model: NexusViewModel) {
             }
 
             Text(stringResource(R.string.parent_language), style = MaterialTheme.typography.titleLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.language_applies), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("language_choice")) {
                 LANGUAGES.forEach { (code, label) ->
-                    BigButton((if (saved.language == code) "✓ " else "") + label, { model.applyLanguage(code) }, Modifier.weight(1f),
-                        kind = if (saved.language == code) ButtonKind.Primary else ButtonKind.Secondary)
+                    val on = saved.language == code
+                    BigButton((if (on) "✓ " else "") + label, { model.applyLanguage(code) }, Modifier.fillMaxWidth(),
+                        kind = if (on) ButtonKind.Primary else ButtonKind.Secondary)
                 }
             }
             // UX sprint 2 (WCAG 2.2.1): how long the call countdown waits, with Cancel on screen.

@@ -4,6 +4,9 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### The language you pick changes the whole app (2026-11-23)
+Setup asks which language Nexus should use, and the screens and the voice switch as soon as you tap it. The phone's own language is selected to start, when Nexus has it. Marathi is still first in the list, not the default. Family settings has the same choice, one language per row.
+
 ### Spoken medicine reminders (2026-11-23)
 The child can add up to four medicine times in setup or Family settings. Nexus speaks at that time even if the app is closed, and asks if it was taken. Today's answers can be sent to the child on WhatsApp. The medicine name stays on the phone and is not in the usage log.
 

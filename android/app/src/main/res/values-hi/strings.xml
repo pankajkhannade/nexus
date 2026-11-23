@@ -21,7 +21,8 @@
     <string name="setup_step_of">चरण %1$d / %2$d</string>
     <string name="welcome_title">अपने माता-पिता के लिए Nexus सेट करें</string>
     <string name="welcome_body">Nexus से वे बोलकर परिवार को फ़ोन कर सकते हैं, शक वाला मैसेज जाँच सकते हैं, और कुछ करने से पहले आपसे पूछ सकते हैं। लगभग 5 मिनट लगेंगे।</string>
-    <string name="language_question">आपके माता-पिता कौन सी भाषा बोलते हैं?</string>
+    <string name="language_question">Nexus किस भाषा में चले?</string>
+    <string name="language_applies">पूरा ऐप इसी भाषा में बदल जाएगा, और Nexus भी इसी में बोलेगा।</string>
     <string name="play_sample">सुनें</string>
     <string name="sample_name">राहुल</string>
     <string name="try_phrase">%1$s को फ़ोन लगाओ</string>

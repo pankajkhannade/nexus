@@ -21,7 +21,8 @@
     <string name="setup_step_of">पायरी %1$d / %2$d</string>
     <string name="welcome_title">आई-बाबांसाठी Nexus सेट करा</string>
     <string name="welcome_body">Nexus मुळे ते बोलून घरच्यांना फोन करू शकतात, संशयास्पद मेसेज तपासू शकतात, आणि काही करण्याआधी तुम्हाला विचारू शकतात. सुमारे 5 मिनिटं लागतील.</string>
-    <string name="language_question">आई-बाबा कोणती भाषा बोलतात?</string>
+    <string name="language_question">Nexus कोणत्या भाषेत चालेल?</string>
+    <string name="language_applies">संपूर्ण ॲप या भाषेत बदलेल, आणि Nexus पण याच भाषेत बोलेल.</string>
     <string name="play_sample">ऐका</string>
     <string name="sample_name">राहुल</string>
     <string name="try_phrase">%1$sला फोन लाव</string>
