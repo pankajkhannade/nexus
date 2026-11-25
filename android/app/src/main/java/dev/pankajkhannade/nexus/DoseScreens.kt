@@ -1,6 +1,9 @@
 package dev.pankajkhannade.nexus
 
+import android.Manifest
 import android.app.TimePickerDialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,9 +37,23 @@ fun DoseEditor(doses: List<Dose>, onChange: (List<Dose>) -> Unit) {
     var problem by remember { mutableStateOf<String?>(null) }
     val short = stringResource(R.string.dose_name_short)
     val full = stringResource(R.string.dose_full)
+    // Re-read on every resume, so the warning goes away when the child comes back from the system page.
+    var asked by remember { mutableIntStateOf(0) }
+    val resumed = rememberResumeTick()
+    val block = remember(resumed, asked, doses.isEmpty()) { doseBlock(context) }
+    val askNotify = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { asked += 1 }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.dose_title), style = MaterialTheme.typography.titleLarge)
         Text(stringResource(R.string.dose_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (doses.isNotEmpty() && block != null) {
+            Text(stringResource(R.string.dose_alarms_off), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+            BigButton(stringResource(R.string.dose_alarms_allow), {
+                when (block) {
+                    DoseBlock.NOTIFY -> askNotify.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    DoseBlock.EXACT -> runCatching { context.startActivity(allowDoseAlarmsIntent(context)) }
+                }
+            }, kind = ButtonKind.Primary)
+        }
         if (doses.isEmpty()) {
             Text(stringResource(R.string.dose_none), style = MaterialTheme.typography.bodyLarge)
         }
@@ -83,19 +100,13 @@ fun DoseEditor(doses: List<Dose>, onChange: (List<Dose>) -> Unit) {
 @Composable
 fun DoseDueScreen(model: NexusViewModel) {
     val dose = model.saved.doses.firstOrNull { it.id == model.dueDoseId }
-    val activity = LocalContext.current as? android.app.Activity
     if (dose == null) {
         androidx.compose.runtime.LaunchedEffect(Unit) { model.leaveDose() }
         return
     }
-    androidx.compose.runtime.LaunchedEffect(dose.id) {
-        activity?.showDoseOverLock(true)
-        model.say(model.dosePrompt(dose))
-    }
-    val answer: (Boolean) -> Unit = { taken ->
-        activity?.showDoseOverLock(false)
-        model.answerDose(dose.id, taken)
-    }
+    // Over the lock screen only while this card is up: NexusApp sets it from the screen on every frame.
+    androidx.compose.runtime.LaunchedEffect(dose.id) { model.say(model.dosePrompt(dose)) }
+    val answer: (Boolean) -> Unit = { taken -> model.answerDose(dose.id, taken) }
     ScreenColumn {
         Text(dose.name, style = MaterialTheme.typography.displaySmall)
         Text(doseClock(dose), style = MaterialTheme.typography.headlineMedium)

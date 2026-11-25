@@ -469,4 +469,6 @@
     <string name="dose_home_due">%1$s, %2$s वाजता</string>
     <string name="dose_name_short">किमान 2 अक्षरे लिहा.</string>
     <string name="dose_full">चार औषधांपर्यंत.</string>
+    <string name="dose_alarms_off">या फोनवर अलार्म बंद आहेत, त्यामुळे Nexus या वेळेला बोलू शकणार नाही.</string>
+    <string name="dose_alarms_allow">अलार्म चालू करा</string>
 </resources>

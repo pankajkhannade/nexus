@@ -26,6 +26,8 @@
 7. Play closed test: 12 testers (6 parent-child pairs) for 14 days. The Play Console fee needs Pankaj's yes. Outreach is drafted for Pankaj to send; it is not sent by the bot.
 8. Then the exit / kill rule below.
 
+**2026-11-25 QA pass (fix/qa-crashes):** the parents' first week found that medicine reminders never rang with the app closed, Back from the medicine card left Nexus open over the PIN lock, and a pause after "X ला व्हॉट्सॲप कर" cut messages off. All fixed, with tests. No FATAL exception reproduced on Android 10 or 14; the crash reports still need the parents' exact steps.
+
 ## Thesis (one line)
 Nexus is the family co-pilot for your parents' Android phone: they speak in their own language and the simple thing happens; before anything risky, it pulls you in, and nothing leaves the phone without their say. Global and language-pluggable, starting with Marathi in Pune.
 

@@ -94,3 +94,6 @@ Exit metric: Rs 10 lakh ARR or one signed bank/OEM partnership.
 
 ## What we stop
 The commuter/cab launcher as the headline (keep "book a ride home" as a parent action), general assistant chat, cross-app automation, any server-side data.
+
+_2026-11-25: first real use by two parents. The QA pass that followed is a reminder that every feature has to survive a locked, sleeping, closed phone, because that is how parents' phones spend most of the day._
+

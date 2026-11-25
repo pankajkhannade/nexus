@@ -11,6 +11,13 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- Puts the medicine alarms back after a reboot. No network. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Medicine times ring at the exact minute (alarm clock). Android 14+ asks the child to allow it once. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- The medicine alarm is a notification (Android 13+ asks once) that opens the card full screen when the phone is locked. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Lights the screen for the medicine card for up to 15 seconds. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
@@ -108,8 +115,16 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".DoseRingReceiver"
+            android:exported="false" />
 
         <!-- Shares a screenshot being checked with WhatsApp (Ask family). Only cache/shared/ is exposed. -->
         <provider

@@ -134,10 +134,13 @@ class MessageUiTest {
         assertTrue(nextStartedIntent()!!.dataString!!.startsWith("https://wa.me/919123456789?text=Mi%20yete."))
     }
 
-    @Test fun emptyMessageAsksWhatToSay() {
+    @Test fun aWhatsAppWithNothingToSayOpensTheChat() {
+        // 23 Nov (d62e5b8): "पंकजला व्हॉट्सॲप कर" alone opens the chat; the parent types or speaks there.
         fakeInstall("com.whatsapp")
         dictate("Pankaj la whatsapp kar")
-        compose.onNodeWithText("What should I say?").assertExistsCompat()
+        val intent = nextStartedIntent()!!
+        assertEquals("com.whatsapp", intent.`package`)
+        assertEquals(null, textParam(intent))
     }
 
     @Test fun dontSendGoesHomeAndOpensNothing() {
