@@ -75,7 +75,7 @@ class ListeningUiTest {
     @Test fun speakAgainOnTheMessageScreenListensThroughPausesUntilDone() {
         shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
         val model = model()
-        model.understood("whatsapp Pankaj", typed = true)
+        model.understood("whatsapp Pankaj I am coming", typed = true)
         compose.setParent { MessageScreen(model) }
         compose.onNodeWithText("🎤  Speak again").performClick()
 

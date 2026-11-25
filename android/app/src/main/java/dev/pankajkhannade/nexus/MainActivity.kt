@@ -172,6 +172,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The activity is visible again (onStart): after an action, or a plain return to the app. */
     fun cameBack() {
+        // An alarm clock rings once, and some phones drop alarms when the app is cleaned: set the next rings again.
+        if (loaded && saved.setupDone) rescheduleDoses(getApplication(), saved.doses)
         val cat = awayCategory
         if (cat != null) {
             track(EventType.ACTION_RETURN, category = cat, ms = (nowMs - awayAt).coerceAtLeast(0))
@@ -523,6 +525,8 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
         usage = Usage()
         feedback = Feedback()
         update(saved.copy(installDay = 0, lastCab = "", language = "", messageExplained = false, country = "India", dial = "+91", countryCode = "IN", pincode = "", services = emptyMap(), countdownSeconds = DEFAULT_COUNTDOWN, practiceDone = true, plan = null))
+        // Fixtures are a Marathi parent unless a test picks another language (the JVM itself is in English).
+        setupLanguage = DEFAULT_LANGUAGE
         runningStep = null
         practiceIndex = -1
         returnCheck = null
@@ -652,6 +656,7 @@ class NexusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun showDose(id: String) {
         if (saved.doses.none { it.id == id }) return
+        clearDoseNotification(getApplication(), id)
         dueDoseId = id
         screen = Screen.DoseDue
         track(EventType.DOSE_DUE)
@@ -1451,7 +1456,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun consume(intent: Intent?) {
         intent ?: return
+        // Reopened from Recents: Android replays the intent that first opened Nexus (a medicine alarm or a
+        // shared message). It was already handled, so it must not ring or open the check again.
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
         if (BuildConfig.DEBUG && intent.hasExtra("debug_days")) model.dayOffset = intent.getLongExtra("debug_days", 0)
+        // A medicine alarm: wake the screen and show over the lock before the window is drawn (setting it later,
+        // from the card, can leave a sleeping phone dark). NexusApp turns it off again once the card is gone.
+        if (!intent.getStringExtra(EXTRA_DOSE_ID).isNullOrBlank()) showDoseOverLock(true)
         model.noteDoseIntent(intent.getStringExtra(EXTRA_DOSE_ID))
         model.handleShare(intent)
     }

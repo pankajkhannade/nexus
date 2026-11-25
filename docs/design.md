@@ -656,3 +656,7 @@ Pankaj: "How do you measure success metrics of the app? ... let's build it end t
 - **Screenshots to WhatsApp can't target a chat directly** (not documented). The parent picks the chat, guided by an instruction screen.
 - **Translations** need native review. I drafted them; I'm not a native-speaker authority.
 - **Samsung Easy mode and big launchers already give big buttons for free.** Our edge has to come from voice in their language plus the Ask-family loop, which is why those two get the most design effort.
+
+## Medicine alarm (2026-11-25)
+At the medicine time the phone sounds and shows a notification "BP  21:00 / Did you take it?"; on a locked or sleeping phone the medicine card opens full screen over the lock and speaks. Answering, Back or Send takes it away and the lock comes back. In setup and Family settings, if the phone blocks alarms, the medicine section shows one red line and one **Allow alarms** button (notifications first, then the Alarms & reminders page).
+

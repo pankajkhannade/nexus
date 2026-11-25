@@ -297,3 +297,9 @@ How to run it without wasting time:
 - Firebase Test Lab quotas and pricing: https://firebase.google.com/docs/test-lab/usage-quotas-pricing
 - Gradle performance, configuration cache, build cache, test filtering: https://docs.gradle.org/current/userguide/performance.html · https://docs.gradle.org/current/userguide/configuration_cache.html · https://docs.gradle.org/current/userguide/build_cache.html · https://docs.gradle.org/current/userguide/java_testing.html
 - Maestro: https://github.com/mobile-dev-inc/maestro
+
+## QA pass 2026-11-25
+- `DoseAlarmUiTest`: exact alarms off -> nothing set and "Allow alarms" opens the system page; notifications off -> asked first; the ring posts a full-screen notification and sets tomorrow's ring; opening the card takes the notification down; leaving the card turns show-over-lock off; reboot/update/clock/permission broadcasts reach the receiver.
+- `VoiceFuzzTest` (pure, 4,000 seeded phrases) and `UnderstoodFuzzUiTest` (the real ViewModel, about 650 phrases with 0 and 4 people): nothing a parent says may throw.
+- Emulator smoke (API 29 and 34, no FATAL in the crash buffer): setup in Marathi, language switch both ways, call with countdown and "फोन लागला का?", help, SMS fallback without WhatsApp, ride without cab apps, Near home, Family settings, rotation, kill and restore, and a real medicine alarm with the app killed and a PIN lock (time set with `adb root; adb shell date`). Note: Robolectric's DataStore writes from the ViewModel do not complete in tests, so receiver logic takes the saved state as a parameter (`ringDose(context, id, saved)`).
+

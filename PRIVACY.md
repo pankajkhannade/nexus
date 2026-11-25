@@ -59,6 +59,7 @@ The steps open the phone's dial pad (1930, the bank), the browser (cybercrime.go
 
 ## Near home
 - The home pincode and the home coordinates are stored only on this phone. The pincode is used to label the screen ("Services for 411045") and, when there are no coordinates, as a fallback for maps search. Nexus cannot check whether an app delivers to that pincode.
+- Medicine reminders: the medicine name and time stay on the phone. At the time, Nexus shows a notification with the name and time (visible on the lock screen, like any alarm) and opens the medicine card over the lock screen; nothing else in Nexus can be used without unlocking. Nothing is sent anywhere.
 - Tapping Medicines, Doctor or the nearest hospital opens Google Maps with a search around the home coordinates (or the pincode or address if coordinates are missing). The search runs in Maps, not in Nexus.
 - The green "Installed" tag uses Android's on-device package visibility for a fixed list of well-known apps declared in the app manifest. Nexus does not scan the whole phone or read other apps' data.
 - An "Install" action opens that app's Play Store page (`market://details?id=…`, or the https Play page if the Play Store app is missing). Opening Play is the person's action.

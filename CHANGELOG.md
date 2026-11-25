@@ -4,6 +4,15 @@ All notable changes to Nexus. Dates are IST.
 
 ## [Unreleased]
 
+### QA pass after the first parent use: medicine alarms really ring, lock screen stays locked (2026-11-25)
+End-to-end QA of d62e5b8 on Android 10 and 14 emulators and the JVM suite, after Pankaj's parents reported bugs.
+- **Medicine alarms never rang when Nexus was closed.** The alarm opened the activity directly, which Android 10+ blocks as a background start, and on Android 14 `setAlarmClock` also needs "Alarms & reminders" (off by default), so it threw and nothing was set. Now the alarm goes to a receiver that posts a full-screen notification (sound, wakes the screen, shows the medicine card over the lock screen, which then speaks). If notifications or exact alarms are off, the medicine section says so with one **Allow alarms** button.
+- **Only the first reminder rang.** An alarm clock rings once and the next day's was only set when the app restarted. Each ring now sets tomorrow's; opening Nexus, a reboot, an APK update, a clock or time-zone change and granting the permission all set them again.
+- **Back from the medicine card left Nexus open over the PIN lock screen** (calls, messages, Family settings without the PIN). Showing over the lock is now tied to the medicine card being on screen.
+- **A pause after "पंकजला व्हॉट्सॲप कर" cut the message off** and opened an empty chat (since 23 Nov). A WhatsApp is never a finished command while the parent may still be speaking; it opens the chat only if they stop there.
+- Reopening from Recents no longer replays the medicine alarm or a shared message.
+- 11 JVM tests had been failing on main since 23 Nov (fixtures assumed Marathi as default; two tests encoded the old empty-WhatsApp behaviour). Fixed; new: medicine alarm tests and a 4,000-phrase voice fuzz test. 532 tests pass.
+
 ### A cab word no longer drops the place (2026-11-23)
 "ola book kar swargate" goes to Swargate, not the plain ride tile. "is this message safe" opens the check screen instead of a draft. "पंकजला व्हॉट्सॲप कर" with nothing to say opens the chat. "goli ghyaychi" opens today's medicine when one is saved.
 

@@ -470,4 +470,6 @@
     <string name="dose_home_due">%1$s at %2$s</string>
     <string name="dose_name_short">Add at least 2 letters.</string>
     <string name="dose_full">Four medicines is the limit.</string>
+    <string name="dose_alarms_off">Medicine alarms are off on this phone, so Nexus cannot speak at these times.</string>
+    <string name="dose_alarms_allow">Allow alarms</string>
 </resources>

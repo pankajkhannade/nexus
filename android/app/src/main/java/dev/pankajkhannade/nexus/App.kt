@@ -30,8 +30,11 @@ fun NexusApp(model: NexusViewModel) {
     val view = LocalView.current
     val context = LocalContext.current
     SideEffect {
-        val window = (view.context as Activity).window
-        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        val activity = view.context as Activity
+        WindowCompat.getInsetsController(activity.window, view).isAppearanceLightStatusBars = true
+        // Only the medicine card may show over a locked phone. Back, Send or anything else that leaves it
+        // turns this off, so calls, messages and Family settings never open without the phone's PIN.
+        if (model.loaded) activity.showDoseOverLock(model.screen is Screen.DoseDue)
     }
     var micGate by remember { mutableStateOf(false) }
     val contactsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->

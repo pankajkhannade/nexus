@@ -67,11 +67,13 @@ object RuleIntentParser : IntentParser {
 
 /**
  * True when [said] is already a whole command, so the mic can stop without waiting for Done.
- * A message is never complete by itself: the parent may still be speaking it.
+ * A message is never complete by itself: the parent may still be speaking it. That includes "पंकजला
+ * व्हॉट्सॲप कर" with nothing said yet (it opens the chat only if the parent stops there), so a pause
+ * after the name never cuts the message off.
  */
 fun isCompleteCommand(parser: IntentParser, said: String, saved: Saved): Boolean =
     when (parser.parse(said, saved)) {
-        is Command.Message, Command.Unknown -> false
+        is Command.Message, is Command.WhatsApp, Command.Unknown -> false
         else -> true
     }
 
